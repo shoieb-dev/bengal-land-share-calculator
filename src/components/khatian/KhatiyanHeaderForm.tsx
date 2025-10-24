@@ -40,6 +40,8 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
           <label className="block text-indigo-200 text-sm mb-1">খতিয়ান নং</label>
           <input
             type="text"
+            name="khotiyan_no"
+            autoComplete="on"
             value={header.khatiyanNo}
             onChange={(e) => onChange("khatiyanNo", e.target.value)}
             placeholder="যেমন: ৪৫৬"
@@ -71,7 +73,7 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
             type="text"
             value={header.thana}
             onChange={(e) => onChange("thana", e.target.value)}
-            placeholder="যেমন: পটিয়া"
+            placeholder="যেমন: আনোয়ারা"
             className="w-full bg-gray-200 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-indigo-500"
           />
         </div>
@@ -81,9 +83,11 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
           <label className="block text-indigo-200 text-sm mb-1">মৌজা</label>
           <input
             type="text"
+            name="mouja"
+            autoComplete="on"
             value={header.mouja}
             onChange={(e) => onChange("mouja", e.target.value)}
-            placeholder="যেমন: কালীপুর"
+            placeholder="যেমন: গুয়াপঞ্চক"
             className="w-full bg-gray-200 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-indigo-500"
           />
         </div>
@@ -93,6 +97,8 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
           <label className="block text-indigo-200 text-sm mb-1">জেএল নং</label>
           <input
             type="text"
+            name="jlNo"
+            autoComplete="on"
             value={header.jlNo}
             onChange={(e) => onChange("jlNo", e.target.value)}
             placeholder="যেমন: ১২৩"

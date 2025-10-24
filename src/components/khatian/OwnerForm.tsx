@@ -80,6 +80,8 @@ export const OwnerForm = ({ owners, onOwnerChange, onDelete, onAdd, calculateSha
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-2 md:gap-3 items-center">
                 <input
                   type="text"
+                  name="ownerName"
+                  autoComplete="on"
                   placeholder="মালিকের নাম"
                   value={owner.name}
                   onChange={(e) => onOwnerChange(index, "name", e.target.value)}
