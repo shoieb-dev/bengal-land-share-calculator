@@ -14,6 +14,15 @@ export type Dag = {
   land: number;
 };
 
+export type KhatiyanHeader = {
+  surveyType: string;
+  district: string;
+  khatiyanNo: string;
+  thana: string;
+  mouja: string;
+  jlNo: string;
+};
+
 export type ValidationError = {
   type: string;
   message: string;

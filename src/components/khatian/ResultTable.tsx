@@ -1,6 +1,6 @@
 "use client";
 import { anaOptions, gondaOptions, koraOptions, krantiOptions, tilOptions } from "@/lib/constants/options";
-import { Dag, Owner } from "@/lib/types";
+import { Dag, KhatiyanHeader, Owner } from "@/lib/types";
 import { downloadImage, copyImageToClipboard } from "@/lib/utils/imageExportDom";
 import { shotokToKaniGonda, shotokToKatha, shotokToSqFeet } from "@/lib/utils/landConversion";
 import { toBengaliNumber } from "@/lib/utils/numberConversion";
@@ -8,29 +8,15 @@ import { toBengaliNumber } from "@/lib/utils/numberConversion";
 import { Copy, Download, FileDown, Image, Printer } from "lucide-react";
 import { useState } from "react";
 
-export const ResultTable = ({
-  dags,
-  result,
-  owners,
-  totalSharePercentage,
-  surveyType,
-  district,
-  khatiyanNo,
-  thana,
-  mouja,
-  JLNo,
-}: {
+interface ResultTableProps {
+  header?: KhatiyanHeader;
   dags: Dag[];
   result: { dagName: string; ownerName: string; land: number }[];
   owners: Owner[];
   totalSharePercentage: number;
-  surveyType: string;
-  district: string;
-  khatiyanNo?: string;
-  thana?: string;
-  mouja?: string;
-  JLNo?: string;
-}) => {
+}
+
+export const ResultTable = ({ header, dags, result, owners, totalSharePercentage }: ResultTableProps) => {
   const [isExporting, setIsExporting] = useState(false);
 
   // Helper function to handle export with loading state and alert
@@ -49,33 +35,39 @@ export const ResultTable = ({
 
   return (
     <div className="bg-[#fff] text-[#000] rounded-lg shadow-xl p-4 md:p-6 border border-[#374151]" id="printable-area">
-      <h1 className="text-2xl font-bold text-center mb-4">{surveyType} খতিয়ান</h1>
+      {header && (header.surveyType || header.district || header.khatiyanNo) && (
+        <>
+          <h1 className="text-2xl font-bold text-center mb-4">{header.surveyType} খতিয়ান</h1>
 
-      {/* Header Section (from Section 1) */}
-      <div className="text-sm md:text-base mb-6 space-y-2 border-b border-[#4b5563] pb-4">
-        <div className="grid grid-cols-3">
-          <div>
-            <span className="font-semibold">জিলাঃ</span> {district}
+          {/* Header Section (from Section 1) */}
+          <div className="text-sm md:text-base mb-6 space-y-2 border-b border-[#4b5563] pb-4">
+            <div className="grid grid-cols-3">
+              <div>
+                <span className="font-semibold">জিলাঃ</span> {header.district}
+              </div>
+              <div className="md:ml-40">
+                <span className="font-semibold">থানাঃ</span> {header.thana}
+              </div>
+              <div className="md:ml-40">
+                <span className="font-semibold">খতিয়ান নংঃ</span> {toBengaliNumber(header.khatiyanNo ?? "")}
+              </div>
+            </div>
+            <div className="grid grid-cols-3">
+              <div>
+                <span className="font-semibold">মৌজাঃ</span> {header.mouja}
+              </div>
+              <div className="md:ml-40">
+                <span className="font-semibold">জে. এল নংঃ</span> {toBengaliNumber(header.jlNo ?? "")}
+              </div>
+              <div className="md:ml-40">
+                <span className="font-semibold">রে: সা: নংঃ</span>
+              </div>
+            </div>
           </div>
-          <div className="md:ml-40">
-            <span className="font-semibold">থানাঃ</span> {thana}
-          </div>
-          <div className="md:ml-40">
-            <span className="font-semibold">খতিয়ান নংঃ</span> {toBengaliNumber(khatiyanNo ?? "")}
-          </div>
-        </div>
-        <div className="grid grid-cols-3">
-          <div>
-            <span className="font-semibold">মৌজাঃ</span> {mouja}
-          </div>
-          <div className="md:ml-40">
-            <span className="font-semibold">জে. এল নংঃ</span> {toBengaliNumber(JLNo ?? "")}
-          </div>
-          <div className="md:ml-40">
-            <span className="font-semibold">রে: সা: নংঃ</span>
-          </div>
-        </div>
-      </div>
+        </>
+      )}
+
+      <h2 className="text-2xl font-bold text-center text-[#000] mb-4">হিসাবের ফলাফল</h2>
 
       {/* -------------------- PRIMARY TABLE: OWNER SHARE (Owner Total Table) -------------------- */}
       <h3 className="font-bold text-lg mb-2">১. মালিকের নাম ও অংশ</h3>

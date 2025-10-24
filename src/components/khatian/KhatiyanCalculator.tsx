@@ -1,16 +1,26 @@
 "use client";
-import { useMemo, useState } from "react";
-
-import { Dag, DeleteModalType, Owner, ResetModalType, ValidationError } from "@/lib/types";
+import { Dag, DeleteModalType, KhatiyanHeader, Owner, ResetModalType, ValidationError } from "@/lib/types";
 import { parseNumber, toBengaliNumber } from "@/lib/utils/numberConversion";
-import { Calculator, RotateCcw } from "lucide-react";
+import {
+  clearLocalStorage,
+  getLastSavedTime,
+  hasStoredData,
+  isAutoSaveEnabled,
+  loadFromLocalStorage,
+  saveToLocalStorage,
+  setAutoSaveEnabled as setStorageAutoSave,
+} from "@/lib/utils/storage";
+import { Calculator, RotateCcw, Save } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import AutoSaveIndicator from "./AutoSaveIndicator";
 import { DagForm } from "./DagForm";
-import { OwnerForm } from "./OwnerForm";
-import { ResultTable } from "./ResultTable";
-import { ErrorModal } from "./ErrorModal";
 import { DeleteModal } from "./DeleteModal";
+import { ErrorModal } from "./ErrorModal";
+import KhatiyanHeaderForm from "./KhatiyanHeaderForm";
+import LoadDataModal from "./LoadDataModal";
+import { OwnerForm } from "./OwnerForm";
 import { ResetModal } from "./ResetModal";
-import { bangladeshDistricts, surveyTypes } from "@/lib/constants/options";
+import { ResultTable } from "./ResultTable";
 
 // Main Component
 export default function KhatiyanCalculator() {
@@ -22,11 +32,134 @@ export default function KhatiyanCalculator() {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState<DeleteModalType>({ show: false, type: null, index: -1, name: "" });
   const [resetModal, setResetModal] = useState<ResetModalType>({ show: false });
-  const [surveyType, setSurveyType] = useState("বি এস");
-  const [district, setDistrict] = useState("চট্টগ্রাম");
-  const [khatiyanNo, setKhatiyanNo] = useState("");
-  const [thana, setThana] = useState("আনোয়ারা");
-  const [mouja, setMouja] = useState("গুয়াপঞ্চক");
+  const [header, setHeader] = useState<KhatiyanHeader>({
+    surveyType: "বি এস",
+    district: "চট্টগ্রাম",
+    khatiyanNo: "৫৫",
+    thana: "আনোয়ারা",
+    mouja: "গুয়াপঞ্চক",
+    jlNo: "২",
+  });
+
+  const [showLoadModal, setShowLoadModal] = useState(false);
+  const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+
+  // Check for saved data on mount
+  useEffect(() => {
+    const autoSave = isAutoSaveEnabled();
+    setAutoSaveEnabled(autoSave);
+
+    if (hasStoredData()) {
+      const savedTime = getLastSavedTime();
+      setLastSavedTime(savedTime);
+      setShowLoadModal(true);
+    }
+  }, []);
+
+  // Auto-save function
+  const handleAutoSave = useCallback(() => {
+    if (!autoSaveEnabled) return;
+
+    if (owners.length > 0 || dags.length > 0) {
+      setIsSaving(true);
+      const success = saveToLocalStorage(header, owners, dags);
+      if (success) {
+        setLastSavedTime(new Date());
+      }
+      setTimeout(() => setIsSaving(false), 500);
+    }
+  }, [owners, dags, header, autoSaveEnabled]);
+
+  // Auto-save every 30 seconds
+  useEffect(() => {
+    if (!autoSaveEnabled) return;
+
+    const interval = setInterval(() => {
+      handleAutoSave();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [handleAutoSave, autoSaveEnabled]);
+
+  // Auto-save on changes (debounced)
+  useEffect(() => {
+    if (!autoSaveEnabled) return;
+
+    const timeoutId = setTimeout(() => {
+      handleAutoSave();
+    }, 2000); // 2 seconds after last change
+
+    return () => clearTimeout(timeoutId);
+  }, [header, owners, dags, handleAutoSave, autoSaveEnabled]);
+
+  // Manual save function
+  const handleManualSave = () => {
+    setIsSaving(true);
+    const success = saveToLocalStorage(header, owners, dags);
+    if (success) {
+      setLastSavedTime(new Date());
+      alert("ডেটা সফলভাবে সংরক্ষিত হয়েছে!");
+    } else {
+      alert("ডেটা সংরক্ষণ করতে সমস্যা হয়েছে");
+    }
+    setTimeout(() => setIsSaving(false), 500);
+  };
+
+  // Load data from storage
+  const handleLoadData = () => {
+    const data = loadFromLocalStorage();
+    if (data) {
+      setHeader(data.header);
+      setOwners(data.owners);
+      setDags(data.dags);
+      setLastSavedTime(new Date(data.timestamp));
+    }
+    setShowLoadModal(false);
+  };
+
+  // Discard saved data
+  const handleDiscardData = () => {
+    clearLocalStorage();
+    setShowLoadModal(false);
+    setLastSavedTime(null);
+  };
+
+  // Toggle auto-save
+  const handleToggleAutoSave = (enabled: boolean) => {
+    setAutoSaveEnabled(enabled);
+    setStorageAutoSave(enabled);
+    if (enabled) {
+      handleAutoSave(); // Save immediately when enabled
+    }
+  };
+
+  // Update reset function to clear storage
+  const confirmReset = () => {
+    setHeader({
+      surveyType: "",
+      district: "",
+      khatiyanNo: "",
+      thana: "",
+      mouja: "",
+      jlNo: "",
+    });
+    setDags([]);
+    setOwners([]);
+    setResult([]);
+    setErrors([]);
+    setShowResult(false);
+    setShowErrorModal(false);
+    setResetModal({ show: false });
+    clearLocalStorage(); // Clear saved data
+    setLastSavedTime(null);
+  };
+
+  // Update handleHeaderChange
+  const handleHeaderChange = (field: keyof KhatiyanHeader, value: string) => {
+    setHeader({ ...header, [field]: value });
+  };
 
   const calculateShareRatio = (owner: Owner): number => {
     return owner.ana / 16 + owner.gonda / 320 + owner.kora / 1280 + owner.kranti / 3840 + owner.til / 76800;
@@ -63,7 +196,7 @@ export default function KhatiyanCalculator() {
     });
 
     const totalRatio = owners.reduce((sum, owner) => sum + calculateShareRatio(owner), 0);
-    if (totalRatio > 1.0001) {
+    if (totalRatio > 1.009) {
       newErrors.push({ type: "total", message: "মোট মালিকানা ১৬ আনার (১০০%) বেশি হতে পারে না!" });
     }
 
@@ -113,16 +246,6 @@ export default function KhatiyanCalculator() {
 
   const handleReset = () => {
     setResetModal({ show: true });
-  };
-
-  const confirmReset = () => {
-    setDags([]);
-    setOwners([]);
-    setResult([]);
-    setErrors([]);
-    setShowResult(false);
-    setShowErrorModal(false);
-    setResetModal({ show: false });
   };
 
   const calculateResult = () => {
@@ -175,78 +298,18 @@ export default function KhatiyanCalculator() {
           <h1 className="text-2xl md:text-3xl font-bold text-center text-blue-300 mb-2">খতিয়ান হিসাব</h1>
           <p className="text-center text-gray-400 mb-4 text-sm md:text-base">জমির মালিকানা ও বন্টন হিসাব</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label htmlFor="survey-type" className="block text-sm font-medium text-gray-300 mb-1">
-                জরিপের ধরন
-              </label>
-              <select
-                id="survey-type"
-                value={surveyType}
-                onChange={(e) => setSurveyType(e.target.value)}
-                className="w-full bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-purple-500"
-              >
-                {surveyTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="district" className="block text-sm font-medium text-gray-300 mb-1">
-                জিলাঃ
-              </label>
-              <select
-                id="district"
-                value={district}
-                onChange={(e) => setDistrict(e.target.value)}
-                className="w-full bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-purple-500"
-              >
-                {bangladeshDistricts.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="khatiyan-no" className="block text-sm font-medium text-gray-300 mb-1">
-                খতিয়ান নং
-              </label>
-              <input
-                type="text"
-                id="khatiyan-no"
-                value={khatiyanNo}
-                onChange={(e) => setKhatiyanNo(e.target.value)}
-                className="w-full bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-            <div>
-              <label htmlFor="thana" className="block text-sm font-medium text-gray-300 mb-1">
-                থানা
-              </label>
-              <input
-                type="text"
-                id="thana"
-                value={thana}
-                onChange={(e) => setThana(e.target.value)}
-                className="w-full bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-            <div>
-              <label htmlFor="mouja" className="block text-sm font-medium text-gray-300 mb-1">
-                মৌজা
-              </label>
-              <input
-                type="text"
-                id="mouja"
-                value={mouja}
-                onChange={(e) => setMouja(e.target.value)}
-                className="w-full bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
+          {/* Auto-save Indicator */}
+          <div className="mb-4">
+            <AutoSaveIndicator
+              lastSaved={lastSavedTime}
+              isSaving={isSaving}
+              autoSaveEnabled={autoSaveEnabled}
+              onToggleAutoSave={handleToggleAutoSave}
+            />
           </div>
+
+          {/* Khatian Header Form */}
+          <KhatiyanHeaderForm header={header} onChange={handleHeaderChange} />
 
           {/* Total Share Indicator */}
           <div
@@ -303,14 +366,25 @@ export default function KhatiyanCalculator() {
             onAdd={addDag}
           />
 
-          {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">
+            {/* Manual Save Button */}
+            <button
+              onClick={handleManualSave}
+              disabled={isSaving}
+              className="sm:w-auto bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition shadow-lg flex items-center justify-center gap-2 border border-green-500 disabled:opacity-50"
+            >
+              <Save size={20} /> {isSaving ? "সংরক্ষণ হচ্ছে..." : "সংরক্ষণ করুন"}
+            </button>
+
+            {/* Calculate Button */}
             <button
               onClick={calculateResult}
               className="flex-1 bg-linear-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition shadow-lg flex items-center justify-center gap-2 text-base md:text-lg"
             >
               <Calculator size={22} /> ফলাফল হিসাব করুন
             </button>
+
+            {/* Reset Button */}
             <button
               onClick={handleReset}
               className="sm:w-auto bg-gray-700 text-gray-200 px-6 py-3 rounded-lg font-semibold hover:bg-gray-600 transition shadow-lg flex items-center justify-center gap-2 border border-gray-600"
@@ -323,14 +397,11 @@ export default function KhatiyanCalculator() {
         {/* Result Section */}
         {showResult && result.length > 0 && (
           <ResultTable
+            header={header}
+            dags={dags}
             result={result}
             owners={owners}
             totalSharePercentage={totalSharePercentage}
-            surveyType={surveyType}
-            district={district}
-            khatiyanNo={khatiyanNo}
-            thana={thana}
-            mouja={mouja}
           />
         )}
       </div>
@@ -339,6 +410,14 @@ export default function KhatiyanCalculator() {
       {showErrorModal && <ErrorModal errors={errors} onClose={() => setShowErrorModal(false)} />}
       <DeleteModal deleteModal={deleteModal} onClose={closeDeleteModal} onConfirm={confirmDelete} />
       <ResetModal resetModal={resetModal} onClose={() => setResetModal({ show: false })} onConfirm={confirmReset} />
+      {/* Load Data Modal */}
+      <LoadDataModal
+        show={showLoadModal}
+        onClose={() => setShowLoadModal(false)}
+        onLoad={handleLoadData}
+        onDiscard={handleDiscardData}
+        lastSavedTime={lastSavedTime}
+      />
     </div>
   );
 }
