@@ -13,7 +13,7 @@ import {
 import { Calculator, RotateCcw, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AutoSaveIndicator from "./AutoSaveIndicator";
-import { DagForm } from "./DagForm";
+import DagForm from "./DagForm";
 import { DeleteModal } from "./DeleteModal";
 import { ErrorModal } from "./ErrorModal";
 import KhatiyanHeaderForm from "./KhatiyanHeaderForm";
@@ -217,6 +217,10 @@ export default function KhatiyanCalculator() {
     setDags(newDags);
   };
 
+  const handleBulkAddDags = (newDags: Dag[]) => {
+    setDags([...dags, ...newDags]);
+  };
+
   const handleOwnerChange = (index: number, field: keyof Owner, value: string | number) => {
     const newOwners = [...owners];
     if (field === "name") {
@@ -364,6 +368,7 @@ export default function KhatiyanCalculator() {
             onDagChange={handleDagChange}
             onDelete={(index, name) => openDeleteModal("dag", index, name)}
             onAdd={addDag}
+            onBulkAdd={handleBulkAddDags}
           />
 
           <div className="flex flex-col sm:flex-row gap-3">
