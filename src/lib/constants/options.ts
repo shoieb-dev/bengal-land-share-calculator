@@ -35,12 +35,12 @@ export const krantiOptions = [
 ];
 
 export const gondaOptions = Array.from({ length: 20 }, (_, i) => ({
-  label: `${toBengaliNumber(i)} গন্ডা`,
+  label: `${toBengaliNumber(i)} (গন্ডা)`,
   value: i,
 }));
 
 export const tilOptions = Array.from({ length: 20 }, (_, i) => ({
-  label: `${toBengaliNumber(i)} তিল`,
+  label: `${toBengaliNumber(i)} (তিল)`,
   value: i,
 }));
 
