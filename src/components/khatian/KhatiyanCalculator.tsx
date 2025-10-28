@@ -10,7 +10,7 @@ import {
   saveToLocalStorage,
   setAutoSaveEnabled as setStorageAutoSave,
 } from "@/lib/utils/storage";
-import { Calculator, RotateCcw, Save } from "lucide-react";
+import { Calculator, FileText, RotateCcw, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AutoSaveIndicator from "./AutoSaveIndicator";
 import DagForm from "./DagForm";
@@ -21,6 +21,10 @@ import LoadDataModal from "./LoadDataModal";
 import { OwnerForm } from "./OwnerForm";
 import { ResetModal } from "./ResetModal";
 import { ResultTable } from "./ResultTable";
+import TemplateModal from "./TemplateModal";
+import { KhatiyanTemplate } from "@/lib/constants/templates";
+import { Layout } from "lucide-react";
+import ComplexTemplateModal from "./ComplexTemplateModal";
 
 // Main Component
 export default function KhatiyanCalculator() {
@@ -32,6 +36,8 @@ export default function KhatiyanCalculator() {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState<DeleteModalType>({ show: false, type: null, index: -1, name: "" });
   const [resetModal, setResetModal] = useState<ResetModalType>({ show: false });
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showComplexTemplateModal, setShowComplexTemplateModal] = useState(false);
   const [header, setHeader] = useState<KhatiyanHeader>({
     surveyType: "বি এস",
     district: "চট্টগ্রাম",
@@ -40,6 +46,39 @@ export default function KhatiyanCalculator() {
     mouja: "গুয়াপঞ্চক",
     jlNo: "২",
   });
+
+  // Add handler
+  const handleLoadTemplate = (template: KhatiyanTemplate) => {
+    // Load header
+    setHeader({
+      surveyType: template.header.surveyType || "বি এস",
+      district: template.header.district || "চট্টগ্রাম",
+      khatiyanNo: template.header.khatiyanNo || "",
+      thana: template.header.thana || "",
+      mouja: template.header.mouja || "",
+      jlNo: template.header.jlNo || "",
+    });
+
+    // Load owners
+    setOwners(template.owners as Owner[]);
+
+    // Load dags
+    setDags(template.dags);
+
+    // Clear results
+    setResult([]);
+    setShowResult(false);
+
+    // Save to storage
+    handleAutoSave();
+  };
+
+  const handleLoadComplexTemplate = (templateOwners: Owner[]) => {
+    setOwners(templateOwners);
+    setDags([{ name: "১", land: 100 }]);
+    setResult([]);
+    setShowResult(false);
+  };
 
   const [showLoadModal, setShowLoadModal] = useState(false);
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
@@ -302,14 +341,29 @@ export default function KhatiyanCalculator() {
           <h1 className="text-2xl md:text-3xl font-bold text-center text-blue-300 mb-2">খতিয়ান হিসাব</h1>
           <p className="text-center text-gray-400 mb-4 text-sm md:text-base">জমির মালিকানা ও বন্টন হিসাব</p>
 
-          {/* Auto-save Indicator */}
-          <div className="mb-4">
-            <AutoSaveIndicator
-              lastSaved={lastSavedTime}
-              isSaving={isSaving}
-              autoSaveEnabled={autoSaveEnabled}
-              onToggleAutoSave={handleToggleAutoSave}
-            />
+          <AutoSaveIndicator
+            lastSaved={lastSavedTime}
+            isSaving={isSaving}
+            autoSaveEnabled={autoSaveEnabled}
+            onToggleAutoSave={handleToggleAutoSave}
+          />
+          <div className="border-t border-gray-700 mb-2" />
+
+          {/* Template Button */}
+          <div className="flex justify-center gap-3 mb-4 flex-wrap">
+            <button
+              onClick={() => setShowTemplateModal(true)}
+              className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition shadow-lg flex items-center gap-2"
+            >
+              <Layout size={20} /> সাধারণ টেমপ্লেট
+            </button>
+
+            <button
+              onClick={() => setShowComplexTemplateModal(true)}
+              className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition shadow-lg flex items-center gap-2"
+            >
+              <FileText size={20} /> জটিল টেমপ্লেট
+            </button>
           </div>
 
           {/* Khatian Header Form */}
@@ -371,7 +425,7 @@ export default function KhatiyanCalculator() {
             onBulkAdd={handleBulkAddDags}
           />
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
             {/* Manual Save Button */}
             <button
               onClick={handleManualSave}
@@ -397,18 +451,18 @@ export default function KhatiyanCalculator() {
               <RotateCcw size={20} /> রিসেট করুন
             </button>
           </div>
-        </div>
 
-        {/* Result Section */}
-        {showResult && result.length > 0 && (
-          <ResultTable
-            header={header}
-            dags={dags}
-            result={result}
-            owners={owners}
-            totalSharePercentage={totalSharePercentage}
-          />
-        )}
+          {/* Result Section */}
+          {showResult && result.length > 0 && (
+            <ResultTable
+              header={header}
+              dags={dags}
+              result={result}
+              owners={owners}
+              totalSharePercentage={totalSharePercentage}
+            />
+          )}
+        </div>
       </div>
 
       {/* Modals */}
@@ -422,6 +476,17 @@ export default function KhatiyanCalculator() {
         onLoad={handleLoadData}
         onDiscard={handleDiscardData}
         lastSavedTime={lastSavedTime}
+      />
+
+      <TemplateModal
+        show={showTemplateModal}
+        onClose={() => setShowTemplateModal(false)}
+        onSelect={handleLoadTemplate}
+      />
+      <ComplexTemplateModal
+        show={showComplexTemplateModal}
+        onClose={() => setShowComplexTemplateModal(false)}
+        onSelect={handleLoadComplexTemplate}
       />
     </div>
   );
