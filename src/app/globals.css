@@ -38,3 +38,22 @@ option {
     display: none !important;
   }
 }
+
+/* add scrollbar styles */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #1f2937; /* Tailwind's gray-800 */
+}
+::-webkit-scrollbar-thumb {
+  background-color: #4b5563; /* Tailwind's gray-600 */
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7280; /* Tailwind's gray-500 */
+}
+::-webkit-scrollbar-corner {
+  background: #1f2937; /* Tailwind's gray-800 */
+}
