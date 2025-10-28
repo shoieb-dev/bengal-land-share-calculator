@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { X, FileText, AlertCircle, ChevronRight } from "lucide-react";
 import { Owner } from "@/lib/types";
-import FamilyTreeView from "./FamilyTreeView";
-import HorizontalFamilyTree from "./HorizontalFamilyTree";
+import FamilyTreeView from "../visualization/FamilyTreeView";
+import HorizontalFamilyTree from "../visualization/HorizontalFamilyTree";
 
 interface ComplexTemplate {
   id: string;

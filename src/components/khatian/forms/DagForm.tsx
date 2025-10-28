@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Trash2, Plus, Copy, Zap, ArrowDown } from "lucide-react";
-import BulkAddDagModal from "./BulkAddDagModal";
+import BulkAddDagModal from "../modals/BulkAddDagModal";
 import { Dag } from "@/lib/types";
 
 interface DagFormProps {
