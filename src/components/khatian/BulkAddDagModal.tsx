@@ -76,7 +76,7 @@ export default function BulkAddDagModal({ show, onClose, onAdd }: BulkAddDagModa
               onChange={(e) => setDagNumbers(e.target.value)}
               placeholder="যেমন: ১, ২, ৩, ৪, ৫ অথবা 1 2 3 4 5"
               rows={3}
-              className="w-full bg-gray-700 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-blue-500"
             />
             <p className="text-gray-400 text-xs mt-1">উদাহরণ: "১, ২, ৩" বা "১ ২ ৩" বা "1, 2, 3"</p>
           </div>
@@ -89,7 +89,7 @@ export default function BulkAddDagModal({ show, onClose, onAdd }: BulkAddDagModa
               value={landAmount}
               onChange={(e) => setLandAmount(e.target.value)}
               placeholder="যেমন: ১০০ বা ৫০.৫"
-              className="w-full bg-gray-700 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
