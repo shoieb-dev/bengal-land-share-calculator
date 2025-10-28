@@ -12,19 +12,19 @@ import {
 } from "@/lib/utils/storage";
 import { Calculator, FileText, RotateCcw, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import AutoSaveIndicator from "./AutoSaveIndicator";
-import DagForm from "./DagForm";
+import AutoSaveIndicator from "./ui/AutoSaveIndicator";
+import DagForm from "./forms/DagForm";
 import { DeleteModal } from "../common/DeleteModal";
 import { ErrorModal } from "../common/ErrorModal";
-import KhatiyanHeaderForm from "./KhatiyanHeaderForm";
-import LoadDataModal from "./LoadDataModal";
-import { OwnerForm } from "./OwnerForm";
-import { ResetModal } from "./ResetModal";
-import { ResultTable } from "./ResultTable";
-import TemplateModal from "./TemplateModal";
+import KhatiyanHeaderForm from "./forms/KhatiyanHeaderForm";
+import LoadDataModal from "./modals/LoadDataModal";
+import { OwnerForm } from "./forms/OwnerForm";
+import { ResetModal } from "./modals/ResetModal";
+import { ResultTable } from "./visualization/ResultTable";
+import TemplateModal from "./modals/TemplateModal";
 import { KhatiyanTemplate } from "@/lib/constants/templates";
 import { Layout } from "lucide-react";
-import ComplexTemplateModal from "./ComplexTemplateModal";
+import ComplexTemplateModal from "./modals/ComplexTemplateModal";
 
 // Main Component
 export default function KhatiyanCalculator() {
