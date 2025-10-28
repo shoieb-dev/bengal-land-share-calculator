@@ -1,9 +1,9 @@
 "use client";
 import { anaOptions, gondaOptions, koraOptions, krantiOptions, tilOptions } from "@/lib/constants/options";
 import { Dag, KhatiyanHeader, Owner } from "@/lib/types";
-import { downloadImage, copyImageToClipboard } from "@/lib/utils/imageExportDom";
-import { shotokToKaniGonda, shotokToKatha, shotokToSqFeet } from "@/lib/utils/landConversion";
-import { toBengaliNumber } from "@/lib/utils/numberConversion";
+import { downloadImage, copyImageToClipboard } from "@/lib/exports/imageExportDom";
+import { shotokToKaniGonda, shotokToKatha, shotokToSqFeet } from "@/lib/conversions/landConversion";
+import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 // import { generatePDFSimple } from "@/lib/utils/pdfExportSimple";
 import { Copy, Download, FileDown, Image, Printer } from "lucide-react";
 import { useState } from "react";

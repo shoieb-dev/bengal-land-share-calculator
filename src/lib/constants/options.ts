@@ -1,4 +1,4 @@
-import { toBengaliNumber } from "../utils/numberConversion";
+import { toBengaliNumber } from "../conversions/numberConversion";
 
 // Constants
 export const anaOptions = [

@@ -1,6 +1,6 @@
 import { anaOptions, gondaOptions, koraOptions, krantiOptions, tilOptions } from "@/lib/constants/options";
 import { Owner } from "@/lib/types";
-import { toBengaliNumber } from "@/lib/utils/numberConversion";
+import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 import { Copy, Plus, Trash2 } from "lucide-react";
 
 interface OwnerFormProps {

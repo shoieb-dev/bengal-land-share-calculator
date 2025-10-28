@@ -1,6 +1,6 @@
 "use client";
 import { Dag, DeleteModalType, KhatiyanHeader, Owner, ResetModalType, ValidationError } from "@/lib/types";
-import { parseNumber, toBengaliNumber } from "@/lib/utils/numberConversion";
+import { parseNumber, toBengaliNumber } from "@/lib/conversions/numberConversion";
 import {
   clearLocalStorage,
   getLastSavedTime,
@@ -14,8 +14,8 @@ import { Calculator, FileText, RotateCcw, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AutoSaveIndicator from "./AutoSaveIndicator";
 import DagForm from "./DagForm";
-import { DeleteModal } from "./DeleteModal";
-import { ErrorModal } from "./ErrorModal";
+import { DeleteModal } from "../common/DeleteModal";
+import { ErrorModal } from "../common/ErrorModal";
 import KhatiyanHeaderForm from "./KhatiyanHeaderForm";
 import LoadDataModal from "./LoadDataModal";
 import { OwnerForm } from "./OwnerForm";

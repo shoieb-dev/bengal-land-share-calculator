@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { X, Plus, Copy } from "lucide-react";
-import { parseNumber } from "@/lib/utils/numberConversion";
+import { parseNumber } from "@/lib/conversions/numberConversion";
 
 interface BulkAddDagModalProps {
   show: boolean;
