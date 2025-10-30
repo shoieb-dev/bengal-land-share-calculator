@@ -1,17 +1,37 @@
 import { anaOptions, gondaOptions, koraOptions, krantiOptions, tilOptions } from "@/lib/constants/options";
 import { Owner } from "@/lib/types";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
-import { Copy, Plus, Trash2 } from "lucide-react";
+import { Copy, GripVertical, Plus, Trash2 } from "lucide-react";
+import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 
 interface OwnerFormProps {
   owners: Owner[];
   onOwnerChange: (index: number, field: keyof Owner, value: string | number) => void;
   onDelete: (index: number, name: string) => void;
   onAdd: () => void;
+  onReorder: (newOwners: Owner[]) => void;
   calculateShareRatio: (owner: Owner) => number;
 }
 
-export const OwnerForm = ({ owners, onOwnerChange, onDelete, onAdd, calculateShareRatio }: OwnerFormProps) => {
+export const OwnerForm = ({
+  owners,
+  onOwnerChange,
+  onDelete,
+  onAdd,
+  onReorder,
+  calculateShareRatio,
+}: OwnerFormProps) => {
+  const {
+    draggedIndex,
+    dragOverIndex,
+    handleDragStart,
+    handleDragEnter,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    handleDragEnd,
+  } = useDragAndDrop(owners, onReorder);
+
   // Copy share data from previous owner
   const copyFromAbove = (index: number) => {
     if (index === 0) return; // Can't copy if first owner
@@ -63,10 +83,26 @@ export const OwnerForm = ({ owners, onOwnerChange, onDelete, onAdd, calculateSha
       ) : (
         <div className="space-y-3">
           {owners.map((owner, index) => (
-            <div key={index} className="bg-gray-800 p-3 md:p-4 rounded-lg shadow-sm border border-gray-700">
+            <div
+              key={index}
+              draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragEnter={() => handleDragEnter(index)}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, index)}
+              onDragEnd={handleDragEnd}
+              className={`bg-gray-800 p-3 md:p-4 rounded-lg shadow-sm border transition-all ${
+                draggedIndex === index
+                  ? "border-green-500 opacity-50 scale-95"
+                  : dragOverIndex === index
+                  ? "border-green-400 border-dashed scale-105"
+                  : "border-gray-700"
+              } cursor-move`}
+            >
               {/* Copy Button - Show for 2nd owner onwards */}
               {index > 0 && (
-                <div className="mb-4 flex justify-end">
+                <div className="mb-2">
                   <button
                     onClick={() => copyFromAbove(index)}
                     className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition flex items-center gap-1 text-sm"
@@ -77,21 +113,26 @@ export const OwnerForm = ({ owners, onOwnerChange, onDelete, onAdd, calculateSha
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-2 md:gap-3 items-center">
+              <div className="grid grid-cols-1 sm:grid-cols-4 lg:flex gap-2 md:gap-3 items-center">
+                {/* Drag Handle */}
+                <div className="flex items-center justify-center cursor-grab active:cursor-grabbing">
+                  <GripVertical size={20} className="text-gray-500" />
+                </div>
+
                 <input
                   type="text"
-                  name="ownerName"
-                  autoComplete="on"
                   placeholder="মালিকের নাম"
                   value={owner.name}
                   onChange={(e) => onOwnerChange(index, "name", e.target.value)}
-                  className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500"
+                  className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500 lg:w-1/2 lg:flex-1"
+                  onClick={(e) => e.stopPropagation()}
                 />
 
                 <select
                   value={owner.ana}
                   onChange={(e) => onOwnerChange(index, "ana", Number(e.target.value))}
                   className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   {anaOptions.map((opt, i) => (
                     <option key={i} value={opt.value}>
@@ -104,6 +145,7 @@ export const OwnerForm = ({ owners, onOwnerChange, onDelete, onAdd, calculateSha
                   value={owner.gonda}
                   onChange={(e) => onOwnerChange(index, "gonda", Number(e.target.value))}
                   className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   {gondaOptions.map((opt, i) => (
                     <option key={i} value={opt.value}>
@@ -116,6 +158,7 @@ export const OwnerForm = ({ owners, onOwnerChange, onDelete, onAdd, calculateSha
                   value={owner.kora}
                   onChange={(e) => onOwnerChange(index, "kora", Number(e.target.value))}
                   className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   {koraOptions.map((opt, i) => (
                     <option key={i} value={opt.value}>
@@ -128,6 +171,7 @@ export const OwnerForm = ({ owners, onOwnerChange, onDelete, onAdd, calculateSha
                   value={owner.kranti}
                   onChange={(e) => onOwnerChange(index, "kranti", Number(e.target.value))}
                   className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   {krantiOptions.map((opt, i) => (
                     <option key={i} value={opt.value}>
@@ -140,6 +184,7 @@ export const OwnerForm = ({ owners, onOwnerChange, onDelete, onAdd, calculateSha
                   value={owner.til}
                   onChange={(e) => onOwnerChange(index, "til", Number(e.target.value))}
                   className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   {tilOptions.map((opt, i) => (
                     <option key={i} value={opt.value}>
@@ -149,17 +194,30 @@ export const OwnerForm = ({ owners, onOwnerChange, onDelete, onAdd, calculateSha
                 </select>
 
                 <button
-                  onClick={() => onDelete(index, owner.name || `মালিক #${index + 1}`)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(index, owner.name || `মালিক #${index + 1}`);
+                  }}
                   className="bg-red-600 text-white p-2 rounded hover:bg-red-700 transition flex items-center justify-center gap-1"
                 >
                   <Trash2 size={16} /> <span className="hidden sm:inline">মুছুন</span>
                 </button>
               </div>
-              <div className="mt-2 text-sm text-gray-300">
-                মালিকানা: {toBengaliNumber((calculateShareRatio(owner) * 100).toFixed(2))}%
+
+              <div className="mt-2 text-sm text-gray-300 flex items-center justify-between">
+                <span>মালিকানা: {toBengaliNumber((calculateShareRatio(owner) * 100).toFixed(2))}%</span>
+                <span className="text-xs text-gray-500">ক্রম: {index + 1}</span>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Info message */}
+      {owners.length > 1 && (
+        <div className="mt-3 p-2 bg-green-700 bg-opacity-30 rounded text-xs text-green-100 flex items-center gap-2">
+          <GripVertical size={14} />
+          <span>টিপ: মালিকদের টেনে ক্রম পরিবর্তন করুন</span>
         </div>
       )}
 

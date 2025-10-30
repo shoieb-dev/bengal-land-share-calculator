@@ -331,6 +331,14 @@ export default function KhatiyanCalculator() {
     return owners.reduce((sum, owner) => sum + calculateShareRatio(owner) * 100, 0);
   }, [owners]);
 
+  const handleReorderOwners = (newOwners: Owner[]) => {
+    setOwners(newOwners);
+  };
+
+  const handleReorderDags = (newDags: Dag[]) => {
+    setDags(newDags);
+  };
+
   return (
     <div
       className="min-h-screen bg-linear-to-br from-blue-300 to-sky-500 py-4 md:py-8 px-3 md:px-4"
@@ -414,6 +422,7 @@ export default function KhatiyanCalculator() {
             onDelete={(index, name) => openDeleteModal("owner", index, name)}
             onAdd={addOwner}
             calculateShareRatio={calculateShareRatio}
+            onReorder={handleReorderOwners}
           />
 
           {/* Dag Form */}
@@ -423,6 +432,7 @@ export default function KhatiyanCalculator() {
             onDelete={(index, name) => openDeleteModal("dag", index, name)}
             onAdd={addDag}
             onBulkAdd={handleBulkAddDags}
+            onReorder={handleReorderDags}
           />
 
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
