@@ -1,7 +1,7 @@
 import { anaOptions, gondaOptions, koraOptions, krantiOptions, tilOptions } from "@/lib/constants/options";
 import { Owner } from "@/lib/types";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
-import { Copy, GripVertical, Plus, Trash2 } from "lucide-react";
+import { Copy, GripVertical, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 
 interface OwnerFormProps {
@@ -32,6 +32,16 @@ export const OwnerForm = ({
     handleDragEnd,
   } = useDragAndDrop(owners, onReorder);
 
+  const resetOwner = (index: number) => {
+    if (confirm(`${owners[index].name || `মালিক #${index + 1}`} এর অংশ রিসেট করবেন?`)) {
+      onOwnerChange(index, "ana", 0);
+      onOwnerChange(index, "gonda", 0);
+      onOwnerChange(index, "kora", 0);
+      onOwnerChange(index, "kranti", 0);
+      onOwnerChange(index, "til", 0);
+    }
+  };
+
   // Copy share data from previous owner
   const copyFromAbove = (index: number) => {
     if (index === 0) return; // Can't copy if first owner
@@ -45,6 +55,7 @@ export const OwnerForm = ({
     onOwnerChange(index, "kranti", previousOwner.kranti);
     onOwnerChange(index, "til", previousOwner.til);
   };
+
   return (
     <div className="bg-linear-to-br from-green-900 to-emerald-900 p-4 md:p-5 rounded-lg shadow-lg mb-6 border border-green-700">
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
@@ -113,18 +124,18 @@ export const OwnerForm = ({
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-4 lg:flex gap-2 md:gap-3 items-center">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-8 gap-2 md:gap-3 items-center">
                 {/* Drag Handle */}
-                <div className="flex items-center justify-center cursor-grab active:cursor-grabbing">
+                {/* <div className="flex items-center justify-center cursor-grab active:cursor-grabbing">
                   <GripVertical size={20} className="text-gray-500" />
-                </div>
+                </div> */}
 
                 <input
                   type="text"
                   placeholder="মালিকের নাম"
                   value={owner.name}
                   onChange={(e) => onOwnerChange(index, "name", e.target.value)}
-                  className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500 lg:w-1/2 lg:flex-1"
+                  className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500 xl:col-span-2"
                   onClick={(e) => e.stopPropagation()}
                 />
 
@@ -193,15 +204,29 @@ export const OwnerForm = ({
                   ))}
                 </select>
 
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(index, owner.name || `মালিক #${index + 1}`);
-                  }}
-                  className="bg-red-600 text-white p-2 rounded hover:bg-red-700 transition flex items-center justify-center gap-1"
-                >
-                  <Trash2 size={16} /> <span className="hidden sm:inline">মুছুন</span>
-                </button>
+                <div className="md:col-span-2 lg:col-span-3 xl:col-span-1 flex items-center justify-between gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      resetOwner(index);
+                    }}
+                    disabled={calculateShareRatio(owner) === 0}
+                    className="bg-yellow-600 text-white p-2 rounded hover:bg-yellow-700 transition flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="অংশ রিসেট করুন"
+                  >
+                    <RotateCcw size={16} /> <span className="hidden sm:inline">রিসেট</span>
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(index, owner.name || `মালিক #${index + 1}`);
+                    }}
+                    className="bg-red-600 text-white p-2 rounded hover:bg-red-700 transition flex items-center justify-center gap-1"
+                  >
+                    <Trash2 size={16} /> <span className="hidden sm:inline">মুছুন</span>
+                  </button>
+                </div>
               </div>
 
               <div className="mt-2 text-sm text-gray-300 flex items-center justify-between">
@@ -217,7 +242,7 @@ export const OwnerForm = ({
       {owners.length > 1 && (
         <div className="mt-3 p-2 bg-green-700 bg-opacity-30 rounded text-xs text-green-100 flex items-center gap-2">
           <GripVertical size={14} />
-          <span>টিপ: মালিকদের টেনে ক্রম পরিবর্তন করুন</span>
+          <span>প্রয়োজনে মালিকদের টেনে ক্রম পরিবর্তন করুন</span>
         </div>
       )}
 
