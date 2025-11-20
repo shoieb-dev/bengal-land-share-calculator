@@ -13,14 +13,58 @@ async function generateCanvas(): Promise<HTMLCanvasElement> {
     throw new Error(`Element with ID '${targetElementId}' not found.`);
   }
 
-  // Use scale: 3 or 4 for higher resolution images
-  const canvas = await html2canvas(element, {
-    scale: 3,
-    ignoreElements: (node) => {
-      return node.id === "export-controls";
-    },
+  // Detect if mobile
+  const isMobile = window.innerWidth < 768;
+  const exportWidth = isMobile ? 800 : 1000; // Wider on desktop
+  const scale = isMobile ? 2 : 3; // Lower scale on mobile for performance
+
+  const clone = element.cloneNode(true) as HTMLElement;
+  clone.style.position = "absolute";
+  clone.style.left = "-9999px";
+  clone.style.top = "0";
+  clone.style.width = `${exportWidth}px`;
+  clone.style.minWidth = `${exportWidth}px`;
+
+  document.body.appendChild(clone);
+
+  // Apply styles
+  const tables = clone.querySelectorAll("table");
+  tables.forEach((table: Element) => {
+    const htmlTable = table as HTMLElement;
+    htmlTable.style.borderCollapse = "collapse";
+    htmlTable.style.width = "100%";
+    htmlTable.style.fontSize = isMobile ? "12px" : "14px";
   });
-  return canvas;
+
+  const cells = clone.querySelectorAll("td, th");
+  cells.forEach((cell: Element) => {
+    const htmlCell = cell as HTMLElement;
+    htmlCell.style.verticalAlign = "middle";
+    htmlCell.style.padding = isMobile ? "6px" : "8px";
+    htmlCell.style.wordWrap = "break-word";
+  });
+
+  try {
+    const canvas = await html2canvas(clone, {
+      scale: scale,
+      width: exportWidth,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+      ignoreElements: (node) => {
+        return node.id === "export-controls";
+      },
+    });
+
+    document.body.removeChild(clone);
+    return canvas;
+  } catch (error) {
+    if (document.body.contains(clone)) {
+      document.body.removeChild(clone);
+    }
+    throw error;
+  }
 }
 
 /**
