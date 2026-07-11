@@ -113,8 +113,46 @@ export const ResultTable = ({ header, dags, result, owners, totalSharePercentage
         </table>
       </div>
 
-      {/* -------------------- SECONDARY TABLE: DAG WISE DISTRIBUTION (Existing Result Table) -------------------- */}
-      <h3 className="font-bold text-lg mb-2">২. দাগভিত্তিক জমির বন্টন</h3>
+      {/* -------------------- SECONDARY TABLE: DAG WISE LAND AMOUNT -------------------- */}
+      <h3 className="font-bold text-lg mb-2">২. দাগভিত্তিক জমির পরিমাণ</h3>
+      <div className="overflow-x-auto mb-6">
+        <table className="w-full border-collapse border border-[#4b5563] text-xs md:text-sm">
+          <thead>
+            <tr className="bg-[#e5e7eb]">
+              <th className="border border-[#4b5563] p-2 text-left">দাগ নং</th>
+              <th className="border border-[#4b5563] p-2 text-right">জমি (শতক)</th>
+              <th className="border border-[#4b5563] p-2 text-right">জমি (কানি-গন্ডা)</th>
+              <th className="border border-[#4b5563] p-2 text-right">জমি (কাঠা)</th>
+              <th className="border border-[#4b5563] p-2 text-right">জমি (বর্গফুট)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {dags.map((row, i) => {
+              const kaniGonda = shotokToKaniGonda(row.land);
+              const katha = shotokToKatha(row.land);
+              const sqFeet = shotokToSqFeet(row.land);
+
+              return (
+                <tr key={i} className={i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}>
+                  <td className="border border-[#4b5563] p-2">{toBengaliNumber(row.name)}</td>
+                  <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(row.land.toFixed(2))}</td>
+                  <td className="border border-[#4b5563] p-2 text-right">
+                    {kaniGonda.kani > 0 ? `${toBengaliNumber(kaniGonda.kani)} কানি ` : ""}
+                    {kaniGonda.gonda > 0 ? `${toBengaliNumber(kaniGonda.gonda)} গন্ডা ` : ""}
+                    {kaniGonda.kora > 0 ? `${toBengaliNumber(kaniGonda.kora)} কড়া` : ""}
+                    {kaniGonda.kani === 0 && kaniGonda.gonda === 0 && kaniGonda.kora === 0 ? "০" : ""}
+                  </td>
+                  <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(katha.toFixed(2))}</td>
+                  <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(sqFeet.toFixed(2))}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* -------------------- THIRD TABLE: DAG WISE DISTRIBUTION (Existing Result Table) -------------------- */}
+      <h3 className="font-bold text-lg mb-2">৩. দাগভিত্তিক জমির বন্টন</h3>
       <div className="overflow-x-auto mb-6">
         <table className="w-full border-collapse border border-[#4b5563] text-xs md:text-sm">
           <thead>
@@ -135,7 +173,7 @@ export const ResultTable = ({ header, dags, result, owners, totalSharePercentage
 
               return (
                 <tr key={i} className={i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}>
-                  <td className="border border-[#4b5563] p-2">{row.dagName}</td>
+                  <td className="border border-[#4b5563] p-2">{toBengaliNumber(row.dagName)}</td>
                   <td className="border border-[#4b5563] p-2">{row.ownerName}</td>
                   <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(row.land.toFixed(2))}</td>
                   <td className="border border-[#4b5563] p-2 text-right">
