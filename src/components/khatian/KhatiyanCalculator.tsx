@@ -339,6 +339,10 @@ export default function KhatiyanCalculator() {
     setDags(newDags);
   };
 
+  const handleDeleteAllDags = () => {
+    setDags([]);
+  };
+
   return (
     <div
       className="min-h-screen bg-linear-to-br from-blue-300 to-sky-500 py-4 md:py-8 px-3 md:px-4"
@@ -433,6 +437,7 @@ export default function KhatiyanCalculator() {
             onAdd={addDag}
             onBulkAdd={handleBulkAddDags}
             onReorder={handleReorderDags}
+            onDeleteAll={handleDeleteAllDags}
           />
 
           <div className="flex flex-col sm:flex-row gap-3 mb-4">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash2, Plus, Copy, Zap, ArrowDown, GripVertical } from "lucide-react";
+import { Trash2, Plus, Copy, Zap, ArrowDown, GripVertical, XCircle } from "lucide-react";
 import BulkAddDagModal from "../modals/BulkAddDagModal";
 import { Dag } from "@/lib/types";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
@@ -11,12 +11,22 @@ interface DagFormProps {
   onAdd: () => void;
   onBulkAdd: (newDags: Dag[]) => void;
   onReorder: (newDags: Dag[]) => void;
+  onDeleteAll: () => void;
 }
 
-export default function DagForm({ dags, onDagChange, onDelete, onAdd, onBulkAdd, onReorder }: DagFormProps) {
+export default function DagForm({
+  dags,
+  onDagChange,
+  onDelete,
+  onAdd,
+  onBulkAdd,
+  onReorder,
+  onDeleteAll,
+}: DagFormProps) {
   const [showQuickFill, setShowQuickFill] = useState(false);
   const [quickFillAmount, setQuickFillAmount] = useState("");
   const [showBulkAdd, setShowBulkAdd] = useState(false);
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
 
   const {
     draggedIndex,
@@ -76,6 +86,16 @@ export default function DagForm({ dags, onDagChange, onDelete, onAdd, onBulkAdd,
     onBulkAdd(dagsToAdd);
   };
 
+  const handleDeleteAllClick = () => {
+    if (dags.length === 0) return;
+    setShowDeleteAllConfirm(true);
+  };
+
+  const confirmDeleteAll = () => {
+    onDeleteAll();
+    setShowDeleteAllConfirm(false);
+  };
+
   return (
     <div className="bg-linear-to-br from-blue-900 to-sky-900 p-4 md:p-5 rounded-lg shadow-lg mb-6 border border-blue-700">
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
@@ -101,6 +121,13 @@ export default function DagForm({ dags, onDagChange, onDelete, onAdd, onBulkAdd,
                 title="সব দাগে একই পরিমাণ"
               >
                 <Zap size={16} /> দ্রুত পূরণ
+              </button>
+              <button
+                onClick={handleDeleteAllClick}
+                className="bg-red-700 text-white px-3 py-1 rounded hover:bg-red-800 transition flex items-center gap-1 text-sm"
+                title="সব দাগ মুছে ফেলুন"
+              >
+                <XCircle size={16} /> সব মুছুন
               </button>
               {/* 
               {dags.length > 1 && dags[0].land > 0 && (
@@ -170,8 +197,8 @@ export default function DagForm({ dags, onDagChange, onDelete, onAdd, onBulkAdd,
                 draggedIndex === index
                   ? "border-blue-500 opacity-50 scale-95"
                   : dragOverIndex === index
-                  ? "border-blue-400 border-dashed scale-105"
-                  : "border-gray-700"
+                    ? "border-blue-400 border-dashed scale-105"
+                    : "border-gray-700"
               } cursor-move`}
             >
               {/* Copy Button - Show for 2nd dag onwards */}
@@ -241,6 +268,37 @@ export default function DagForm({ dags, onDagChange, onDelete, onAdd, onBulkAdd,
 
       {/* Bulk Add Modal */}
       <BulkAddDagModal show={showBulkAdd} onClose={() => setShowBulkAdd(false)} onAdd={handleBulkAdd} />
+      {showDeleteAllConfirm && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg shadow-2xl max-w-md w-full p-6 border border-red-700">
+            <div className="flex items-start mb-4">
+              <div className="bg-red-900 rounded-full p-2 mr-3">
+                <XCircle className="text-red-400" size={24} />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-100 mb-2">সব দাগ মুছে ফেলবেন?</h3>
+                <p className="text-gray-300">আপনি কি নিশ্চিত যে সবগুলো ({dags.length}টি) দাগ মুছে ফেলতে চান?</p>
+                <p className="text-sm text-gray-400 mt-2">এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowDeleteAllConfirm(false)}
+                className="px-4 py-2 bg-gray-700 text-gray-200 rounded hover:bg-gray-600 transition"
+              >
+                বাতিল
+              </button>
+              <button
+                onClick={confirmDeleteAll}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition flex items-center gap-1"
+              >
+                <Trash2 size={18} /> সব মুছে ফেলুন
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

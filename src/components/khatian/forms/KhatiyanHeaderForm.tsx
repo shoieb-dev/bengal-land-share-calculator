@@ -1,6 +1,7 @@
 import { KhatiyanHeader } from "@/lib/types";
 import { FileText } from "lucide-react";
 import { bangladeshDistricts, surveyTypes } from "@/lib/constants/options";
+import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 
 interface KhatiyanHeaderFormProps {
   header: KhatiyanHeader;
@@ -112,9 +113,9 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
         <div className="mt-4 p-3 bg-gray-800 rounded border border-gray-200">
           <p className="text-gray-300 text-sm">
             {header.surveyType && <span className="font-semibold">{header.surveyType} খতিয়ান</span>}
-            {header.khatiyanNo && <span> নং {header.khatiyanNo}</span>}
+            {header.khatiyanNo && <span> নং {toBengaliNumber(header.khatiyanNo)}</span>}
             {header.mouja && <span>, মৌজা: {header.mouja}</span>}
-            {header.jlNo && <span>, জেএল নং: {header.jlNo}</span>}
+            {header.jlNo && <span>, জেএল নং: {toBengaliNumber(header.jlNo)}</span>}
             {header.thana && <span>, থানা: {header.thana}</span>}
             {header.district && <span>, জেলা: {header.district}</span>}
           </p>
