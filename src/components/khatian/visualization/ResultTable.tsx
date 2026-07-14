@@ -152,8 +152,16 @@ export const ResultTable = ({
                   <td className="border border-[#4b5563] p-2 text-right">
                     {kaniGonda.kani > 0 ? `${toBengaliNumber(kaniGonda.kani)} কানি ` : ""}
                     {kaniGonda.gonda > 0 ? `${toBengaliNumber(kaniGonda.gonda)} গন্ডা ` : ""}
-                    {kaniGonda.kora > 0 ? `${toBengaliNumber(kaniGonda.kora)} কড়া` : ""}
-                    {kaniGonda.kani === 0 && kaniGonda.gonda === 0 && kaniGonda.kora === 0 ? "০" : ""}
+                    {kaniGonda.kora > 0 ? `${toBengaliNumber(kaniGonda.kora)} কড়া ` : ""}
+                    {kaniGonda.kranti > 0 ? `${toBengaliNumber(kaniGonda.kranti)} ক্রান্তি ` : ""}
+                    {kaniGonda.til > 0 ? `${toBengaliNumber(kaniGonda.til)} তিল` : ""}
+                    {kaniGonda.kani === 0 &&
+                    kaniGonda.gonda === 0 &&
+                    kaniGonda.kora === 0 &&
+                    kaniGonda.kranti === 0 &&
+                    kaniGonda.til === 0
+                      ? "০"
+                      : ""}
                   </td>
                   <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(katha.toFixed(2))}</td>
                   <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(sqFeet.toFixed(2))}</td>
@@ -192,8 +200,16 @@ export const ResultTable = ({
                   <td className="border border-[#4b5563] p-2 text-right">
                     {kaniGonda.kani > 0 ? `${toBengaliNumber(kaniGonda.kani)} কানি ` : ""}
                     {kaniGonda.gonda > 0 ? `${toBengaliNumber(kaniGonda.gonda)} গন্ডা ` : ""}
-                    {kaniGonda.kora > 0 ? `${toBengaliNumber(kaniGonda.kora)} কড়া` : ""}
-                    {kaniGonda.kani === 0 && kaniGonda.gonda === 0 && kaniGonda.kora === 0 ? "০" : ""}
+                    {kaniGonda.kora > 0 ? `${toBengaliNumber(kaniGonda.kora)} কড়া ` : ""}
+                    {kaniGonda.kranti > 0 ? `${toBengaliNumber(kaniGonda.kranti)} ক্রান্তি ` : ""}
+                    {kaniGonda.til > 0 ? `${toBengaliNumber(kaniGonda.til)} তিল` : ""}
+                    {kaniGonda.kani === 0 &&
+                    kaniGonda.gonda === 0 &&
+                    kaniGonda.kora === 0 &&
+                    kaniGonda.kranti === 0 &&
+                    kaniGonda.til === 0
+                      ? "০"
+                      : ""}
                   </td>
                   <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(katha.toFixed(2))}</td>
                   <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(sqFeet.toFixed(2))}</td>
