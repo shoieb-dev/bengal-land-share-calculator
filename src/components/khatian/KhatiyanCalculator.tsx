@@ -383,8 +383,8 @@ export default function KhatiyanCalculator() {
               totalSharePercentage > 100
                 ? "bg-red-900 border border-red-700"
                 : totalSharePercentage === 100
-                ? "bg-green-900 border border-green-700"
-                : "bg-blue-900 border border-blue-700"
+                  ? "bg-green-900 border border-green-700"
+                  : "bg-blue-900 border border-blue-700"
             }`}
           >
             <div className="flex items-center justify-between">
@@ -394,8 +394,8 @@ export default function KhatiyanCalculator() {
                   totalSharePercentage > 100
                     ? "text-red-400"
                     : totalSharePercentage === 100
-                    ? "text-green-400"
-                    : "text-blue-400"
+                      ? "text-green-400"
+                      : "text-blue-400"
                 }`}
               >
                 {toBengaliNumber(totalSharePercentage.toFixed(2))}%
@@ -407,8 +407,8 @@ export default function KhatiyanCalculator() {
                   totalSharePercentage > 100
                     ? "bg-red-500"
                     : totalSharePercentage === 100
-                    ? "bg-green-500"
-                    : "bg-blue-500"
+                      ? "bg-green-500"
+                      : "bg-blue-500"
                 }`}
                 style={{ width: `${Math.min(totalSharePercentage, 100)}%` }}
               />
@@ -469,6 +469,7 @@ export default function KhatiyanCalculator() {
               dags={dags}
               result={result}
               owners={owners}
+              calculateShareRatio={calculateShareRatio}
               totalSharePercentage={totalSharePercentage}
             />
           )}
