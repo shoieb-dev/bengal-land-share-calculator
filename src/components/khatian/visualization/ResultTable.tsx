@@ -14,9 +14,17 @@ interface ResultTableProps {
   result: { dagName: string; ownerName: string; land: number }[];
   owners: Owner[];
   totalSharePercentage: number;
+  calculateShareRatio: (owner: Owner) => number;
 }
 
-export const ResultTable = ({ header, dags, result, owners, totalSharePercentage }: ResultTableProps) => {
+export const ResultTable = ({
+  header,
+  dags,
+  result,
+  owners,
+  totalSharePercentage,
+  calculateShareRatio,
+}: ResultTableProps) => {
   const [isExporting, setIsExporting] = useState(false);
 
   // Helper function to handle export with loading state and alert
@@ -76,7 +84,9 @@ export const ResultTable = ({ header, dags, result, owners, totalSharePercentage
           <thead>
             <tr className="bg-[#e5e7eb]">
               <th className="border border-[#4b5563] p-2 text-left">মালিকের নাম</th>
-              <th className="border border-[#4b5563] p-2 text-right">মালিকানার অংশ</th>
+              <th className="border border-[#4b5563] p-2 text-right" colSpan={2}>
+                মালিকানার অংশ
+              </th>
               <th className="border border-[#4b5563] p-2 text-right">মোট জমি (শতক)</th>
             </tr>
           </thead>
@@ -96,13 +106,16 @@ export const ResultTable = ({ header, dags, result, owners, totalSharePercentage
                     : ""}
                 </td>
                 <td className="border border-[#4b5563] p-2 text-right">
+                  {toBengaliNumber((calculateShareRatio(owner) * 100).toFixed(2))}%
+                </td>
+                <td className="border border-[#4b5563] p-2 text-right">
                   {toBengaliNumber((owner.totalLand || 0).toFixed(2))}
                 </td>
               </tr>
             ))}
             <tr className="font-bold">
               <td className="border border-[#4b5563] p-2">মোট</td>
-              <td className="border border-[#4b5563] p-2 text-right">
+              <td className="border border-[#4b5563] p-2 text-right" colSpan={2}>
                 {toBengaliNumber(totalSharePercentage.toFixed(2))}%
               </td>
               <td className="border border-[#4b5563] p-2 text-right">
