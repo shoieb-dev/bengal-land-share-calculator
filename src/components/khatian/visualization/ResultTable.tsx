@@ -41,8 +41,44 @@ export const ResultTable = ({
     }
   };
 
+  // --- Reusable Sub-component for Land Measurement Columns ---
+  const LandMeasurementCells = ({ land }: { land: number }) => {
+    const kaniGonda = shotokToKaniGonda(land);
+    const katha = shotokToKatha(land);
+    const sqFeet = shotokToSqFeet(land);
+
+    return (
+      <>
+        {/* শতক */}
+        <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(land.toFixed(2))}</td>
+
+        {/* কানি-গন্ডা */}
+        <td className="border border-[#4b5563] p-2 text-right">
+          {kaniGonda.kani > 0 ? `${toBengaliNumber(kaniGonda.kani)} কানি ` : ""}
+          {kaniGonda.gonda > 0 ? `${toBengaliNumber(kaniGonda.gonda)} গন্ডা ` : ""}
+          {kaniGonda.kora > 0 ? `${toBengaliNumber(kaniGonda.kora)} কড়া ` : ""}
+          {kaniGonda.kranti > 0 ? `${toBengaliNumber(kaniGonda.kranti)} কন্ট ` : ""}
+          {kaniGonda.kani === 0 && kaniGonda.gonda === 0 && kaniGonda.kora === 0 && kaniGonda.kranti === 0 ? "০" : ""}
+          {(kaniGonda.til > 0 || kaniGonda.dontho > 0) && (
+            <span className="text-xs text-gray-900">
+              {kaniGonda.dontho > 0 && `(${toBengaliNumber(kaniGonda.dontho)} দন্ত`}
+              {kaniGonda.til > 0 && kaniGonda.dontho > 0 && ` বা `}
+              {kaniGonda.til > 0 && `${toBengaliNumber(kaniGonda.til)} তিল)`}
+            </span>
+          )}
+        </td>
+
+        {/* কাঠা */}
+        <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(katha.toFixed(2))}</td>
+
+        {/* বর্গফুট */}
+        <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(sqFeet.toFixed(2))}</td>
+      </>
+    );
+  };
+
   return (
-    <div className="bg-[#fff] text-[#000] rounded-lg shadow-xl p-4 md:p-6 border border-[#374151]" id="printable-area">
+    <div className="bg-white text-black rounded-lg shadow-xl p-4 md:p-6 border border-[#374151]" id="printable-area">
       {header && (header.surveyType || header.district || header.khatiyanNo) && (
         <>
           <h1 className="text-2xl font-bold text-center mb-4">{header.surveyType} খতিয়ান</h1>
@@ -75,7 +111,7 @@ export const ResultTable = ({
         </>
       )}
 
-      <h2 className="text-2xl font-bold text-center text-[#000] mb-4">হিসাবের ফলাফল</h2>
+      <h2 className="text-2xl font-bold text-center text-black mb-4">হিসাবের ফলাফল</h2>
 
       {/* -------------------- PRIMARY TABLE: OWNER SHARE (Owner Total Table) -------------------- */}
       <h3 className="font-bold text-lg mb-2">১. মালিকের নাম ও অংশ</h3>
@@ -141,30 +177,10 @@ export const ResultTable = ({
           </thead>
           <tbody>
             {dags.map((row, i) => {
-              const kaniGonda = shotokToKaniGonda(row.land);
-              const katha = shotokToKatha(row.land);
-              const sqFeet = shotokToSqFeet(row.land);
-
               return (
                 <tr key={i} className={i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}>
                   <td className="border border-[#4b5563] p-2">{toBengaliNumber(row.name)}</td>
-                  <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(row.land.toFixed(2))}</td>
-                  <td className="border border-[#4b5563] p-2 text-right">
-                    {kaniGonda.kani > 0 ? `${toBengaliNumber(kaniGonda.kani)} কানি ` : ""}
-                    {kaniGonda.gonda > 0 ? `${toBengaliNumber(kaniGonda.gonda)} গন্ডা ` : ""}
-                    {kaniGonda.kora > 0 ? `${toBengaliNumber(kaniGonda.kora)} কড়া ` : ""}
-                    {kaniGonda.kranti > 0 ? `${toBengaliNumber(kaniGonda.kranti)} ক্রান্তি ` : ""}
-                    {kaniGonda.til > 0 ? `${toBengaliNumber(kaniGonda.til)} তিল` : ""}
-                    {kaniGonda.kani === 0 &&
-                    kaniGonda.gonda === 0 &&
-                    kaniGonda.kora === 0 &&
-                    kaniGonda.kranti === 0 &&
-                    kaniGonda.til === 0
-                      ? "০"
-                      : ""}
-                  </td>
-                  <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(katha.toFixed(2))}</td>
-                  <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(sqFeet.toFixed(2))}</td>
+                  <LandMeasurementCells land={row.land} />
                 </tr>
               );
             })}
@@ -188,31 +204,11 @@ export const ResultTable = ({
           </thead>
           <tbody>
             {result.map((row, i) => {
-              const kaniGonda = shotokToKaniGonda(row.land);
-              const katha = shotokToKatha(row.land);
-              const sqFeet = shotokToSqFeet(row.land);
-
               return (
                 <tr key={i} className={i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}>
                   <td className="border border-[#4b5563] p-2">{toBengaliNumber(row.dagName)}</td>
                   <td className="border border-[#4b5563] p-2">{row.ownerName}</td>
-                  <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(row.land.toFixed(2))}</td>
-                  <td className="border border-[#4b5563] p-2 text-right">
-                    {kaniGonda.kani > 0 ? `${toBengaliNumber(kaniGonda.kani)} কানি ` : ""}
-                    {kaniGonda.gonda > 0 ? `${toBengaliNumber(kaniGonda.gonda)} গন্ডা ` : ""}
-                    {kaniGonda.kora > 0 ? `${toBengaliNumber(kaniGonda.kora)} কড়া ` : ""}
-                    {kaniGonda.kranti > 0 ? `${toBengaliNumber(kaniGonda.kranti)} ক্রান্তি ` : ""}
-                    {kaniGonda.til > 0 ? `${toBengaliNumber(kaniGonda.til)} তিল` : ""}
-                    {kaniGonda.kani === 0 &&
-                    kaniGonda.gonda === 0 &&
-                    kaniGonda.kora === 0 &&
-                    kaniGonda.kranti === 0 &&
-                    kaniGonda.til === 0
-                      ? "০"
-                      : ""}
-                  </td>
-                  <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(katha.toFixed(2))}</td>
-                  <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(sqFeet.toFixed(2))}</td>
+                  <LandMeasurementCells land={row.land} />
                 </tr>
               );
             })}
@@ -223,7 +219,7 @@ export const ResultTable = ({
       <div className="flex flex-col sm:flex-row gap-3 flex-wrap" id="export-controls">
         <button
           onClick={() => window.print()}
-          className="bg-[#22c55e] text-[#fff] px-6 py-3 rounded-lg hover:bg-[#1fb656e1] transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto"
+          className="bg-[#22c55e] text-white px-6 py-3 rounded-lg hover:bg-[#1fb656e1] transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto"
         >
           <Printer size={20} /> প্রিন্ট করুন
         </button>
@@ -238,7 +234,7 @@ export const ResultTable = ({
         <button
           onClick={() => downloadImage("png")}
           disabled={isExporting}
-          className="bg-[#2563eb] text-[#fff] px-6 py-3 rounded-lg hover:bg-[#173eab] transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto disabled:opacity-50"
+          className="bg-[#2563eb] text-white px-6 py-3 rounded-lg hover:bg-[#173eab] transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto disabled:opacity-50"
         >
           <Image size={20} /> {isExporting ? "এক্সপোর্ট হচ্ছে..." : "PNG ডাউনলোড"}
         </button>
@@ -246,7 +242,7 @@ export const ResultTable = ({
         <button
           onClick={() => downloadImage("jpeg")}
           disabled={isExporting}
-          className="bg-[#8b5cf6] text-[#fff] px-6 py-3 rounded-lg hover:bg-[#6945bf] transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto disabled:opacity-50"
+          className="bg-[#8b5cf6] text-white px-6 py-3 rounded-lg hover:bg-[#6945bf] transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto disabled:opacity-50"
         >
           <Download size={20} /> {isExporting ? "এক্সপোর্ট হচ্ছে..." : "JPG ডাউনলোড"}
         </button>
@@ -254,7 +250,7 @@ export const ResultTable = ({
         <button
           onClick={() => copyImageToClipboard()}
           disabled={isExporting}
-          className="bg-[#ea580c] text-[#fff] px-6 py-3 rounded-lg hover:bg-[#b24206] transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto disabled:opacity-50"
+          className="bg-[#ea580c] text-white px-6 py-3 rounded-lg hover:bg-[#b24206] transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto disabled:opacity-50"
         >
           <Copy size={20} /> {isExporting ? "কপি হচ্ছে..." : "ক্লিপবোর্ডে কপি"}
         </button>
