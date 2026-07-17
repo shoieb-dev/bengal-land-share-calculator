@@ -18,12 +18,13 @@ option {
 }
 
 @media print {
-  body * {
-    visibility: hidden;
+  /* catches the gradient div itself, regardless of Tailwind's utility specificity */
+  .bg-linear-to-br {
+    background: white !important;
   }
-  #printable-area,
-  #printable-area * {
-    visibility: visible;
+
+  .print-hide {
+    display: none !important;
   }
   #printable-area {
     position: absolute;
@@ -34,6 +35,7 @@ option {
     background: white;
     color: black;
   }
+  #export-controls,
   button {
     display: none !important;
   }
