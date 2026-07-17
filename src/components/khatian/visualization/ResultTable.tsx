@@ -58,12 +58,19 @@ export const ResultTable = ({
           {kaniGonda.gonda > 0 ? `${toBengaliNumber(kaniGonda.gonda)} গন্ডা ` : ""}
           {kaniGonda.kora > 0 ? `${toBengaliNumber(kaniGonda.kora)} কড়া ` : ""}
           {kaniGonda.kranti > 0 ? `${toBengaliNumber(kaniGonda.kranti)} কন্ট ` : ""}
-          {kaniGonda.kani === 0 && kaniGonda.gonda === 0 && kaniGonda.kora === 0 && kaniGonda.kranti === 0 ? "০" : ""}
+          {kaniGonda.kani === 0 &&
+          kaniGonda.gonda === 0 &&
+          kaniGonda.kora === 0 &&
+          kaniGonda.kranti === 0 &&
+          kaniGonda.dontho === 0 &&
+          kaniGonda.til === 0
+            ? " ০ "
+            : ""}
           {(kaniGonda.til > 0 || kaniGonda.dontho > 0) && (
             <span className="text-xs text-gray-900">
-              {kaniGonda.dontho > 0 && `(${toBengaliNumber(kaniGonda.dontho)} দন্ত`}
+              ({kaniGonda.dontho > 0 && `${toBengaliNumber(kaniGonda.dontho)} দন্ত`}
               {kaniGonda.til > 0 && kaniGonda.dontho > 0 && ` বা `}
-              {kaniGonda.til > 0 && `${toBengaliNumber(kaniGonda.til)} তিল)`}
+              {kaniGonda.til > 0 && `${toBengaliNumber(kaniGonda.til)} তিল`})
             </span>
           )}
         </td>
