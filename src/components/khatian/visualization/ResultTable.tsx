@@ -5,6 +5,7 @@ import { downloadImage, copyImageToClipboard } from "@/lib/exports/imageExportDo
 import { shotokToKaniGonda, shotokToKatha, shotokToSqFeet } from "@/lib/conversions/landConversion";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 // import { generatePDFSimple } from "@/lib/utils/pdfExportSimple";
+import { downloadPDF } from "@/lib/exports/pdfExport";
 import { Copy, Download, FileDown, Image, Printer } from "lucide-react";
 import { useState } from "react";
 
@@ -229,6 +230,14 @@ export const ResultTable = ({
           className="bg-[#22c55e] text-white px-6 py-3 rounded-lg hover:bg-[#1fb656e1] transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto"
         >
           <Printer size={20} /> প্রিন্ট করুন
+        </button>
+
+        <button
+          onClick={() => handleExport(() => downloadPDF(`Khatian_${header?.khatiyanNo || Date.now()}`), "")}
+          disabled={isExporting}
+          className="bg-[#dc2626] text-[#fff] px-6 py-3 rounded-lg hover:bg-[#991b1b] transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto disabled:opacity-50"
+        >
+          <FileDown size={20} /> {isExporting ? "তৈরি হচ্ছে..." : "PDF ডাউনলোড"}
         </button>
 
         {/*  <button
