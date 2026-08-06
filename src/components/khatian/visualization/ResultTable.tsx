@@ -233,7 +233,15 @@ export const ResultTable = ({
         </button>
 
         <button
-          onClick={() => handleExport(() => downloadPDF(`Khatian_${header?.khatiyanNo || Date.now()}`), "")}
+          onClick={() =>
+            handleExport(
+              () =>
+                downloadPDF(
+                  `${header?.surveyType || "বি এস"} খতিয়ান ${toBengaliNumber(header?.khatiyanNo || Date.now())} হিসাব`,
+                ),
+              "",
+            )
+          }
           disabled={isExporting}
           className="bg-[#dc2626] text-[#fff] px-6 py-3 rounded-lg hover:bg-[#991b1b] transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto disabled:opacity-50"
         >
