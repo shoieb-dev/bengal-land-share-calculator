@@ -349,7 +349,7 @@ export default function KhatiyanCalculator() {
       style={{ fontFamily: "'Kalpurush', 'Noto Sans Bengali', 'SolaimanLipi', sans-serif" }}
     >
       <div className="max-w-7xl mx-auto">
-        <div className="bg-gray-800 rounded-lg shadow-2xl p-4 md:p-6 mb-6 border border-gray-700">
+        <div className="bg-gray-800 rounded-lg shadow-2xl p-4 md:p-6 mb-6 border border-gray-700 print-hide">
           <h1 className="text-2xl md:text-3xl font-bold text-center text-blue-300 mb-2">খতিয়ান হিসাব</h1>
           <p className="text-center text-gray-400 mb-4 text-sm md:text-base">জমির মালিকানা ও বন্টন হিসাব</p>
 
@@ -466,19 +466,18 @@ export default function KhatiyanCalculator() {
               <RotateCcw size={20} /> রিসেট করুন
             </button>
           </div>
-
-          {/* Result Section */}
-          {showResult && result.length > 0 && (
-            <ResultTable
-              header={header}
-              dags={dags}
-              result={result}
-              owners={owners}
-              calculateShareRatio={calculateShareRatio}
-              totalSharePercentage={totalSharePercentage}
-            />
-          )}
         </div>
+        {/* Result Section */}
+        {showResult && result.length > 0 && (
+          <ResultTable
+            header={header}
+            dags={dags}
+            result={result}
+            owners={owners}
+            calculateShareRatio={calculateShareRatio}
+            totalSharePercentage={totalSharePercentage}
+          />
+        )}
       </div>
 
       {/* Modals */}
