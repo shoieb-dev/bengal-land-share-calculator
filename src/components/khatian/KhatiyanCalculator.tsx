@@ -309,8 +309,8 @@ export default function KhatiyanCalculator() {
       return { ...owner, totalLand: parseFloat(total.toFixed(4)), shareRatio };
     });
 
-    ownersWithTotalLand.forEach((owner) => {
-      dags.forEach((dag) => {
+    dags.forEach((dag) => {
+      ownersWithTotalLand.forEach((owner) => {
         const land = parseFloat((dag.land * (owner.shareRatio || 0)).toFixed(4));
 
         newResult.push({
