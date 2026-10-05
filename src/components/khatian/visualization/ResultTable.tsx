@@ -6,8 +6,9 @@ import { shotokToKaniGonda, shotokToKatha, shotokToSqFeet } from "@/lib/conversi
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 // import { generatePDFSimple } from "@/lib/utils/pdfExportSimple";
 import { downloadPDF } from "@/lib/exports/pdfExport";
-import { Copy, Download, FileDown, Image, Printer } from "lucide-react";
+import { BarChart3, Copy, Download, FileDown, Image, Printer } from "lucide-react";
 import { useState } from "react";
+import { ResultCharts } from "./ResultCharts";
 
 interface ResultTableProps {
   header?: KhatiyanHeader;
@@ -27,6 +28,7 @@ export const ResultTable = ({
   calculateShareRatio,
 }: ResultTableProps) => {
   const [isExporting, setIsExporting] = useState(false);
+  const [showCharts, setShowCharts] = useState(true);
 
   // Helper function to handle export with loading state and alert
   const handleExport = async (exportFn: () => Promise<void>, successMessage: string) => {
@@ -223,6 +225,18 @@ export const ResultTable = ({
           </tbody>
         </table>
       </div>
+
+      {/* -------------------- CHARTS: VISUAL SUMMARY -------------------- */}
+      <button
+        onClick={() => setShowCharts((v) => !v)}
+        className="mb-3 flex items-center gap-2 text-sm font-semibold text-indigo-700 hover:text-indigo-900 transition print-hide"
+      >
+        <BarChart3 size={18} /> {showCharts ? "চার্ট লুকান" : "চার্ট দেখুন"}
+      </button>
+
+      {showCharts && (
+        <ResultCharts owners={owners} dags={dags} result={result} calculateShareRatio={calculateShareRatio} />
+      )}
 
       <div className="flex flex-col sm:flex-row gap-3 flex-wrap" id="export-controls">
         <button
