@@ -157,6 +157,26 @@ option {
     background: white;
     color: black;
   }
+  #printable-area table {
+    font-size: 9px !important;
+    table-layout: auto;
+    width: 100%;
+  }
+  #printable-area table th,
+  #printable-area table td {
+    padding: 3px 4px !important;
+    white-space: normal !important;
+    word-break: break-word;
+  }
+  #printable-area .overflow-x-auto {
+    overflow: visible !important;
+  }
+  #printable-area h2 {
+    font-size: 18px !important;
+  }
+  #printable-area h3 {
+    font-size: 14px !important;
+  }
   #export-controls,
   button {
     display: none !important;
