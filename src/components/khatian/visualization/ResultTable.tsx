@@ -129,43 +129,71 @@ export const ResultTable = ({
         <table className="w-full border-collapse border border-[#4b5563] text-xs md:text-sm">
           <thead>
             <tr className="bg-[#e5e7eb]">
-              <th className="border border-[#4b5563] p-2 text-left">মালিকের নাম</th>
-              <th className="border border-[#4b5563] p-2 text-right" colSpan={2}>
-                মালিকানার অংশ
-              </th>
-              <th className="border border-[#4b5563] p-2 text-right">মোট জমি (শতক)</th>
+              <th className="border border-[#4b5563] p-2 text-center whitespace-nowrap">ক্রম</th>
+              <th className="border border-[#4b5563] p-2 text-left whitespace-nowrap">মালিকের নাম</th>
+              <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">অংশ (১৬ আনা)</th>
+              <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">অংশ (শতকরা)</th>
+              <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">অংশ (সহস্রাংশ/পয়েন্ট)</th>
+              <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">মোট জমি (শতক)</th>
+              <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">মোট জমি (শতাংশ/পয়েন্ট)</th>
             </tr>
           </thead>
           <tbody>
-            {owners.map((owner, i) => (
-              <tr key={i} className={i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}>
-                <td className="border border-[#4b5563] p-2">{owner.name}</td>
-                <td className="border border-[#4b5563] p-2 text-right">
-                  {/* ... (Existing share display logic) ... */}
-                  {owner.ana > 0 ? `${anaOptions.find((o) => o.value === owner.ana)?.label} ` : ""}
-                  {owner.gonda > 0 ? `${gondaOptions.find((o) => o.value === owner.gonda)?.label} ` : ""}
-                  {owner.kora > 0 ? `${koraOptions.find((o) => o.value === owner.kora)?.label} ` : ""}
-                  {owner.kranti > 0 ? `${krantiOptions.find((o) => o.value === owner.kranti)?.label} ` : ""}
-                  {owner.til > 0 ? `${tilOptions.find((o) => o.value === owner.til)?.label} ` : ""}
-                  {owner.ana === 0 && owner.gonda === 0 && owner.kora === 0 && owner.kranti === 0 && owner.til === 0
-                    ? `${toBengaliNumber(((owner.shareRatio || 0) * 100).toFixed(2))}%`
-                    : ""}
-                </td>
-                <td className="border border-[#4b5563] p-2 text-right">
-                  {toBengaliNumber((calculateShareRatio(owner) * 100).toFixed(2))}%
-                </td>
-                <td className="border border-[#4b5563] p-2 text-right">
-                  {toBengaliNumber((owner.totalLand || 0).toFixed(2))}
-                </td>
-              </tr>
-            ))}
+            {owners.map((owner, i) => {
+              const ratio = calculateShareRatio(owner);
+              const land = owner.totalLand || 0;
+              return (
+                <tr key={i} className={i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}>
+                  <td className="border border-[#4b5563] p-2 text-center">{toBengaliNumber(i + 1)}</td>
+                  <td className="border border-[#4b5563] p-2">{owner.name}</td>
+                  <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                    {/* ... (Existing share display logic) ... */}
+                    {owner.ana > 0 ? `${anaOptions.find((o) => o.value === owner.ana)?.label} ` : ""}
+                    {owner.gonda > 0 ? `${gondaOptions.find((o) => o.value === owner.gonda)?.label} ` : ""}
+                    {owner.kora > 0 ? `${koraOptions.find((o) => o.value === owner.kora)?.label} ` : ""}
+                    {owner.kranti > 0 ? `${krantiOptions.find((o) => o.value === owner.kranti)?.label} ` : ""}
+                    {owner.til > 0 ? `${tilOptions.find((o) => o.value === owner.til)?.label} ` : ""}
+                    {owner.ana === 0 && owner.gonda === 0 && owner.kora === 0 && owner.kranti === 0 && owner.til === 0
+                      ? `${toBengaliNumber(((owner.shareRatio || 0) * 100).toFixed(2))}%`
+                      : ""}
+                  </td>
+                  <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                    {toBengaliNumber((ratio * 100).toFixed(0))}%
+                  </td>
+                  <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                    {toBengaliNumber(ratio.toFixed(3))}
+                  </td>
+                  <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                    {toBengaliNumber(land.toFixed(2))}
+                  </td>
+                  <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                    {toBengaliNumber(land.toFixed(2).replace(".", "").padStart(4, "0"))} (
+                    {toBengaliNumber(land.toFixed(1))} পয়েন্ট)
+                  </td>
+                </tr>
+              );
+            })}
             <tr className="font-bold">
-              <td className="border border-[#4b5563] p-2">মোট</td>
-              <td className="border border-[#4b5563] p-2 text-right" colSpan={2}>
-                {toBengaliNumber(totalSharePercentage.toFixed(2))}%
+              <td className="border border-[#4b5563] p-2 text-center whitespace-nowrap" colSpan={2}>
+                মোট
               </td>
-              <td className="border border-[#4b5563] p-2 text-right">
+              <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                {toBengaliNumber(((totalSharePercentage / 100) * 16).toFixed(2))} আনা
+              </td>
+              <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                {toBengaliNumber(totalSharePercentage.toFixed(0))}%
+              </td>
+              <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                {toBengaliNumber((totalSharePercentage / 100).toFixed(3))}
+              </td>
+              <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
                 {toBengaliNumber(owners.reduce((sum, o) => sum + (o.totalLand || 0), 0).toFixed(2))}
+              </td>
+              <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                {(() => {
+                  const total = owners.reduce((sum, o) => sum + (o.totalLand || 0), 0);
+                  return `${toBengaliNumber(total.toFixed(2).replace(".", ""))} (${toBengaliNumber(total.toFixed(0))} পয়েন্ট)`;
+                })()}
               </td>
             </tr>
           </tbody>
