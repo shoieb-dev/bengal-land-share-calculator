@@ -12,6 +12,8 @@ import {
 } from "@/lib/utils/storage";
 import { Calculator, FileText, RotateCcw, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTheme } from "@/hooks/useTheme";
+import ThemeToggle from "./ui/ThemeToggle";
 import AutoSaveIndicator from "./ui/AutoSaveIndicator";
 import DagForm from "./forms/DagForm";
 import { DeleteModal } from "../common/DeleteModal";
@@ -28,6 +30,7 @@ import ComplexTemplateModal from "./modals/ComplexTemplateModal";
 
 // Main Component
 export default function KhatiyanCalculator() {
+  const { theme, toggleTheme, mounted } = useTheme();
   const [dags, setDags] = useState<Dag[]>([]);
   const [owners, setOwners] = useState<Owner[]>([]);
   const [result, setResult] = useState<{ dagName: string; ownerName: string; land: number }[]>([]);
@@ -345,13 +348,22 @@ export default function KhatiyanCalculator() {
 
   return (
     <div
-      className="min-h-screen bg-linear-to-br from-blue-300 to-sky-500 py-4 md:py-8 px-3 md:px-4"
+      className="min-h-screen bg-linear-to-br from-slate-100 to-sky-200 dark:from-slate-950 dark:to-sky-950 py-4 md:py-8 px-3 md:px-4"
       style={{ fontFamily: "'Kalpurush', 'Noto Sans Bengali', 'SolaimanLipi', sans-serif" }}
     >
       <div className="max-w-7xl mx-auto">
-        <div className="bg-gray-800 rounded-lg shadow-2xl p-4 md:p-6 mb-6 border border-gray-700 print-hide">
-          <h1 className="text-2xl md:text-3xl font-bold text-center text-blue-300 mb-2">খতিয়ান হিসাব</h1>
-          <p className="text-center text-gray-400 mb-4 text-sm md:text-base">জমির মালিকানা ও বন্টন হিসাব</p>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-4 md:p-6 mb-6 border border-gray-200 dark:border-gray-700 print-hide">
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold text-center text-blue-700 dark:text-blue-300">
+                খতিয়ান হিসাব
+              </h1>
+              <p className="text-center text-gray-600 dark:text-gray-400 text-sm md:text-base">
+                জমির মালিকানা ও বন্টন হিসাব
+              </p>
+            </div>
+            <ThemeToggle theme={theme} onToggle={toggleTheme} mounted={mounted} />
+          </div>
 
           <AutoSaveIndicator
             lastSaved={lastSavedTime}
@@ -385,27 +397,27 @@ export default function KhatiyanCalculator() {
           <div
             className={`p-3 rounded-lg mb-4 ${
               totalSharePercentage > 100
-                ? "bg-red-900 border border-red-700"
+                ? "bg-red-100 border border-red-300 dark:bg-red-900 dark:border-red-700"
                 : totalSharePercentage === 100
-                  ? "bg-green-900 border border-green-700"
-                  : "bg-blue-900 border border-blue-700"
+                  ? "bg-green-100 border border-green-300 dark:bg-green-900 dark:border-green-700"
+                  : "bg-blue-100 border border-blue-300 dark:bg-blue-900 dark:border-blue-700"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-gray-200 text-sm md:text-base">মোট মালিকানা:</span>
+              <span className="font-semibold text-gray-700 dark:text-gray-200 text-sm md:text-base">মোট মালিকানা:</span>
               <span
                 className={`text-lg md:text-xl font-bold ${
                   totalSharePercentage > 100
-                    ? "text-red-400"
+                    ? "text-red-600 dark:text-red-400"
                     : totalSharePercentage === 100
-                      ? "text-green-400"
-                      : "text-blue-400"
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-blue-600 dark:text-blue-400"
                 }`}
               >
                 {toBengaliNumber(totalSharePercentage.toFixed(2))}%
               </span>
             </div>
-            <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
+            <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2 mt-2">
               <div
                 className={`h-2 rounded-full transition-all ${
                   totalSharePercentage > 100

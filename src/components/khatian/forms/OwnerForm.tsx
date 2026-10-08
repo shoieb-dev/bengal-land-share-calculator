@@ -57,10 +57,10 @@ export const OwnerForm = ({
   };
 
   return (
-    <div className="bg-linear-to-br from-green-900 to-emerald-900 p-4 md:p-5 rounded-lg shadow-lg mb-6 border border-green-700">
+    <div className="bg-linear-to-br from-green-50 to-emerald-100 dark:from-green-900 dark:to-emerald-900 p-4 md:p-5 rounded-lg shadow-lg mb-6 border border-green-200 dark:border-green-700">
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <h3 className="font-bold text-lg text-green-200 flex items-center">
-          <span className="bg-green-700 rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">১</span>
+        <h3 className="font-bold text-lg text-green-800 dark:text-green-200 flex items-center">
+          <span className="bg-green-600 dark:bg-green-700 text-white rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">১</span>
           মালিকের তালিকা
         </h3>
 
@@ -87,7 +87,7 @@ export const OwnerForm = ({
       </div>
 
       {owners.length === 0 ? (
-        <div className="text-center py-8 text-gray-400">
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <p className="mb-2">কোনো মালিক যোগ করা হয়নি</p>
           <p className="text-sm">নিচের বাটনে ক্লিক করে মালিক যোগ করুন</p>
         </div>
@@ -103,12 +103,12 @@ export const OwnerForm = ({
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, index)}
               onDragEnd={handleDragEnd}
-              className={`bg-gray-800 p-3 md:p-4 rounded-lg shadow-sm border transition-all ${
+              className={`bg-white dark:bg-gray-800 p-3 md:p-4 rounded-lg shadow-sm border transition-all ${
                 draggedIndex === index
                   ? "border-green-500 opacity-50 scale-95"
                   : dragOverIndex === index
                   ? "border-green-400 border-dashed scale-105"
-                  : "border-gray-700"
+                  : "border-gray-200 dark:border-gray-700"
               } cursor-move`}
             >
               {/* Copy Button - Show for 2nd owner onwards */}
@@ -135,14 +135,14 @@ export const OwnerForm = ({
                   placeholder="মালিকের নাম"
                   value={owner.name}
                   onChange={(e) => onOwnerChange(index, "name", e.target.value)}
-                  className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500 xl:col-span-2"
+                  className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500 xl:col-span-2 placeholder:text-gray-400 dark:placeholder:text-gray-400"
                   onClick={(e) => e.stopPropagation()}
                 />
 
                 <select
                   value={owner.ana}
                   onChange={(e) => onOwnerChange(index, "ana", Number(e.target.value))}
-                  className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500"
+                  className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {anaOptions.map((opt, i) => (
@@ -155,7 +155,7 @@ export const OwnerForm = ({
                 <select
                   value={owner.gonda}
                   onChange={(e) => onOwnerChange(index, "gonda", Number(e.target.value))}
-                  className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500"
+                  className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {gondaOptions.map((opt, i) => (
@@ -168,7 +168,7 @@ export const OwnerForm = ({
                 <select
                   value={owner.kora}
                   onChange={(e) => onOwnerChange(index, "kora", Number(e.target.value))}
-                  className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500"
+                  className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {koraOptions.map((opt, i) => (
@@ -181,7 +181,7 @@ export const OwnerForm = ({
                 <select
                   value={owner.kranti}
                   onChange={(e) => onOwnerChange(index, "kranti", Number(e.target.value))}
-                  className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500"
+                  className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {krantiOptions.map((opt, i) => (
@@ -194,7 +194,7 @@ export const OwnerForm = ({
                 <select
                   value={owner.til}
                   onChange={(e) => onOwnerChange(index, "til", Number(e.target.value))}
-                  className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500"
+                  className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-green-500"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {tilOptions.map((opt, i) => (
@@ -229,9 +229,9 @@ export const OwnerForm = ({
                 </div>
               </div>
 
-              <div className="mt-2 text-sm text-gray-300 flex items-center justify-between">
+              <div className="mt-2 text-sm text-gray-600 dark:text-gray-300 flex items-center justify-between">
                 <span>মালিকানা: {toBengaliNumber((calculateShareRatio(owner) * 100).toFixed(2))}%</span>
-                <span className="text-xs text-gray-500">ক্রম: {index + 1}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-500">ক্রম: {index + 1}</span>
               </div>
             </div>
           ))}
@@ -240,7 +240,7 @@ export const OwnerForm = ({
 
       {/* Info message */}
       {owners.length > 1 && (
-        <div className="mt-3 p-2 bg-green-700 bg-opacity-30 rounded text-xs text-green-100 flex items-center gap-2">
+        <div className="mt-3 p-2 bg-green-100 dark:bg-green-700 dark:bg-opacity-30 rounded text-xs text-green-800 dark:text-green-100 flex items-center gap-2">
           <GripVertical size={14} />
           <span>প্রয়োজনে মালিকদের টেনে ক্রম পরিবর্তন করুন</span>
         </div>
