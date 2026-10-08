@@ -97,10 +97,10 @@ export default function DagForm({
   };
 
   return (
-    <div className="bg-linear-to-br from-blue-900 to-sky-900 p-4 md:p-5 rounded-lg shadow-lg mb-6 border border-blue-700">
+    <div className="bg-linear-to-br from-blue-50 to-sky-100 dark:from-blue-900 dark:to-sky-900 p-4 md:p-5 rounded-lg shadow-lg mb-6 border border-blue-200 dark:border-blue-700">
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <h3 className="font-bold text-lg text-blue-200 flex items-center">
-          <span className="bg-blue-700 rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">২</span>
+        <h3 className="font-bold text-lg text-blue-800 dark:text-blue-200 flex items-center">
+          <span className="bg-blue-600 dark:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">২</span>
           দাগের তালিকা
         </h3>
 
@@ -154,7 +154,7 @@ export default function DagForm({
               value={quickFillAmount}
               onChange={(e) => setQuickFillAmount(e.target.value)}
               placeholder="যেমন: ১০০ বা ১০০.৫০"
-              className="flex-1 bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-yellow-500"
+              className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-yellow-500 placeholder:text-gray-400 dark:placeholder:text-gray-400"
               autoFocus
             />
             <button
@@ -177,7 +177,7 @@ export default function DagForm({
       )}
 
       {dags.length === 0 ? (
-        <div className="text-center py-8 text-gray-400">
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <p className="mb-2">কোনো দাগ যোগ করা হয়নি</p>
           <p className="text-sm">নিচের বাটনে ক্লিক করে দাগ যোগ করুন</p>
         </div>
@@ -193,12 +193,12 @@ export default function DagForm({
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, index)}
               onDragEnd={handleDragEnd}
-              className={`bg-gray-800 rounded-lg shadow-sm border transition-all ${
+              className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border transition-all ${
                 draggedIndex === index
                   ? "border-blue-500 opacity-50 scale-95"
                   : dragOverIndex === index
                     ? "border-blue-400 border-dashed scale-105"
-                    : "border-gray-700"
+                    : "border-gray-200 dark:border-gray-700"
               } cursor-move`}
             >
               {/* Copy Button - Show for 2nd dag onwards */}
@@ -225,7 +225,7 @@ export default function DagForm({
                   placeholder="দাগ নং"
                   value={dag.name}
                   onChange={(e) => onDagChange(index, "name", e.target.value)}
-                  className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-blue-500 flex-1"
+                  className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-blue-500 flex-1 placeholder:text-gray-400 dark:placeholder:text-gray-400"
                   onClick={(e) => e.stopPropagation()}
                 />
                 <input
@@ -233,7 +233,7 @@ export default function DagForm({
                   placeholder="জমি (শতক)"
                   value={dag.land || ""}
                   onChange={(e) => onDagChange(index, "land", e.target.value)}
-                  className="bg-gray-300 border border-gray-600 text-gray-100 p-2 rounded focus:ring-2 focus:ring-blue-500 flex-1"
+                  className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-blue-500 flex-1 placeholder:text-gray-400 dark:placeholder:text-gray-400"
                   onClick={(e) => e.stopPropagation()}
                 />
                 <button
@@ -253,7 +253,7 @@ export default function DagForm({
 
       {/* Info message */}
       {dags.length > 1 && (
-        <div className="mt-3 p-2 bg-blue-700 bg-opacity-30 rounded text-xs text-blue-100 flex items-center gap-2">
+        <div className="mt-3 p-2 bg-blue-100 dark:bg-blue-700 dark:bg-opacity-30 rounded text-xs text-blue-800 dark:text-blue-100 flex items-center gap-2">
           <GripVertical size={14} />
           <span>টিপ: দাগ টেনে ক্রম পরিবর্তন করুন</span>
         </div>
