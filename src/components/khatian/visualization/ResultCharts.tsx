@@ -82,9 +82,7 @@ export const ResultCharts = ({ owners, dags, result, calculateShareRatio }: Resu
                 <li key={i} className="flex items-center gap-2">
                   <span className="inline-block w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: s.color }} />
                   <span className="flex-1 truncate">{s.owner.name}</span>
-                  <span className="font-semibold whitespace-nowrap">
-                    {toBengaliNumber((s.pct * 100).toFixed(2))}%
-                  </span>
+                  <span className="font-semibold whitespace-nowrap">{toBengaliNumber((s.pct * 100).toFixed(2))}%</span>
                 </li>
               ))}
             </ul>
@@ -127,9 +125,7 @@ export const ResultCharts = ({ owners, dags, result, calculateShareRatio }: Resu
                 <div key={di}>
                   <div className="flex justify-between text-xs md:text-sm mb-1 gap-2">
                     <span className="font-medium">দাগ {toBengaliNumber(dag.name)}</span>
-                    <span className="font-semibold whitespace-nowrap">
-                      {toBengaliNumber(dag.land.toFixed(2))} শতক
-                    </span>
+                    <span className="font-semibold whitespace-nowrap">{toBengaliNumber(dag.land.toFixed(2))} শতক</span>
                   </div>
                   <div className="w-full flex h-5 rounded-full overflow-hidden bg-[#e5e7eb]">
                     {rows.map((row) => {

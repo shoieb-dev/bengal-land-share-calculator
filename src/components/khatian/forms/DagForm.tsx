@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Trash2, Plus, Copy, Zap, ArrowDown, GripVertical, XCircle } from "lucide-react";
 import BulkAddDagModal from "../modals/BulkAddDagModal";
 import { Dag } from "@/lib/types";
+import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 
 interface DagFormProps {
@@ -25,6 +26,7 @@ export default function DagForm({
 }: DagFormProps) {
   const [showQuickFill, setShowQuickFill] = useState(false);
   const [quickFillAmount, setQuickFillAmount] = useState("");
+  const [notice, setNotice] = useState<{ tone: "success" | "error"; text: string } | null>(null);
   const [showBulkAdd, setShowBulkAdd] = useState(false);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
 
@@ -39,6 +41,13 @@ export default function DagForm({
     handleDragEnd,
   } = useDragAndDrop(dags, onReorder);
 
+  useEffect(() => {
+    if (!notice) return;
+
+    const timer = window.setTimeout(() => setNotice(null), 2500);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+
   // Copy land amount from previous dag
   const copyLandFromAbove = (index: number) => {
     if (index === 0) return; // Can't copy if first dag
@@ -50,8 +59,8 @@ export default function DagForm({
   };
 
   const handleQuickFill = () => {
-    if (!quickFillAmount || parseFloat(quickFillAmount) <= 0) {
-      alert("সঠিক পরিমাণ লিখুন");
+    if (!quickFillAmount || Number.isNaN(Number(quickFillAmount)) || Number(quickFillAmount) <= 0) {
+      setNotice({ tone: "error", text: "সঠিক পরিমাণ লিখুন। ০ বা খালি মান গ্রহণযোগ্য নয়।" });
       return;
     }
 
@@ -60,13 +69,14 @@ export default function DagForm({
       onDagChange(index, "land", amount);
     });
 
+    setNotice({ tone: "success", text: `${toBengaliNumber(String(amount))} শতক পরিমাণ সব দাগে প্রয়োগ করা হয়েছে।` });
     setShowQuickFill(false);
     setQuickFillAmount("");
   };
 
   const handleCopyFromFirst = () => {
     if (dags.length === 0 || dags[0].land <= 0) {
-      alert("প্রথম দাগে জমির পরিমাণ লিখুন");
+      setNotice({ tone: "error", text: "প্রথম দাগে জমির পরিমাণ লিখুন, তারপর কপি করুন।" });
       return;
     }
 
@@ -76,6 +86,8 @@ export default function DagForm({
         onDagChange(index, "land", firstAmount);
       }
     });
+
+    setNotice({ tone: "success", text: "প্রথম দাগের পরিমাণ বাকি দাগে কপি করা হয়েছে।" });
   };
 
   const handleBulkAdd = (newDags: { name: string; land: number }[]) => {
@@ -100,9 +112,23 @@ export default function DagForm({
     <div className="bg-linear-to-br from-blue-50 to-sky-100 dark:from-blue-900 dark:to-sky-900 p-4 md:p-5 rounded-lg shadow-lg mb-6 border border-blue-200 dark:border-blue-700">
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <h3 className="font-bold text-lg text-blue-800 dark:text-blue-200 flex items-center">
-          <span className="bg-blue-600 dark:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">২</span>
+          <span className="bg-blue-600 dark:bg-blue-700 text-white rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">
+            ২
+          </span>
           দাগের তালিকা
         </h3>
+
+        {notice && (
+          <div
+            className={`w-full rounded-md border px-3 py-2 text-sm ${
+              notice.tone === "error"
+                ? "border-red-300 bg-red-100 text-red-800 dark:border-red-700 dark:bg-red-950/40 dark:text-red-200"
+                : "border-green-300 bg-green-100 text-green-800 dark:border-green-700 dark:bg-green-950/40 dark:text-green-200"
+            }`}
+          >
+            {notice.text}
+          </div>
+        )}
 
         {/* Quick Action Buttons */}
         <div className="flex gap-2 flex-wrap">

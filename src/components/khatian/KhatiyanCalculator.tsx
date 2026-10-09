@@ -13,6 +13,7 @@ import {
 import { Calculator, FileText, RotateCcw, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "@/hooks/useTheme";
+import { showToast } from "@/lib/utils/toast";
 import ThemeToggle from "./ui/ThemeToggle";
 import AutoSaveIndicator from "./ui/AutoSaveIndicator";
 import DagForm from "./forms/DagForm";
@@ -142,9 +143,9 @@ export default function KhatiyanCalculator() {
     const success = saveToLocalStorage(header, owners, dags);
     if (success) {
       setLastSavedTime(new Date());
-      alert("ডেটা সফলভাবে সংরক্ষিত হয়েছে!");
+      showToast("ডেটা সফলভাবে সংরক্ষিত হয়েছে!", "success");
     } else {
-      alert("ডেটা সংরক্ষণ করতে সমস্যা হয়েছে");
+      showToast("ডেটা সংরক্ষণ করতে সমস্যা হয়েছে", "error");
     }
     setTimeout(() => setIsSaving(false), 500);
   };
@@ -353,8 +354,8 @@ export default function KhatiyanCalculator() {
     >
       <div className="max-w-7xl mx-auto">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-4 md:p-6 mb-6 border border-gray-200 dark:border-gray-700 print-hide">
-          <div className="flex items-start justify-between gap-3 mb-2">
-            <div className="flex-1">
+          <div className="mb-2">
+            <div>
               <h1 className="text-2xl md:text-3xl font-bold text-center text-blue-700 dark:text-blue-300">
                 খতিয়ান হিসাব
               </h1>
@@ -362,7 +363,6 @@ export default function KhatiyanCalculator() {
                 জমির মালিকানা ও বন্টন হিসাব
               </p>
             </div>
-            <ThemeToggle theme={theme} onToggle={toggleTheme} mounted={mounted} />
           </div>
 
           <AutoSaveIndicator
@@ -491,6 +491,8 @@ export default function KhatiyanCalculator() {
           />
         )}
       </div>
+
+      <ThemeToggle theme={theme} onToggle={toggleTheme} mounted={mounted} variant="floating" />
 
       {/* Modals */}
       {showErrorModal && <ErrorModal errors={errors} onClose={() => setShowErrorModal(false)} />}

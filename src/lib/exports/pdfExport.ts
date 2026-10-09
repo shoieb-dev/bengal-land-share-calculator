@@ -2,6 +2,7 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
+import { showToast } from "@/lib/utils/toast";
 
 const targetElementId = "printable-area";
 
@@ -272,7 +273,7 @@ export async function downloadPDF(fileName: string = `Khatian_${Date.now()}`): P
   const element = document.getElementById(targetElementId);
   if (!element) {
     console.error(`Element with ID '${targetElementId}' not found.`);
-    alert("PDF তৈরি করতে সমস্যা হয়েছে");
+    showToast("PDF তৈরি করতে সমস্যা হয়েছে", "error");
     return;
   }
 
@@ -375,7 +376,7 @@ export async function downloadPDF(fileName: string = `Khatian_${Date.now()}`): P
     pdf.save(`${fileName}.pdf`);
   } catch (error) {
     console.error("PDF generation error:", error);
-    alert("PDF তৈরি করতে সমস্যা হয়েছে");
+    showToast("PDF তৈরি করতে সমস্যা হয়েছে", "error");
   } finally {
     pageRoots.forEach((pr) => pr.parentElement && document.body.removeChild(pr));
     document.body.removeChild(measureRoot);

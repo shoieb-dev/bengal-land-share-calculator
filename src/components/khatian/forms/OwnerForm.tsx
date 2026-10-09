@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { anaOptions, gondaOptions, koraOptions, krantiOptions, tilOptions } from "@/lib/constants/options";
 import { Owner } from "@/lib/types";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 import { Copy, GripVertical, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
+import { showToast } from "@/lib/utils/toast";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 interface OwnerFormProps {
   owners: Owner[];
@@ -21,6 +24,8 @@ export const OwnerForm = ({
   onReorder,
   calculateShareRatio,
 }: OwnerFormProps) => {
+  const [pendingReset, setPendingReset] = useState<number | null>(null);
+
   const {
     draggedIndex,
     dragOverIndex,
@@ -33,13 +38,20 @@ export const OwnerForm = ({
   } = useDragAndDrop(owners, onReorder);
 
   const resetOwner = (index: number) => {
-    if (confirm(`${owners[index].name || `মালিক #${index + 1}`} এর অংশ রিসেট করবেন?`)) {
-      onOwnerChange(index, "ana", 0);
-      onOwnerChange(index, "gonda", 0);
-      onOwnerChange(index, "kora", 0);
-      onOwnerChange(index, "kranti", 0);
-      onOwnerChange(index, "til", 0);
-    }
+    setPendingReset(index);
+  };
+
+  const confirmResetOwner = () => {
+    if (pendingReset === null) return;
+
+    const ownerName = owners[pendingReset].name || `মালিক #${pendingReset + 1}`;
+    onOwnerChange(pendingReset, "ana", 0);
+    onOwnerChange(pendingReset, "gonda", 0);
+    onOwnerChange(pendingReset, "kora", 0);
+    onOwnerChange(pendingReset, "kranti", 0);
+    onOwnerChange(pendingReset, "til", 0);
+    showToast(`${ownerName} এর অংশ রিসেট করা হয়েছে।`, "info");
+    setPendingReset(null);
   };
 
   // Copy share data from previous owner
@@ -252,6 +264,16 @@ export const OwnerForm = ({
       >
         <Plus size={18} /> নতুন মালিক যোগ করুন
       </button>
+
+      <ConfirmDialog
+        open={pendingReset !== null}
+        title="অংশ রিসেট করবেন?"
+        message={`${owners[pendingReset ?? 0]?.name || `মালিক #${(pendingReset ?? 0) + 1}`} এর সব অংশ মুছে যাবে।`}
+        confirmLabel="রিসেট করুন"
+        destructive
+        onConfirm={confirmResetOwner}
+        onCancel={() => setPendingReset(null)}
+      />
     </div>
   );
 };
