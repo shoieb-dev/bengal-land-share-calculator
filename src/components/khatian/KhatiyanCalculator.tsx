@@ -354,8 +354,8 @@ export default function KhatiyanCalculator() {
     >
       <div className="max-w-7xl mx-auto">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-4 md:p-6 mb-6 border border-gray-200 dark:border-gray-700 print-hide">
-          <div className="flex items-start justify-between gap-3 mb-2">
-            <div className="flex-1">
+          <div className="mb-2">
+            <div>
               <h1 className="text-2xl md:text-3xl font-bold text-center text-blue-700 dark:text-blue-300">
                 খতিয়ান হিসাব
               </h1>
@@ -363,7 +363,6 @@ export default function KhatiyanCalculator() {
                 জমির মালিকানা ও বন্টন হিসাব
               </p>
             </div>
-            <ThemeToggle theme={theme} onToggle={toggleTheme} mounted={mounted} />
           </div>
 
           <AutoSaveIndicator
@@ -492,6 +491,8 @@ export default function KhatiyanCalculator() {
           />
         )}
       </div>
+
+      <ThemeToggle theme={theme} onToggle={toggleTheme} mounted={mounted} variant="floating" />
 
       {/* Modals */}
       {showErrorModal && <ErrorModal errors={errors} onClose={() => setShowErrorModal(false)} />}
