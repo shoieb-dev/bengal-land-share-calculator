@@ -3,6 +3,7 @@ import { X, FileText, AlertCircle, ChevronRight } from "lucide-react";
 import { Owner } from "@/lib/types";
 import FamilyTreeView from "../visualization/FamilyTreeView";
 import HorizontalFamilyTree from "../visualization/HorizontalFamilyTree";
+import { showToast } from "@/lib/utils/toast";
 
 interface ComplexTemplate {
   id: string;
@@ -235,6 +236,7 @@ interface ComplexTemplateModalProps {
 export default function ComplexTemplateModal({ show, onClose, onSelect }: ComplexTemplateModalProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<ComplexTemplate | null>(null);
   const [activeView, setActiveView] = useState<"tree" | "structure" | "scenario">("tree");
+  const [pendingTemplate, setPendingTemplate] = useState<ComplexTemplate | null>(null);
 
   if (!show) return null;
 
@@ -247,6 +249,7 @@ export default function ComplexTemplateModal({ show, onClose, onSelect }: Comple
       if (confirm(`"${selectedTemplate.name}" টেমপ্লেট লোড করবেন? বর্তমান ডেটা মুছে যাবে।`)) {
         onSelect(selectedTemplate.owners);
         onClose();
+        showToast(`টেমপ্লেট লোড করা হয়েছে।`, "success");
         setSelectedTemplate(null);
       }
     }
@@ -366,8 +369,8 @@ export default function ComplexTemplateModal({ show, onClose, onSelect }: Comple
                             item.level === 0
                               ? "bg-gray-600 border border-gray-500"
                               : item.level === 1
-                              ? "ml-4 bg-gray-800 border border-gray-550"
-                              : "ml-6 bg-purple-900 border border-purple-700"
+                                ? "ml-4 bg-gray-800 border border-gray-550"
+                                : "ml-6 bg-purple-900 border border-purple-700"
                           }`}
                         >
                           <div className="flex items-center justify-between">

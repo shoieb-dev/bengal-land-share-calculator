@@ -4,6 +4,7 @@ import { Dag, KhatiyanHeader, Owner } from "@/lib/types";
 import { downloadImage, copyImageToClipboard } from "@/lib/exports/imageExportDom";
 import { shotokToKaniGonda, shotokToKatha, shotokToSqFeet } from "@/lib/conversions/landConversion";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
+import { showToast } from "@/lib/utils/toast";
 // import { generatePDFSimple } from "@/lib/utils/pdfExportSimple";
 import { downloadPDF } from "@/lib/exports/pdfExport";
 import { BarChart3, Copy, Download, FileDown, Image, Printer } from "lucide-react";
@@ -28,17 +29,19 @@ export const ResultTable = ({
   calculateShareRatio,
 }: ResultTableProps) => {
   const [isExporting, setIsExporting] = useState(false);
-  const [showCharts, setShowCharts] = useState(true);
+  const [showCharts, setShowCharts] = useState(false);
 
-  // Helper function to handle export with loading state and alert
+  // Helper function to handle export with loading state and toast feedback
   const handleExport = async (exportFn: () => Promise<void>, successMessage: string) => {
     setIsExporting(true);
     try {
       await exportFn();
-      // An alert might already be inside the exportFn (e.g., for copy)
+      if (successMessage) {
+        showToast(successMessage, "success");
+      }
     } catch (error) {
       console.error("Export Error:", error);
-      alert("এক্সপোর্ট করার সময় একটি সমস্যা হয়েছে।");
+      showToast("এক্সপোর্ট করার সময় একটি সমস্যা হয়েছে।", "error");
     } finally {
       setIsExporting(false);
     }

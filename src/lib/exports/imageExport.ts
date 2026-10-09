@@ -1,3 +1,5 @@
+import { showToast } from "@/lib/utils/toast";
+
 export const exportAsImage = async (format: "png" | "jpg" = "png", fileName: string = `Khatian_${Date.now()}`) => {
   try {
     const html2canvas = (await import("html2canvas")).default;
@@ -6,7 +8,7 @@ export const exportAsImage = async (format: "png" | "jpg" = "png", fileName: str
 
     if (!element) {
       console.error("Printable area not found");
-      alert("ছবি তৈরি করতে সমস্যা হয়েছে");
+      showToast("ছবি তৈরি করতে সমস্যা হয়েছে", "error");
       return;
     }
 
@@ -85,7 +87,7 @@ export const exportAsImage = async (format: "png" | "jpg" = "png", fileName: str
     canvas.toBlob(
       (blob) => {
         if (!blob) {
-          alert("ছবি তৈরি করতে সমস্যা হয়েছে");
+          showToast("ছবি তৈরি করতে সমস্যা হয়েছে", "error");
           return;
         }
 
@@ -99,11 +101,11 @@ export const exportAsImage = async (format: "png" | "jpg" = "png", fileName: str
         URL.revokeObjectURL(url);
       },
       `image/${format}`,
-      format === "jpg" ? 0.95 : 1.0
+      format === "jpg" ? 0.95 : 1.0,
     );
   } catch (error) {
     console.error("Image export error:", error);
-    alert("ছবি তৈরি করতে সমস্যা হয়েছে");
+    showToast("ছবি তৈরি করতে সমস্যা হয়েছে", "error");
   }
 };
 
@@ -113,7 +115,7 @@ export const copyImageToClipboard = async () => {
 
     const element = document.getElementById("printable-area");
     if (!element) {
-      alert("Content not found");
+      showToast("কোনো কনটেন্ট পাওয়া যায়নি", "error");
       return;
     }
 
@@ -171,14 +173,14 @@ export const copyImageToClipboard = async () => {
 
       try {
         await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-        alert("ছবি ক্লিপবোর্ডে কপি হয়েছে!");
+        showToast("ছবি ক্লিপবোর্ডে কপি হয়েছে!", "success");
       } catch (err) {
         console.error("Clipboard error:", err);
-        alert("ক্লিপবোর্ডে কপি করতে সমস্যা হয়েছে");
+        showToast("ক্লিপবোর্ডে কপি করতে সমস্যা হয়েছে", "error");
       }
     }, "image/png");
   } catch (error) {
     console.error("Copy error:", error);
-    alert("ক্লিপবোর্ডে কপি করতে সমস্যা হয়েছে");
+    showToast("ক্লিপবোর্ডে কপি করতে সমস্যা হয়েছে", "error");
   }
 };

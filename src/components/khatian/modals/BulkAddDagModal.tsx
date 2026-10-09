@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { X, Plus, Copy } from "lucide-react";
 import { parseNumber } from "@/lib/conversions/numberConversion";
+import { showToast } from "@/lib/utils/toast";
 
 interface BulkAddDagModalProps {
   show: boolean;
@@ -17,7 +18,7 @@ export default function BulkAddDagModal({ show, onClose, onAdd }: BulkAddDagModa
 
   const handleAdd = () => {
     if (!dagNumbers.trim() || !landAmount) {
-      alert("দাগ নম্বর এবং জমির পরিমাণ লিখুন");
+      showToast("দাগ নম্বর এবং জমির পরিমাণ লিখুন", "error");
       return;
     }
 
@@ -28,14 +29,14 @@ export default function BulkAddDagModal({ show, onClose, onAdd }: BulkAddDagModa
       .filter((n) => n.length > 0);
 
     if (numbers.length === 0) {
-      alert("সঠিক দাগ নম্বর লিখুন");
+      showToast("সঠিক দাগ নম্বর লিখুন", "error");
       return;
     }
 
     const parsedValue = typeof landAmount === "string" ? parseNumber(landAmount) : landAmount;
     const parsedNumber = typeof parsedValue === "string" ? parseFloat(parsedValue) : Number(parsedValue);
     if (!parsedNumber || parsedNumber <= 0) {
-      alert("সঠিক পরিমাণ লিখুন");
+      showToast("সঠিক পরিমাণ লিখুন", "error");
       return;
     }
 

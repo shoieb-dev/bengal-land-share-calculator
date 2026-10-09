@@ -1,3 +1,5 @@
+import { showToast } from "@/lib/utils/toast";
+
 export const generatePDFSimple = async (referenceNo: string = `KH-${Date.now()}`) => {
   try {
     const jsPDF = (await import("jspdf")).default;
@@ -33,7 +35,7 @@ export const generatePDFSimple = async (referenceNo: string = `KH-${Date.now()}`
         background-color: ${htmlEl.tagName === "TH" ? "#e5e7eb" : "white"} !important;
         color: black !important;
         border-color: #e5e7eb !important;
-      `
+      `,
       );
     });
 
@@ -45,7 +47,7 @@ export const generatePDFSimple = async (referenceNo: string = `KH-${Date.now()}`
       ${mainOriginalStyle}
       background-color: white !important;
       color: black !important;
-    `
+    `,
     );
 
     // Wait a bit for styles to apply
@@ -94,6 +96,6 @@ export const generatePDFSimple = async (referenceNo: string = `KH-${Date.now()}`
     pdf.save(`Khatian_${referenceNo}.pdf`);
   } catch (error) {
     console.error("PDF generation error:", error);
-    alert("PDF তৈরি করতে সমস্যা হয়েছে");
+    showToast("PDF তৈরি করতে সমস্যা হয়েছে", "error");
   }
 };

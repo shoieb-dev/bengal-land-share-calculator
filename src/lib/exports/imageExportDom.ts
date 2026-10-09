@@ -1,5 +1,6 @@
 // src/lib/utils/imageExport.ts
 import html2canvas from "html2canvas";
+import { showToast } from "@/lib/utils/toast";
 
 const targetElementId = "printable-area";
 
@@ -87,7 +88,7 @@ export async function downloadImage(format: "png" | "jpeg"): Promise<void> {
     document.body.removeChild(a);
   } catch (error) {
     console.error("Image download failed:", error);
-    alert("ছবি ডাউনলোড ব্যর্থ হয়েছে।");
+    showToast("ছবি ডাউনলোড ব্যর্থ হয়েছে।", "error");
   }
 }
 
@@ -104,13 +105,13 @@ export async function copyImageToClipboard(): Promise<void> {
         // Write the blob to the clipboard as an image item
         const item = new ClipboardItem({ [blob.type]: blob });
         await navigator.clipboard.write([item]);
-        alert("ফলাফল ক্লিপবোর্ডে কপি করা হয়েছে।");
+        showToast("ফলাফল ক্লিপবোর্ডে কপি করা হয়েছে।", "success");
       } else {
-        alert("আপনার ব্রাউজার ক্লিপবোর্ডে ছবি কপি সমর্থন করে না।");
+        showToast("আপনার ব্রাউজার ক্লিপবোর্ডে ছবি কপি সমর্থন করে না।", "error");
       }
     }, "image/png"); // Copy as PNG for best quality/transparency
   } catch (error) {
     console.error("Copy to clipboard failed:", error);
-    alert("ক্লিপবোর্ডে কপি করা ব্যর্থ হয়েছে।");
+    showToast("ক্লিপবোর্ডে কপি করা ব্যর্থ হয়েছে।", "error");
   }
 }

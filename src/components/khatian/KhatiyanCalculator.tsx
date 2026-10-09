@@ -13,6 +13,7 @@ import {
 import { Calculator, FileText, RotateCcw, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "@/hooks/useTheme";
+import { showToast } from "@/lib/utils/toast";
 import ThemeToggle from "./ui/ThemeToggle";
 import AutoSaveIndicator from "./ui/AutoSaveIndicator";
 import DagForm from "./forms/DagForm";
@@ -142,9 +143,9 @@ export default function KhatiyanCalculator() {
     const success = saveToLocalStorage(header, owners, dags);
     if (success) {
       setLastSavedTime(new Date());
-      alert("ডেটা সফলভাবে সংরক্ষিত হয়েছে!");
+      showToast("ডেটা সফলভাবে সংরক্ষিত হয়েছে!", "success");
     } else {
-      alert("ডেটা সংরক্ষণ করতে সমস্যা হয়েছে");
+      showToast("ডেটা সংরক্ষণ করতে সমস্যা হয়েছে", "error");
     }
     setTimeout(() => setIsSaving(false), 500);
   };
