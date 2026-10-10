@@ -149,8 +149,26 @@ option {
 }
 
 @media print {
-  /* catches the gradient div itself, regardless of Tailwind's utility specificity */
-  .bg-linear-to-br {
+  /* Print must always use the light color scheme, even in app dark mode.
+     The app sets an inline color-scheme: dark on <html>, which makes
+     Chrome paint the whole page canvas dark (the black frame around the
+     white result card). Author !important beats that inline style. */
+  :root {
+    color-scheme: light !important;
+  }
+
+  html,
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* catches the gradient page shell, regardless of Tailwind's utility
+     specificity. html.dark selectors included so the dark shell
+     (dark:from-slate-950 dark:to-sky-950) can never out-specify this. */
+  .bg-linear-to-br,
+  html.dark .bg-linear-to-br,
+  body > div {
     background: white !important;
   }
 
