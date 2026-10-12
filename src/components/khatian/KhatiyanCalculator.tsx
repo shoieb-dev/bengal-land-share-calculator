@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "@/hooks/useTheme";
 import { showToast } from "@/lib/utils/toast";
 import ThemeToggle from "./ui/ThemeToggle";
+import AppToast from "../common/AppToast";
 import AutoSaveIndicator from "./ui/AutoSaveIndicator";
 import DagForm from "./forms/DagForm";
 import { DeleteModal } from "../common/DeleteModal";
@@ -25,8 +26,19 @@ import { OwnerForm } from "./forms/OwnerForm";
 import { ResetModal } from "./modals/ResetModal";
 import { ResultTable } from "./visualization/ResultTable";
 import TemplateModal from "./modals/TemplateModal";
+import SavedKhatiyansModal from "./modals/SavedKhatiyansModal";
+import {
+  deleteEntry as deleteLibraryEntry,
+  exportLibrary,
+  importLibrary,
+  isWorkspaceEmpty,
+  listEntries,
+  renameEntry as renameLibraryEntry,
+  saveEntry as saveLibraryEntry,
+  SavedKhatiyanEntry,
+} from "@/lib/utils/khatiyanLibrary";
 import { KhatiyanTemplate } from "@/lib/constants/templates";
-import { Layout } from "lucide-react";
+import { Archive, FilePlus2, Layout, LibraryBig } from "lucide-react";
 import ComplexTemplateModal from "./modals/ComplexTemplateModal";
 
 // Main Component
@@ -87,6 +99,9 @@ export default function KhatiyanCalculator() {
   const [showLoadModal, setShowLoadModal] = useState(false);
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [showLibraryModal, setShowLibraryModal] = useState(false);
+  const [libraryEntries, setLibraryEntries] = useState<SavedKhatiyanEntry[]>([]);
+  const [activeEntryId, setActiveEntryId] = useState<string | null>(null);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
 
   // Check for saved data on mount
@@ -195,6 +210,7 @@ export default function KhatiyanCalculator() {
     setShowResult(false);
     setShowErrorModal(false);
     setResetModal({ show: false });
+    setActiveEntryId(null);
     clearLocalStorage(); // Clear saved data
     setLastSavedTime(null);
   };
@@ -203,6 +219,104 @@ export default function KhatiyanCalculator() {
   const handleHeaderChange = (field: keyof KhatiyanHeader, value: string) => {
     setHeader({ ...header, [field]: value });
   };
+
+  // ─── Saved Khatiyan Library (v1: localStorage, multiple named calculations) ──
+  const refreshLibrary = useCallback(() => {
+    setLibraryEntries(listEntries());
+  }, []);
+
+  useEffect(() => {
+    refreshLibrary();
+  }, [refreshLibrary]);
+
+  /** Snapshot current non-empty workspace into the library (no data loss on switch). */
+  const snapshotWorkspace = useCallback(() => {
+    if (isWorkspaceEmpty(owners, dags)) return;
+    const saved = saveLibraryEntry({ id: activeEntryId ?? undefined, header, owners, dags });
+    if (saved) setActiveEntryId(saved.id);
+    refreshLibrary();
+  }, [owners, dags, header, activeEntryId, refreshLibrary]);
+
+  const handleSaveToLibrary = () => {
+    if (isWorkspaceEmpty(owners, dags)) {
+      showToast("সংরক্ষণের মতো কোনো ডেটা নেই", "error");
+      return;
+    }
+    const saved = saveLibraryEntry({ id: activeEntryId ?? undefined, header, owners, dags });
+    if (saved) {
+      setActiveEntryId(saved.id);
+      refreshLibrary();
+      showToast(`“${saved.name}” সংরক্ষিত হয়েছে`, "success");
+    } else {
+      showToast("সংরক্ষণ করতে সমস্যা হয়েছে", "error");
+    }
+  };
+
+  const handleOpenLibraryEntry = (entry: SavedKhatiyanEntry) => {
+    if (entry.id !== activeEntryId) snapshotWorkspace();
+    setHeader(entry.header);
+    setOwners(entry.owners);
+    setDags(entry.dags);
+    setResult([]);
+    setShowResult(false);
+    setErrors([]);
+    setActiveEntryId(entry.id);
+    setShowLibraryModal(false);
+    showToast(`“${entry.name}” খোলা হয়েছে`, "success");
+  };
+
+  const handleNewWorkspace = () => {
+    snapshotWorkspace();
+    setHeader({ surveyType: "", district: "", khatiyanNo: "", thana: "", mouja: "", jlNo: "" });
+    setDags([]);
+    setOwners([]);
+    setResult([]);
+    setErrors([]);
+    setShowResult(false);
+    setActiveEntryId(null);
+    showToast("নতুন খতিয়ান শুরু করুন", "info");
+  };
+
+  const handleRenameEntry = (id: string, name: string) => {
+    if (renameLibraryEntry(id, name)) {
+      refreshLibrary();
+      showToast("নাম পরিবর্তন হয়েছে", "success");
+    } else {
+      showToast("নাম পরিবর্তন করা যায়নি", "error");
+    }
+  };
+
+  const handleDeleteEntry = (id: string) => {
+    if (deleteLibraryEntry(id)) {
+      if (activeEntryId === id) setActiveEntryId(null);
+      refreshLibrary();
+      showToast("খতিয়ান মুছে ফেলা হয়েছে", "success");
+    } else {
+      showToast("মুছতে সমস্যা হয়েছে", "error");
+    }
+  };
+
+  const handleExportLibrary = () => {
+    try {
+      const blob = new Blob([exportLibrary()], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `khatiyan-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("ব্যাকআপ ডাউনলোড হয়েছে", "success");
+    } catch {
+      showToast("ব্যাকআপ তৈরি করা যায়নি", "error");
+    }
+  };
+
+  const handleImportLibrary = (json: string) => {
+    const res = importLibrary(json);
+    refreshLibrary();
+    return res;
+  };
+  // ──────────────────────────────────────────────────────────────────────────
 
   const calculateShareRatio = (owner: Owner): number => {
     return owner.ana / 16 + owner.gonda / 320 + owner.kora / 1280 + owner.kranti / 3840 + owner.til / 76800;
@@ -388,6 +502,29 @@ export default function KhatiyanCalculator() {
             >
               <FileText size={20} /> জটিল টেমপ্লেট
             </button>
+
+            {/* ─── Saved library: open + new ─── */}
+            <button
+              onClick={() => {
+                refreshLibrary();
+                setShowLibraryModal(true);
+              }}
+              className="bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition shadow-lg flex items-center gap-2 relative"
+            >
+              <LibraryBig size={20} /> সংরক্ষিত খতিয়ান
+              {libraryEntries.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full min-w-6 h-6 flex items-center justify-center px-1.5">
+                  {toBengaliNumber(String(libraryEntries.length))}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={handleNewWorkspace}
+              className="bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition shadow-lg flex items-center gap-2"
+            >
+              <FilePlus2 size={20} /> নতুন খতিয়ান
+            </button>
           </div>
 
           {/* Khatian Header Form */}
@@ -462,6 +599,14 @@ export default function KhatiyanCalculator() {
               <Save size={20} /> {isSaving ? "সংরক্ষণ হচ্ছে..." : "সংরক্ষণ করুন"}
             </button>
 
+            {/* Save to Library Button */}
+            <button
+              onClick={handleSaveToLibrary}
+              className="sm:w-auto bg-amber-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-amber-700 transition shadow-lg flex items-center justify-center gap-2 border border-amber-500"
+            >
+              <Archive size={20} /> লাইব্রেরিতে সংরক্ষণ
+            </button>
+
             {/* Calculate Button */}
             <button
               onClick={calculateResult}
@@ -494,6 +639,8 @@ export default function KhatiyanCalculator() {
 
       <ThemeToggle theme={theme} onToggle={toggleTheme} mounted={mounted} variant="floating" />
 
+      <AppToast />
+
       {/* Modals */}
       {showErrorModal && <ErrorModal errors={errors} onClose={() => setShowErrorModal(false)} />}
       <DeleteModal deleteModal={deleteModal} onClose={closeDeleteModal} onConfirm={confirmDelete} />
@@ -516,6 +663,19 @@ export default function KhatiyanCalculator() {
         show={showComplexTemplateModal}
         onClose={() => setShowComplexTemplateModal(false)}
         onSelect={handleLoadComplexTemplate}
+      />
+
+      {/* ─── Saved Khatiyans Library ─── */}
+      <SavedKhatiyansModal
+        show={showLibraryModal}
+        entries={libraryEntries}
+        activeEntryId={activeEntryId}
+        onClose={() => setShowLibraryModal(false)}
+        onOpen={handleOpenLibraryEntry}
+        onRename={handleRenameEntry}
+        onDelete={handleDeleteEntry}
+        onExport={handleExportLibrary}
+        onImport={handleImportLibrary}
       />
     </div>
   );
