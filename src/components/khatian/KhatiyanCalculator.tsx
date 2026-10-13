@@ -10,6 +10,7 @@ import {
   saveToLocalStorage,
   setAutoSaveEnabled as setStorageAutoSave,
 } from "@/lib/utils/storage";
+import { normalizeShares } from "@/lib/utils/validation";
 import { Calculator, FileText, RotateCcw, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "@/hooks/useTheme";
@@ -378,10 +379,12 @@ export default function KhatiyanCalculator() {
     setDags([...dags, ...newDags]);
   };
 
-  const handleOwnerChange = (index: number, field: keyof Owner, value: string | number) => {
+  const handleOwnerChange = (index: number, field: keyof Owner, value: string | number | boolean) => {
     const newOwners = [...owners];
     if (field === "name") {
       newOwners[index][field] = value as string;
+    } else if (field === "mutated") {
+      newOwners[index][field] = value as boolean;
     } else if (field in newOwners[index]) {
       (newOwners[index] as any)[field] = Number(value);
     }
@@ -421,15 +424,25 @@ export default function KhatiyanCalculator() {
 
     const newResult: { dagName: string; ownerName: string; land: number }[] = [];
 
-    const ownersWithTotalLand = owners.map((owner) => {
-      const shareRatio = calculateShareRatio(owner);
-      const total = dags.reduce((acc, dag) => acc + dag.land * shareRatio, 0);
-      return { ...owner, totalLand: parseFloat(total.toFixed(4)), shareRatio };
-    });
+    // ─── Mutation: দ্বৈত মডেল ───
+    const normalized = normalizeShares(owners);
+
+    const ownersWithTotalLand = normalized.map(
+      ({ owner, originalShare, effectiveShare }: { owner: Owner; originalShare: number; effectiveShare: number }) => {
+        const total = dags.reduce((acc, dag) => acc + dag.land * originalShare, 0);
+        return {
+          ...owner,
+          totalLand: parseFloat(total.toFixed(4)),
+          shareRatio: effectiveShare,
+          originalShare,
+          effectiveShare,
+        };
+      },
+    );
 
     dags.forEach((dag) => {
       ownersWithTotalLand.forEach((owner) => {
-        const land = parseFloat((dag.land * (owner.shareRatio || 0)).toFixed(4));
+        const land = parseFloat((dag.land * (owner.originalShare || 0)).toFixed(4));
 
         newResult.push({
           dagName: dag.name,
@@ -447,6 +460,22 @@ export default function KhatiyanCalculator() {
 
   const totalSharePercentage = useMemo(() => {
     return owners.reduce((sum, owner) => sum + calculateShareRatio(owner) * 100, 0);
+  }, [owners]);
+
+  // ─── Mutation-aware totals: সক্রিয়দের মূল অংশ ও খারিজ অংশ ───
+  const { activeSharePercentage, mutatedSharePercentage, hasMutatedOwners } = useMemo(() => {
+    let active = 0;
+    let mutated = 0;
+    owners.forEach((owner) => {
+      const ratio = calculateShareRatio(owner) * 100;
+      if (owner.mutated) mutated += ratio;
+      else active += ratio;
+    });
+    return {
+      activeSharePercentage: active,
+      mutatedSharePercentage: mutated,
+      hasMutatedOwners: owners.some((o) => o.mutated),
+    };
   }, [owners]);
 
   const handleReorderOwners = (newOwners: Owner[]) => {
@@ -566,6 +595,12 @@ export default function KhatiyanCalculator() {
                 style={{ width: `${Math.min(totalSharePercentage, 100)}%` }}
               />
             </div>
+            {hasMutatedOwners && (
+              <p className="mt-2 text-xs md:text-sm text-orange-700 dark:text-orange-300 font-semibold">
+                নামজারিকৃত: {toBengaliNumber(mutatedSharePercentage.toFixed(2))}% বাদ — অবশিষ্ট{" "}
+                {toBengaliNumber(activeSharePercentage.toFixed(2))}% সক্রিয় মালিকদের মধ্যে ১০০% ধরে পুনর্বণ্টন হবে
+              </p>
+            )}
           </div>
 
           {/* Owner Form */}

@@ -1,6 +1,7 @@
 "use client";
 import { Dag, Owner } from "@/lib/types";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
+import { normalizeShares } from "@/lib/utils/validation";
 
 interface ResultChartsProps {
   owners: Owner[];
@@ -27,6 +28,10 @@ export const CHART_COLORS = [
 export const ResultCharts = ({ owners, dags, result, calculateShareRatio }: ResultChartsProps) => {
   if (owners.length === 0) return null;
 
+  // ─── Mutation-aware: কার্যকর হিস্যা দিয়ে চার্ট আঁকি ───
+  const normalizedMap = new Map(normalizeShares(owners).map((n) => [n.owner.name, n]));
+  const effectiveRatio = (owner: Owner): number => normalizedMap.get(owner.name)?.effectiveShare ?? 0;
+
   const totalLand = owners.reduce((sum, o) => sum + (o.totalLand || 0), 0) || 1;
   const maxOwnerLand = Math.max(...owners.map((o) => o.totalLand || 0), 1);
 
@@ -35,7 +40,7 @@ export const ResultCharts = ({ owners, dags, result, calculateShareRatio }: Resu
   const C = 2 * Math.PI * R;
   let accumulated = 0;
   const segments = owners.map((owner, i) => {
-    const pct = calculateShareRatio(owner);
+    const pct = effectiveRatio(owner);
     const start = accumulated;
     accumulated += pct;
     return { owner, pct, start, color: CHART_COLORS[i % CHART_COLORS.length] };
@@ -48,7 +53,7 @@ export const ResultCharts = ({ owners, dags, result, calculateShareRatio }: Resu
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* ── Donut: মালিকানার অংশ ── */}
         <div className="border border-[#4b5563] rounded-lg p-4 bg-[#f9fafb]">
-          <h4 className="font-semibold text-sm md:text-base mb-3 text-center">মালিকানার অংশ (%)</h4>
+          <h4 className="font-semibold text-sm md:text-base mb-3 text-center">কার্যকর মালিকানার অংশ (%)</h4>
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="relative shrink-0">
               <svg width="180" height="180" viewBox="0 0 180 180">
@@ -81,7 +86,10 @@ export const ResultCharts = ({ owners, dags, result, calculateShareRatio }: Resu
               {segments.map((s, i) => (
                 <li key={i} className="flex items-center gap-2">
                   <span className="inline-block w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: s.color }} />
-                  <span className="flex-1 truncate">{s.owner.name}</span>
+                  <span className={`flex-1 truncate ${s.owner.mutated ? "line-through text-gray-500" : ""}`}>
+                    {s.owner.name}
+                    {s.owner.mutated ? " (নামজারিকৃত)" : ""}
+                  </span>
                   <span className="font-semibold whitespace-nowrap">{toBengaliNumber((s.pct * 100).toFixed(2))}%</span>
                 </li>
               ))}
@@ -99,7 +107,10 @@ export const ResultCharts = ({ owners, dags, result, calculateShareRatio }: Resu
               return (
                 <div key={i}>
                   <div className="flex justify-between text-xs md:text-sm mb-1 gap-2">
-                    <span className="truncate font-medium">{owner.name}</span>
+                    <span className={`truncate font-medium ${owner.mutated ? "line-through text-gray-500" : ""}`}>
+                      {owner.name}
+                      {owner.mutated ? " (নামজারিকৃত)" : ""}
+                    </span>
                     <span className="font-semibold whitespace-nowrap">{toBengaliNumber(land.toFixed(2))}</span>
                   </div>
                   <div className="w-full bg-[#e5e7eb] rounded-full h-4 overflow-hidden">
