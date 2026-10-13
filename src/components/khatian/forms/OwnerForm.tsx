@@ -9,7 +9,7 @@ import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 interface OwnerFormProps {
   owners: Owner[];
-  onOwnerChange: (index: number, field: keyof Owner, value: string | number) => void;
+  onOwnerChange: (index: number, field: keyof Owner, value: string | number | boolean) => void;
   onDelete: (index: number, name: string) => void;
   onAdd: () => void;
   onReorder: (newOwners: Owner[]) => void;
@@ -72,7 +72,9 @@ export const OwnerForm = ({
     <div className="bg-linear-to-br from-green-50 to-emerald-100 dark:from-green-900 dark:to-emerald-900 p-4 md:p-5 rounded-lg shadow-lg mb-6 border border-green-200 dark:border-green-700">
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <h3 className="font-bold text-lg text-green-800 dark:text-green-200 flex items-center">
-          <span className="bg-green-600 dark:bg-green-700 text-white rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">১</span>
+          <span className="bg-green-600 dark:bg-green-700 text-white rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">
+            ১
+          </span>
           মালিকের তালিকা
         </h3>
 
@@ -119,8 +121,8 @@ export const OwnerForm = ({
                 draggedIndex === index
                   ? "border-green-500 opacity-50 scale-95"
                   : dragOverIndex === index
-                  ? "border-green-400 border-dashed scale-105"
-                  : "border-gray-200 dark:border-gray-700"
+                    ? "border-green-400 border-dashed scale-105"
+                    : "border-gray-200 dark:border-gray-700"
               } cursor-move`}
             >
               {/* Copy Button - Show for 2nd owner onwards */}
@@ -242,6 +244,27 @@ export const OwnerForm = ({
               </div>
 
               <div className="mt-2 text-sm text-gray-600 dark:text-gray-300 flex items-center justify-between">
+                <span>
+                  <label
+                    className="flex items-center gap-2 text-xs font-semibold cursor-pointer select-none px-2 py-1 rounded-full border border-gray-300 dark:border-gray-600 transition print-hide"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={!!owner.mutated}
+                      onChange={(e) => onOwnerChange(index, "mutated", e.target.checked)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-4 h-4 rounded accent-orange-600 cursor-pointer"
+                    />
+                    <span
+                      className={
+                        owner.mutated ? "text-orange-700 dark:text-orange-400" : "text-gray-500 dark:text-gray-400"
+                      }
+                    >
+                      নামজারি হয়েছে
+                    </span>
+                  </label>
+                </span>
                 <span>মালিকানা: {toBengaliNumber((calculateShareRatio(owner) * 100).toFixed(2))}%</span>
                 <span className="text-xs text-gray-500 dark:text-gray-500">ক্রম: {index + 1}</span>
               </div>

@@ -5,10 +5,11 @@ import { downloadImage, copyImageToClipboard } from "@/lib/exports/imageExportDo
 import { shotokToKaniGonda, shotokToKatha, shotokToSqFeet } from "@/lib/conversions/landConversion";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 import { showToast } from "@/lib/utils/toast";
+import { normalizeShares, ratioToAnaGonda } from "@/lib/utils/validation";
 // import { generatePDFSimple } from "@/lib/utils/pdfExportSimple";
 import { downloadPDF } from "@/lib/exports/pdfExport";
 import { BarChart3, Copy, Download, FileDown, Image, Printer } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ResultCharts } from "./ResultCharts";
 
 interface ResultTableProps {
@@ -30,6 +31,23 @@ export const ResultTable = ({
 }: ResultTableProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
+
+  // ─── Mutation: দ্বৈত মডেল ───
+  // • কার্যকর হিস্যা (শতকরা/সহস্রাংশ): originalShare / totalActiveShare → যোগফল ১০০%
+  // • কার্যকর অংশ (১৬ আনা) + মোট জমির সব কলাম: অবশিষ্ট জমি অনুযায়ী originalShare দিয়েই
+  //   গণনা হয় (mutation-এ নিয়ে যাওয়া জমি বাদ), তাই যোগফল ১০০% হবে না — কমবে।
+  // calculateResult-এর setOwners(ownersWithTotalLand) ওভাররাইটে effectiveShare
+  // হারিয়ে গেলেও এখানে normalizeShares() আবার চালিয়ে মূল/কার্যকর হিস্যা বের করি।
+  const normalizedOwners = useMemo(() => normalizeShares(owners), [owners]);
+  const mutationInfo = useMemo(() => {
+    const totalActiveShare = normalizedOwners.length > 0 ? normalizedOwners[0].totalActiveShare : 0;
+    const totalMutatedShare = normalizedOwners.length > 0 ? normalizedOwners[0].totalMutatedShare : 0;
+    return {
+      hasMutated: owners.some((o) => o.mutated),
+      totalActiveShare,
+      totalMutatedShare,
+    };
+  }, [owners, normalizedOwners]);
 
   // Helper function to handle export with loading state and toast feedback
   const handleExport = async (exportFn: () => Promise<void>, successMessage: string) => {
@@ -87,6 +105,28 @@ export const ResultTable = ({
         {/* বর্গফুট */}
         <td className="border border-[#4b5563] p-2 text-right">{toBengaliNumber(sqFeet.toFixed(2))}</td>
       </>
+    );
+  };
+
+  // --- Effective 16-ana breakdown cell: কার্যকর হিস্যা (effectiveShare) → আনা-গণ্ডা ---
+  // সক্রিয়দের কার্যকর হিস্যা পূর্ণ ১৬ আনায় স্কেল হয় (যোগফল ১৬.০০ আনা)।
+  const EffectiveAnaCell = ({ effectiveShare, isMutated }: { effectiveShare: number; isMutated: boolean }) => {
+    if (isMutated) {
+      return (
+        <td className="border border-[#4b5563] p-2 text-right font-semibold whitespace-nowrap text-gray-400"> --- </td>
+      );
+    }
+    const b = ratioToAnaGonda(effectiveShare);
+    const anaLabel = anaOptions.find((o) => o.value === b.ana)?.label ?? "";
+    return (
+      <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap font-semibold">
+        {b.ana > 0 ? `${anaLabel} ` : ""}
+        {b.gonda > 0 ? `${gondaOptions.find((o) => o.value === b.gonda)?.label} ` : ""}
+        {b.kora > 0 ? `${koraOptions.find((o) => o.value === b.kora)?.label} ` : ""}
+        {b.kranti > 0 ? `${krantiOptions.find((o) => o.value === b.kranti)?.label} ` : ""}
+        {b.til > 0 ? `${tilOptions.find((o) => o.value === b.til)?.label} ` : ""}
+        {b.ana === 0 && b.gonda === 0 && b.kora === 0 && b.kranti === 0 && b.til === 0 ? "০" : ""}
+      </td>
     );
   };
 
@@ -151,6 +191,13 @@ export const ResultTable = ({
 
       {/* -------------------- PRIMARY TABLE: OWNER SHARE (Owner Total Table) -------------------- */}
       <h3 className="font-bold text-lg mb-2">১. মালিকের নাম ও অংশ</h3>
+      {/* {mutationInfo.hasMutated && (
+        <p className="mb-2 text-sm font-semibold text-orange-700">
+          নামজারিকৃত অংশ ({toBengaliNumber((mutationInfo.totalMutatedShare * 100).toFixed(2))}%) বাদ দিয়ে অবশিষ্ট{" "}
+          {toBengaliNumber((mutationInfo.totalActiveShare * 100).toFixed(2))}%-কে ১০০% ধরে সক্রিয় মালিকদের মধ্যে
+          পুনর্বণ্টন করা হয়েছে
+        </p>
+      )} */}
       <div className="overflow-x-auto mb-6">
         <table className="w-full border-collapse border border-[#4b5563] md:text-sm">
           <thead>
@@ -159,20 +206,36 @@ export const ResultTable = ({
               <th className="border border-[#4b5563] p-2 text-left whitespace-nowrap">মালিকের নাম</th>
               <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">অংশ (১৬ আনা)</th>
               <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">অংশ (শতকরা)</th>
-              <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">অংশ (সহস্রাংশ)</th>
+              {/* {mutationInfo.hasMutated && (
+                <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">কার্যকর অংশ (শতকরা)</th>
+              )} */}
+              <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                {mutationInfo.hasMutated ? "কার্যকর অংশ (সহস্রাংশ)" : "অংশ (সহস্রাংশ)"}
+              </th>
               <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">মোট জমি (শতক)</th>
               <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">মোট জমি (অজুতাংশ/পয়েন্ট)</th>
               <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">মোট জমি (গন্ডা-কড়া)</th>
             </tr>
           </thead>
           <tbody>
-            {owners.map((owner, i) => {
-              const ratio = calculateShareRatio(owner);
+            {normalizedOwners.map(({ owner, mutated, originalShare, effectiveShare }, i) => {
               const land = owner.totalLand || 0;
+              const isMutated = mutated;
               return (
-                <tr key={i} className={i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}>
+                <tr
+                  key={i}
+                  className={isMutated ? "bg-gray-200 opacity-70" : i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}
+                >
                   <td className="border border-[#4b5563] p-2 text-center">{toBengaliNumber(i + 1)}</td>
-                  <td className="border border-[#4b5563] p-2">{owner.name}</td>
+                  <td className={`border border-[#4b5563] p-2 ${isMutated ? "line-through text-gray-500" : ""}`}>
+                    {owner.name}
+                    {isMutated && (
+                      <>
+                        {" "}
+                        <span className="inline-block text-gray-700">(নামজারিকৃত)</span>
+                      </>
+                    )}
+                  </td>
                   <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
                     {/* ... (Existing share display logic) ... */}
                     {owner.ana > 0 ? `${anaOptions.find((o) => o.value === owner.ana)?.label} ` : ""}
@@ -185,10 +248,15 @@ export const ResultTable = ({
                       : ""}
                   </td>
                   <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                    {toBengaliNumber((ratio * 100).toFixed(2))}%
+                    {toBengaliNumber((originalShare * 100).toFixed(2))}%
                   </td>
+                  {/* {mutationInfo.hasMutated && (
+                    <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap font-semibold">
+                      {isMutated ? "---" : `${toBengaliNumber((effectiveShare * 100).toFixed(2))}%`}
+                    </td>
+                  )} */}
                   <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                    {toBengaliNumber(ratio.toFixed(3))}
+                    {toBengaliNumber(effectiveShare.toFixed(3))}
                   </td>
                   <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
                     {toBengaliNumber(land.toFixed(2))}
@@ -206,23 +274,54 @@ export const ResultTable = ({
               </td>
               <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
                 {toBengaliNumber(((totalSharePercentage / 100) * 16).toFixed(2))} আনা
+                {mutationInfo.hasMutated && (
+                  <> → {toBengaliNumber((mutationInfo.totalActiveShare * 16).toFixed(2))} আনা</>
+                )}
               </td>
               <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
                 {toBengaliNumber(totalSharePercentage.toFixed(2))}%
               </td>
+              {/*               {mutationInfo.hasMutated && (
+                <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap font-semibold">
+                  {toBengaliNumber((mutationInfo.totalActiveShare * 100).toFixed(2))}% → ১০০.০০%
+                </td>
+              )} */}
               <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
                 {toBengaliNumber((totalSharePercentage / 100).toFixed(3))}
               </td>
               <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
                 {toBengaliNumber(owners.reduce((sum, o) => sum + (o.totalLand || 0), 0).toFixed(2))}
+                {/* {toBengaliNumber(
+                  (mutationInfo.hasMutated
+                    ? normalizedOwners.filter((n) => !n.mutated).reduce((sum, n) => sum + (n.owner.totalLand || 0), 0)
+                    : owners.reduce((sum, o) => sum + (o.totalLand || 0), 0)
+                  ).toFixed(2),
+                )} */}
               </td>
               <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
                 {(() => {
                   const total = owners.reduce((sum, o) => sum + (o.totalLand || 0), 0);
                   return `${toBengaliNumber(total.toFixed(2).replace(".", ""))}`;
                 })()}
+                {/* 
+                {(() => {
+                  const total = mutationInfo.hasMutated
+                    ? normalizedOwners.filter((n) => !n.mutated).reduce((sum, n) => sum + (n.owner.totalLand || 0), 0)
+                    : owners.reduce((sum, o) => sum + (o.totalLand || 0), 0);
+                  return `${toBengaliNumber(total.toFixed(2).replace(".", ""))}`;
+                })()}
+                */}
               </td>
               <GondaKoraCell land={owners.reduce((sum, o) => sum + (o.totalLand || 0), 0)} />
+              {/* 
+              <GondaKoraCell
+                land={
+                  mutationInfo.hasMutated
+                    ? normalizedOwners.filter((n) => !n.mutated).reduce((sum, n) => sum + (n.owner.totalLand || 0), 0)
+                    : owners.reduce((sum, o) => sum + (o.totalLand || 0), 0)
+                }
+              /> 
+              */}
             </tr>
           </tbody>
         </table>
@@ -270,10 +369,17 @@ export const ResultTable = ({
           </thead>
           <tbody>
             {result.map((row, i) => {
+              const isRowMutated = owners.find((o) => o.name === row.ownerName)?.mutated;
               return (
-                <tr key={i} className={i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}>
+                <tr
+                  key={i}
+                  className={isRowMutated ? "bg-gray-200 opacity-70" : i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}
+                >
                   <td className="border border-[#4b5563] p-2">{toBengaliNumber(row.dagName)}</td>
-                  <td className="border border-[#4b5563] p-2">{row.ownerName}</td>
+                  <td className={`border border-[#4b5563] p-2 ${isRowMutated ? "line-through text-gray-500" : ""}`}>
+                    {row.ownerName}
+                    {isRowMutated ? " (নামজারিকৃত)" : ""}
+                  </td>
                   <LandMeasurementCells land={row.land} />
                 </tr>
               );

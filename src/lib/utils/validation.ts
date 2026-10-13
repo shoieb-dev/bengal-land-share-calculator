@@ -8,6 +8,84 @@ export const totalShareRatio = (owners: Owner[]): number => {
   return owners.reduce((sum, owner) => sum + calculateShareRatio(owner), 0);
 };
 
+export interface AnaGondaBreakdown {
+  ana: number;
+  gonda: number;
+  kora: number;
+  kranti: number;
+  til: number;
+}
+
+/**
+ * যেকোনো হিস্যা অনুপাত (০–১) কে আনা-গণ্ডা-কড়া-ক্রান্তি-তিলে ভাঙে।
+ * ১৬ আনা = ১, ১ আনা = ২০ গণ্ডা, ১ গণ্ডা = ৪ কড়া, ১ কড়া = ৩ ক্রান্তি, ১ ক্রান্তি = ২০ তিল।
+ * কার্যকর হিস্যা থেকে "কার্যকর ১৬ আনা অংশ" দেখাতে ব্যবহৃত হয়।
+ */
+export const ratioToAnaGonda = (ratio: number): AnaGondaBreakdown => {
+  const totalTil = Math.round(Math.max(0, ratio) * 16 * 20 * 4 * 3 * 20);
+  const TIL_PER_KRANTI = 20;
+  const TIL_PER_KORA = 3 * TIL_PER_KRANTI;
+  const TIL_PER_GONDA = 4 * TIL_PER_KORA;
+  const TIL_PER_ANA = 20 * TIL_PER_GONDA;
+
+  let rest = totalTil;
+  const ana = Math.floor(rest / TIL_PER_ANA);
+  rest -= ana * TIL_PER_ANA;
+  const gonda = Math.floor(rest / TIL_PER_GONDA);
+  rest -= gonda * TIL_PER_GONDA;
+  const kora = Math.floor(rest / TIL_PER_KORA);
+  rest -= kora * TIL_PER_KORA;
+  const kranti = Math.floor(rest / TIL_PER_KRANTI);
+  rest -= kranti * TIL_PER_KRANTI;
+  return { ana, gonda, kora, kranti, til: rest };
+};
+
+export interface NormalizedShare {
+  /** মালিকের মূল হিস্যা (mutation-এর আগের অংশ) */
+  originalShare: number;
+  /** বর্তমান কার্যকর হিস্যা (সক্রিয়দের মধ্যে নরমালাইজড); mutated হলে 0 */
+  effectiveShare: number;
+  /** সক্রিয় মালিকদের মূল অংশের যোগফল */
+  totalActiveShare: number;
+  /** নামজারিকৃতদের মূল অংশের যোগফল */
+  totalMutatedShare: number;
+}
+
+export interface NormalizedOwnerShare extends NormalizedShare {
+  owner: Owner;
+  mutated: boolean;
+}
+
+/**
+ * নামজারি পরবর্তী অবশিষ্ট হিস্যা পুনর্নির্ধারণ (Mutation & Share Normalization)।
+ *
+ * effectiveShare = originalShare / totalActiveShare — ফলে সক্রিয় সবার
+ * কার্যকর হিস্যার যোগফল সবসময় ১ (১০০%) হয়। Mutated মালিকের effectiveShare 0।
+ */
+export const normalizeShares = (owners: Owner[]): NormalizedOwnerShare[] => {
+  const originalShares = owners.map((owner) => calculateShareRatio(owner));
+  const totalActiveShare = owners.reduce(
+    (sum, owner, i) => (owner.mutated ? sum : sum + originalShares[i]),
+    0,
+  );
+  const totalMutatedShare = owners.reduce(
+    (sum, owner, i) => (owner.mutated ? sum + originalShares[i] : sum),
+    0,
+  );
+
+  return owners.map((owner, i) => {
+    const mutated = !!owner.mutated;
+    return {
+      owner,
+      mutated,
+      originalShare: originalShares[i],
+      effectiveShare: mutated || totalActiveShare <= 0 ? 0 : originalShares[i] / totalActiveShare,
+      totalActiveShare,
+      totalMutatedShare,
+    };
+  });
+};
+
 export const validate = (owners: Owner[], dags: Dag[]): ValidationError[] => {
   const newErrors: ValidationError[] = [];
 

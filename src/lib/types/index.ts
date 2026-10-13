@@ -5,8 +5,14 @@ export type Owner = {
   kora: number;
   kranti: number;
   til: number;
+  /** true হলে মালিক নামজারিকৃত (খারিজ) — মূল খতিয়ানের হিসাবে গণ্য হবে না */
+  mutated?: boolean;
   totalLand?: number;
   shareRatio?: number;
+  /** কার্যকর (নরমালাইজড) হিস্যা: activeShare / totalActiveShare */
+  effectiveShare?: number;
+  /** মূল হিস্যা (mutation বাদ দেওয়ার আগের অংশ) */
+  originalShare?: number;
 };
 
 export type Dag = {
