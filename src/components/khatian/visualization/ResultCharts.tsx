@@ -1,12 +1,12 @@
 "use client";
-import { Dag, Owner } from "@/lib/types";
+import { Dag, Owner, ResultRow } from "@/lib/types";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 import { normalizeShares } from "@/lib/utils/validation";
 
 interface ResultChartsProps {
   owners: Owner[];
   dags: Dag[];
-  result: { dagName: string; ownerName: string; land: number }[];
+  result: ResultRow[];
   calculateShareRatio: (owner: Owner) => number;
 }
 
@@ -88,7 +88,7 @@ export const ResultCharts = ({ owners, dags, result, calculateShareRatio }: Resu
                   <span className="inline-block w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: s.color }} />
                   <span className={`flex-1 truncate ${s.owner.mutated ? "line-through text-gray-500" : ""}`}>
                     {s.owner.name}
-                    {s.owner.mutated ? " (নামজারিকৃত)" : ""}
+                    {s.owner.deceased ? " (মৃত)" : ""}
                   </span>
                   <span className="font-semibold whitespace-nowrap">{toBengaliNumber((s.pct * 100).toFixed(2))}%</span>
                 </li>
@@ -109,7 +109,7 @@ export const ResultCharts = ({ owners, dags, result, calculateShareRatio }: Resu
                   <div className="flex justify-between text-xs md:text-sm mb-1 gap-2">
                     <span className={`truncate font-medium ${owner.mutated ? "line-through text-gray-500" : ""}`}>
                       {owner.name}
-                      {owner.mutated ? " (নামজারিকৃত)" : ""}
+                      {owner.deceased ? " (মৃত)" : ""}
                     </span>
                     <span className="font-semibold whitespace-nowrap">{toBengaliNumber(land.toFixed(2))}</span>
                   </div>
@@ -131,7 +131,8 @@ export const ResultCharts = ({ owners, dags, result, calculateShareRatio }: Resu
           <h4 className="font-semibold text-sm md:text-base mb-3 text-center">দাগভিত্তিক জমির বন্টন (শতক)</h4>
           <div className="space-y-3">
             {dags.map((dag, di) => {
-              const rows = result.filter((r) => r.dagName === dag.name);
+              // মৃত মালিকের নিজের রো বাদ (ওয়ারিশরাই জমি বহন করে — ডাবল কাউন্ট এড়াতে)
+              const rows = result.filter((r) => r.dagName === dag.name && !r.isDeceased);
               return (
                 <div key={di}>
                   <div className="flex justify-between text-xs md:text-sm mb-1 gap-2">
@@ -140,7 +141,8 @@ export const ResultCharts = ({ owners, dags, result, calculateShareRatio }: Resu
                   </div>
                   <div className="w-full flex h-5 rounded-full overflow-hidden bg-[#e5e7eb]">
                     {rows.map((row) => {
-                      const ownerIdx = owners.findIndex((o) => o.name === row.ownerName);
+                      const lookupName = row.parentOwner ?? row.ownerName;
+                      const ownerIdx = owners.findIndex((o) => o.name === lookupName);
                       const w = dag.land > 0 ? (row.land / dag.land) * 100 : 0;
                       return w > 0 ? (
                         <div
@@ -156,7 +158,8 @@ export const ResultCharts = ({ owners, dags, result, calculateShareRatio }: Resu
                   </div>
                   <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-[11px] md:text-xs text-gray-700">
                     {rows.map((row) => {
-                      const ownerIdx = owners.findIndex((o) => o.name === row.ownerName);
+                      const lookupName = row.parentOwner ?? row.ownerName;
+                      const ownerIdx = owners.findIndex((o) => o.name === lookupName);
                       return (
                         <span key={`${dag.name}-lbl-${row.ownerName}`} className="flex items-center gap-1">
                           <span
@@ -165,7 +168,8 @@ export const ResultCharts = ({ owners, dags, result, calculateShareRatio }: Resu
                               backgroundColor: CHART_COLORS[(ownerIdx >= 0 ? ownerIdx : 0) % CHART_COLORS.length],
                             }}
                           />
-                          {row.ownerName} ({toBengaliNumber(row.land.toFixed(2))})
+                          {row.isHeir ? `↳ ${row.ownerName}` : row.ownerName} (
+                          {toBengaliNumber(row.land.toFixed(2))})
                         </span>
                       );
                     })}

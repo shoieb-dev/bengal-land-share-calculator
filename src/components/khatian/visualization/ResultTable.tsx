@@ -1,21 +1,22 @@
 "use client";
 import { anaOptions, gondaOptions, koraOptions, krantiOptions, tilOptions } from "@/lib/constants/options";
-import { Dag, KhatiyanHeader, Owner } from "@/lib/types";
+import { Dag, KhatiyanHeader, Owner, ResultRow } from "@/lib/types";
 import { downloadImage, copyImageToClipboard } from "@/lib/exports/imageExportDom";
 import { shotokToKaniGonda, shotokToKatha, shotokToSqFeet } from "@/lib/conversions/landConversion";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 import { showToast } from "@/lib/utils/toast";
 import { normalizeShares, ratioToAnaGonda } from "@/lib/utils/validation";
+import { computeHeirShares, HEIR_RELATION_LABELS } from "@/lib/utils/heirShare";
 // import { generatePDFSimple } from "@/lib/utils/pdfExportSimple";
 import { downloadPDF } from "@/lib/exports/pdfExport";
 import { BarChart3, Copy, Download, FileDown, Image, Printer } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { ResultCharts } from "./ResultCharts";
 
 interface ResultTableProps {
   header?: KhatiyanHeader;
   dags: Dag[];
-  result: { dagName: string; ownerName: string; land: number }[];
+  result: ResultRow[];
   owners: Owner[];
   totalSharePercentage: number;
   calculateShareRatio: (owner: Owner) => number;
@@ -222,50 +223,95 @@ export const ResultTable = ({
               const land = owner.totalLand || 0;
               const isMutated = mutated;
               return (
-                <tr
-                  key={i}
-                  className={isMutated ? "bg-gray-200 opacity-70" : i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}
-                >
-                  <td className="border border-[#4b5563] p-2 text-center">{toBengaliNumber(i + 1)}</td>
-                  <td className={`border border-[#4b5563] p-2 ${isMutated ? "line-through text-gray-500" : ""}`}>
-                    {owner.name}
-                    {isMutated && (
-                      <>
-                        {" "}
-                        <span className="inline-block text-gray-700">(নামজারিকৃত)</span>
-                      </>
-                    )}
-                  </td>
-                  <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                    {/* ... (Existing share display logic) ... */}
-                    {owner.ana > 0 ? `${anaOptions.find((o) => o.value === owner.ana)?.label} ` : ""}
-                    {owner.gonda > 0 ? `${gondaOptions.find((o) => o.value === owner.gonda)?.label} ` : ""}
-                    {owner.kora > 0 ? `${koraOptions.find((o) => o.value === owner.kora)?.label} ` : ""}
-                    {owner.kranti > 0 ? `${krantiOptions.find((o) => o.value === owner.kranti)?.label} ` : ""}
-                    {owner.til > 0 ? `${tilOptions.find((o) => o.value === owner.til)?.label} ` : ""}
-                    {owner.ana === 0 && owner.gonda === 0 && owner.kora === 0 && owner.kranti === 0 && owner.til === 0
-                      ? `${toBengaliNumber(((owner.shareRatio || 0) * 100).toFixed(2))}%`
-                      : ""}
-                  </td>
-                  <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                    {toBengaliNumber((originalShare * 100).toFixed(2))}%
-                  </td>
-                  {/* {mutationInfo.hasMutated && (
+                <Fragment key={i}>
+                  <tr className={isMutated ? "bg-gray-200 opacity-70" : i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}>
+                    <td className="border border-[#4b5563] p-2 text-center">{toBengaliNumber(i + 1)}</td>
+                    <td className={`border border-[#4b5563] p-2 ${isMutated ? "line-through text-gray-500" : ""}`}>
+                      {owner.name}
+                      {isMutated && (
+                        <>
+                          {" "}
+                          <span className="inline-block text-gray-700">(নামজারিকৃত)</span>
+                        </>
+                      )}
+                      {owner.deceased && (
+                        <>
+                          {" "}
+                          <span className="inline-block text-violet-700">(মৃত)</span>
+                        </>
+                      )}
+                    </td>
+                    <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                      {/* ... (Existing share display logic) ... */}
+                      {owner.ana > 0 ? `${anaOptions.find((o) => o.value === owner.ana)?.label} ` : ""}
+                      {owner.gonda > 0 ? `${gondaOptions.find((o) => o.value === owner.gonda)?.label} ` : ""}
+                      {owner.kora > 0 ? `${koraOptions.find((o) => o.value === owner.kora)?.label} ` : ""}
+                      {owner.kranti > 0 ? `${krantiOptions.find((o) => o.value === owner.kranti)?.label} ` : ""}
+                      {owner.til > 0 ? `${tilOptions.find((o) => o.value === owner.til)?.label} ` : ""}
+                      {owner.ana === 0 && owner.gonda === 0 && owner.kora === 0 && owner.kranti === 0 && owner.til === 0
+                        ? `${toBengaliNumber(((owner.shareRatio || 0) * 100).toFixed(2))}%`
+                        : ""}
+                    </td>
+                    <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                      {toBengaliNumber((originalShare * 100).toFixed(2))}%
+                    </td>
+                    {/* {mutationInfo.hasMutated && (
                     <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap font-semibold">
                       {isMutated ? "---" : `${toBengaliNumber((effectiveShare * 100).toFixed(2))}%`}
                     </td>
                   )} */}
-                  <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                    {toBengaliNumber(effectiveShare.toFixed(3))}
-                  </td>
-                  <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                    {toBengaliNumber(land.toFixed(2))}
-                  </td>
-                  <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                    {toBengaliNumber(land.toFixed(2).replace(".", "").padStart(4, "0"))}
-                  </td>
-                  <GondaKoraCell land={land} />
-                </tr>
+                    <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                      {toBengaliNumber(effectiveShare.toFixed(3))}
+                    </td>
+                    <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                      {toBengaliNumber(land.toFixed(2))}
+                    </td>
+                    <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                      {toBengaliNumber(land.toFixed(2).replace(".", "").padStart(4, "0"))}
+                    </td>
+                    <GondaKoraCell land={land} />
+                  </tr>
+                  {owner.deceased &&
+                    owner.heirs &&
+                    owner.heirs.length > 0 &&
+                    (() => {
+                      const hs = computeHeirShares(owner.heirs!);
+                      return owner.heirs!.map((heir) => {
+                        const share = hs.shares[heir.id] ?? 0;
+                        const heirLand = land * share;
+                        const anaB = ratioToAnaGonda(share * originalShare);
+                        return (
+                          <tr key={`heir-${i}-${heir.id}`} className="bg-violet-50">
+                            <td className="border border-[#4b5563] p-2 text-center text-gray-400">↳</td>
+                            <td className="border border-[#4b5563] p-2 pl-6 text-sm">
+                              {heir.name}{" "}
+                              <span className="text-xs text-violet-700">({HEIR_RELATION_LABELS[heir.relation]})</span>
+                            </td>
+                            <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap text-sm">
+                              {anaB.ana > 0 ? `${anaOptions.find((o) => o.value === anaB.ana)?.label} ` : ""}
+                              {anaB.gonda > 0 ? `${gondaOptions.find((o) => o.value === anaB.gonda)?.label} ` : ""}
+                              {anaB.kora > 0 ? `${koraOptions.find((o) => o.value === anaB.kora)?.label} ` : ""}
+                              {anaB.kranti > 0 ? `${krantiOptions.find((o) => o.value === anaB.kranti)?.label} ` : ""}
+                              {anaB.til > 0 ? `${tilOptions.find((o) => o.value === anaB.til)?.label} ` : ""}
+                            </td>
+                            <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                              {toBengaliNumber((share * originalShare * 100).toFixed(2))}%
+                            </td>
+                            <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                              {toBengaliNumber((share * effectiveShare).toFixed(3))}
+                            </td>
+                            <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                              {toBengaliNumber(heirLand.toFixed(2))}
+                            </td>
+                            <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                              {toBengaliNumber(heirLand.toFixed(2).replace(".", "").padStart(4, "0"))}
+                            </td>
+                            <GondaKoraCell land={heirLand} />
+                          </tr>
+                        );
+                      });
+                    })()}
+                </Fragment>
               );
             })}
             <tr className="font-bold">
@@ -370,15 +416,35 @@ export const ResultTable = ({
           <tbody>
             {result.map((row, i) => {
               const isRowMutated = owners.find((o) => o.name === row.ownerName)?.mutated;
+              const isRowDeceased = !!row.isDeceased && !row.isHeir;
+              const isRowHeir = !!row.isHeir;
               return (
                 <tr
                   key={i}
-                  className={isRowMutated ? "bg-gray-200 opacity-70" : i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}
+                  className={
+                    isRowMutated || isRowDeceased
+                      ? "bg-gray-200 opacity-70"
+                      : isRowHeir
+                        ? "bg-violet-50"
+                        : i % 2 === 0
+                          ? "bg-[#f9fafb]"
+                          : "bg-[#f3f4f6]"
+                  }
                 >
                   <td className="border border-[#4b5563] p-2">{toBengaliNumber(row.dagName)}</td>
-                  <td className={`border border-[#4b5563] p-2 ${isRowMutated ? "line-through text-gray-500" : ""}`}>
-                    {row.ownerName}
+                  <td
+                    className={`border border-[#4b5563] p-2 ${
+                      isRowMutated || isRowDeceased
+                        ? "line-through text-gray-500"
+                        : isRowHeir
+                          ? "pl-6 text-violet-900"
+                          : ""
+                    }`}
+                  >
+                    {isRowHeir ? `↳ ${row.ownerName}` : row.ownerName}
+                    {isRowHeir && row.relation ? ` (${HEIR_RELATION_LABELS[row.relation]})` : ""}
                     {isRowMutated ? " (নামজারিকৃত)" : ""}
+                    {isRowDeceased ? " (মৃত)" : ""}
                   </td>
                   <LandMeasurementCells land={row.land} />
                 </tr>
