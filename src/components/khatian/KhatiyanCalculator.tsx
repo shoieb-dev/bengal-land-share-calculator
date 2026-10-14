@@ -1,5 +1,5 @@
 "use client";
-import { Dag, DeleteModalType, KhatiyanHeader, Owner, ResetModalType, ValidationError } from "@/lib/types";
+import { Dag, DeleteModalType, Heir, KhatiyanHeader, Owner, ResetModalType, ResultRow, ValidationError } from "@/lib/types";
 import { parseNumber, toBengaliNumber } from "@/lib/conversions/numberConversion";
 import {
   clearLocalStorage,
@@ -11,6 +11,7 @@ import {
   setAutoSaveEnabled as setStorageAutoSave,
 } from "@/lib/utils/storage";
 import { normalizeShares } from "@/lib/utils/validation";
+import { computeHeirShares } from "@/lib/utils/heirShare";
 import { Calculator, FileText, RotateCcw, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "@/hooks/useTheme";
@@ -47,7 +48,7 @@ export default function KhatiyanCalculator() {
   const { theme, toggleTheme, mounted } = useTheme();
   const [dags, setDags] = useState<Dag[]>([]);
   const [owners, setOwners] = useState<Owner[]>([]);
-  const [result, setResult] = useState<{ dagName: string; ownerName: string; land: number }[]>([]);
+  const [result, setResult] = useState<ResultRow[]>([]);
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [showResult, setShowResult] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -342,6 +343,23 @@ export default function KhatiyanCalculator() {
       if (ratio === 0) {
         newErrors.push({ type: "owner", message: `${owner.name || `মালিক #${i + 1}`} এর অংশ নির্বাচন করুন` });
       }
+      if (owner.deceased) {
+        if (!owner.heirs || owner.heirs.length === 0) {
+          newErrors.push({
+            type: "owner",
+            message: `${owner.name || `মালিক #${i + 1}`} মৃত — অন্তত একজন ওয়ারিশ যোগ করুন`,
+          });
+        } else {
+          owner.heirs.forEach((heir, j) => {
+            if (!heir.name.trim()) {
+              newErrors.push({
+                type: "owner",
+                message: `${owner.name || `মালিক #${i + 1}`} এর ওয়ারিশ #${j + 1} এর নাম লিখুন`,
+              });
+            }
+          });
+        }
+      }
     });
 
     dags.forEach((dag, i) => {
@@ -383,12 +401,51 @@ export default function KhatiyanCalculator() {
     const newOwners = [...owners];
     if (field === "name") {
       newOwners[index][field] = value as string;
-    } else if (field === "mutated") {
+    } else if (field === "mutated" || field === "deceased") {
       newOwners[index][field] = value as boolean;
     } else if (field in newOwners[index]) {
       (newOwners[index] as any)[field] = Number(value);
     }
     setOwners(newOwners);
+  };
+
+  // ─── Heir (ওয়ারিশ) handlers ───
+  const generateHeirId = (): string => {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return crypto.randomUUID();
+    }
+    return `heir_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  };
+
+  const handleAddHeir = (ownerIndex: number) => {
+    setOwners((prev) =>
+      prev.map((o, i) =>
+        i === ownerIndex
+          ? { ...o, heirs: [...(o.heirs ?? []), { id: generateHeirId(), name: "", relation: "son" }] }
+          : o,
+      ),
+    );
+  };
+
+  const handleHeirChange = (ownerIndex: number, heirId: string, field: "name" | "relation", value: string) => {
+    setOwners((prev) =>
+      prev.map((o, i) =>
+        i === ownerIndex
+          ? {
+              ...o,
+              heirs: (o.heirs ?? []).map((h) => (h.id === heirId ? { ...h, [field]: value } : h)),
+            }
+          : o,
+      ),
+    );
+  };
+
+  const handleDeleteHeir = (ownerIndex: number, heirId: string) => {
+    setOwners((prev) =>
+      prev.map((o, i) =>
+        i === ownerIndex ? { ...o, heirs: (o.heirs ?? []).filter((h) => h.id !== heirId) } : o,
+      ),
+    );
   };
 
   const openDeleteModal = (type: "owner" | "dag", index: number, name: string) => {
@@ -422,7 +479,7 @@ export default function KhatiyanCalculator() {
       return;
     }
 
-    const newResult: { dagName: string; ownerName: string; land: number }[] = [];
+    const newResult: ResultRow[] = [];
 
     // ─── Mutation: দ্বৈত মডেল ───
     const normalized = normalizeShares(owners);
@@ -444,11 +501,29 @@ export default function KhatiyanCalculator() {
       ownersWithTotalLand.forEach((owner) => {
         const land = parseFloat((dag.land * (owner.originalShare || 0)).toFixed(4));
 
+        // মালিকের মূল রো (মৃত হলে muted + [মৃত] ট্যাগ দিয়ে দেখানো হবে)
         newResult.push({
           dagName: dag.name,
           ownerName: owner.name,
           land,
+          isDeceased: owner.deceased,
         });
+
+        // ─── ওয়ারিশ বণ্টন: মৃত মালিকের জমি তার ওয়ারিশদের মধ্যে ভাগ ───
+        if (owner.deceased && owner.heirs && owner.heirs.length > 0) {
+          const heirShares = computeHeirShares(owner.heirs);
+          owner.heirs.forEach((heir) => {
+            const share = heirShares.shares[heir.id] ?? 0;
+            newResult.push({
+              dagName: dag.name,
+              ownerName: heir.name,
+              land: parseFloat((land * share).toFixed(4)),
+              isHeir: true,
+              parentOwner: owner.name,
+              relation: heir.relation,
+            });
+          });
+        }
       });
     });
 
@@ -611,6 +686,9 @@ export default function KhatiyanCalculator() {
             onAdd={addOwner}
             calculateShareRatio={calculateShareRatio}
             onReorder={handleReorderOwners}
+            onAddHeir={handleAddHeir}
+            onHeirChange={handleHeirChange}
+            onDeleteHeir={handleDeleteHeir}
           />
 
           {/* Dag Form */}
