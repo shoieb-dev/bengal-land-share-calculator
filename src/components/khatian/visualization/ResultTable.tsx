@@ -50,6 +50,16 @@ export const ResultTable = ({
     };
   }, [owners, normalizedOwners]);
 
+  // মোট জমি: নামজারিকৃত মালিক বাদ + মৃত মালিকের নামজারিকৃত ওয়ারিশের অংশও বাদ
+  const totalActiveLand = normalizedOwners.reduce((sum, n) => {
+    if (n.mutated) return sum;
+    let land = n.owner.totalLand || 0;
+    if (n.owner.deceased && n.owner.heirs && n.owner.heirs.length > 0) {
+      land *= 1 - computeHeirShares(n.owner.heirs).totalMutatedShare;
+    }
+    return sum + land;
+  }, 0);
+
   // Helper function to handle export with loading state and toast feedback
   const handleExport = async (exportFn: () => Promise<void>, successMessage: string) => {
     setIsExporting(true);
@@ -278,14 +288,26 @@ export const ResultTable = ({
                       const hs = computeHeirShares(owner.heirs!);
                       return owner.heirs!.map((heir) => {
                         const share = hs.shares[heir.id] ?? 0;
+                        const effShare = hs.effectiveShares[heir.id] ?? 0;
+                        const isHeirMutated = !!heir.mutated;
                         const heirLand = land * share;
                         const anaB = ratioToAnaGonda(share * originalShare);
                         return (
-                          <tr key={`heir-${i}-${heir.id}`} className="bg-violet-50">
+                          <tr
+                            key={`heir-${i}-${heir.id}`}
+                            className={isHeirMutated ? "bg-gray-100 opacity-70" : "bg-violet-50"}
+                          >
                             <td className="border border-[#4b5563] p-2 text-center text-gray-400">↳</td>
-                            <td className="border border-[#4b5563] p-2 pl-6 text-sm">
+                            <td
+                              className={`border border-[#4b5563] p-2 pl-6 text-sm ${
+                                isHeirMutated ? "line-through text-gray-500" : ""
+                              }`}
+                            >
                               {heir.name}{" "}
-                              <span className="text-xs text-violet-700">({HEIR_RELATION_LABELS[heir.relation]})</span>
+                              <span className={`text-xs ${isHeirMutated ? "text-gray-500" : "text-violet-700"}`}>
+                                ({HEIR_RELATION_LABELS[heir.relation]})
+                              </span>
+                              {isHeirMutated && <span className="text-xs text-gray-500"> (নামজারিকৃত)</span>}
                             </td>
                             <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap text-sm">
                               {anaB.ana > 0 ? `${anaOptions.find((o) => o.value === anaB.ana)?.label} ` : ""}
@@ -298,7 +320,7 @@ export const ResultTable = ({
                               {toBengaliNumber((share * originalShare * 100).toFixed(2))}%
                             </td>
                             <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                              {toBengaliNumber((share * effectiveShare).toFixed(3))}
+                              {toBengaliNumber((effShare * effectiveShare).toFixed(3))}
                             </td>
                             <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
                               {toBengaliNumber(heirLand.toFixed(2))}
@@ -337,7 +359,9 @@ export const ResultTable = ({
               </td>
               <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
                 {toBengaliNumber(owners.reduce((sum, o) => sum + (o.totalLand || 0), 0).toFixed(2))}
-                {/* {toBengaliNumber(
+                {/* 
+                {toBengaliNumber(totalActiveLand.toFixed(2))}
+                {toBengaliNumber(
                   (mutationInfo.hasMutated
                     ? normalizedOwners.filter((n) => !n.mutated).reduce((sum, n) => sum + (n.owner.totalLand || 0), 0)
                     : owners.reduce((sum, o) => sum + (o.totalLand || 0), 0)
@@ -351,6 +375,10 @@ export const ResultTable = ({
                 })()}
                 {/* 
                 {(() => {
+                  const total = totalActiveLand;
+                  return `${toBengaliNumber(total.toFixed(2).replace(".", ""))}`;
+                })()}
+                {(() => {
                   const total = mutationInfo.hasMutated
                     ? normalizedOwners.filter((n) => !n.mutated).reduce((sum, n) => sum + (n.owner.totalLand || 0), 0)
                     : owners.reduce((sum, o) => sum + (o.totalLand || 0), 0);
@@ -360,6 +388,7 @@ export const ResultTable = ({
               </td>
               <GondaKoraCell land={owners.reduce((sum, o) => sum + (o.totalLand || 0), 0)} />
               {/* 
+              <GondaKoraCell land={totalActiveLand} />
               <GondaKoraCell
                 land={
                   mutationInfo.hasMutated
@@ -418,11 +447,12 @@ export const ResultTable = ({
               const isRowMutated = owners.find((o) => o.name === row.ownerName)?.mutated;
               const isRowDeceased = !!row.isDeceased && !row.isHeir;
               const isRowHeir = !!row.isHeir;
+              const isRowHeirMutated = !!row.isHeirMutated;
               return (
                 <tr
                   key={i}
                   className={
-                    isRowMutated || isRowDeceased
+                    isRowMutated || isRowDeceased || isRowHeirMutated
                       ? "bg-gray-200 opacity-70"
                       : isRowHeir
                         ? "bg-violet-50"
@@ -434,7 +464,7 @@ export const ResultTable = ({
                   <td className="border border-[#4b5563] p-2">{toBengaliNumber(row.dagName)}</td>
                   <td
                     className={`border border-[#4b5563] p-2 ${
-                      isRowMutated || isRowDeceased
+                      isRowMutated || isRowDeceased || isRowHeirMutated
                         ? "line-through text-gray-500"
                         : isRowHeir
                           ? "pl-6 text-violet-900"
@@ -443,7 +473,7 @@ export const ResultTable = ({
                   >
                     {isRowHeir ? `↳ ${row.ownerName}` : row.ownerName}
                     {isRowHeir && row.relation ? ` (${HEIR_RELATION_LABELS[row.relation]})` : ""}
-                    {isRowMutated ? " (নামজারিকৃত)" : ""}
+                    {isRowMutated || isRowHeirMutated ? " (নামজারিকৃত)" : ""}
                     {isRowDeceased ? " (মৃত)" : ""}
                   </td>
                   <LandMeasurementCells land={row.land} />

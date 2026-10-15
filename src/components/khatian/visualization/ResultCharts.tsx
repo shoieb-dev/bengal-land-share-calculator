@@ -168,7 +168,7 @@ export const ResultCharts = ({ owners, dags, result, calculateShareRatio }: Resu
                               backgroundColor: CHART_COLORS[(ownerIdx >= 0 ? ownerIdx : 0) % CHART_COLORS.length],
                             }}
                           />
-                          {row.isHeir ? `↳ ${row.ownerName}` : row.ownerName} (
+                          {row.isHeir ? `↳ ${row.ownerName}` : row.ownerName}{row.isHeirMutated ? " (নামজারিকৃত)" : ""} (
                           {toBengaliNumber(row.land.toFixed(2))})
                         </span>
                       );

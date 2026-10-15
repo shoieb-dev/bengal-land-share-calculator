@@ -12,10 +12,16 @@ import { Heir } from "../types";
  *    সন্তান না থাকলে বাকি অংশ unallocated হিসেবে ফেরত আসে।
  */
 export interface HeirShareResult {
-  /** heirId → অংশ (মৃত মালিকের সম্পত্তির ভগ্নাংশ) */
+  /** heirId → মূল ফারায়েয অংশ */
   shares: Record<string, number>;
+  /** heirId → কার্যকর অংশ (সক্রিয়দের মধ্যে পুনর্বণ্টন; নামজারিকৃত = ০) */
+  effectiveShares: Record<string, number>;
   /** বণ্টিত না হওয়া অবশিষ্টাংশ (জটিল ক্ষেত্রে > 0) */
   unallocated: number;
+  /** কোনো ওয়ারিশ নামজারিকৃত কি না */
+  hasMutated: boolean;
+  /** নামজারিকৃত ওয়ারিশদের মোট ফারায়েয অংশ */
+  totalMutatedShare: number;
 }
 
 export const HEIR_RELATION_LABELS: Record<Heir["relation"], string> = {
@@ -46,6 +52,7 @@ export const computeHeirShares = (heirs: Heir[]): HeirShareResult => {
     wife.length * (hasChildren ? 1 / 8 : 1 / 4) + husband.length * (hasChildren ? 1 / 4 : 1 / 2);
   const residue = Math.max(0, 1 - fixedTotal);
 
+  let unallocated = 0;
   if (hasChildren) {
     const units = sons.length * 2 + daughters.length * 1;
     sons.forEach((h) => {
@@ -54,9 +61,38 @@ export const computeHeirShares = (heirs: Heir[]): HeirShareResult => {
     daughters.forEach((h) => {
       shares[h.id] = residue / units;
     });
-    return { shares, unallocated: 0 };
+  } else {
+    // সন্তান নেই — বাকি অংশ (বাবা/মা/ভাই-বোন) v1-এ হিসাব করা হয়নি
+    unallocated = Math.max(0, 1 - fixedTotal);
   }
 
-  // সন্তান নেই — বাকি অংশ (বাবা/মা/ভাই-বোন) v1-এ হিসাব করা হয়নি
-  return { shares, unallocated: Math.max(0, 1 - fixedTotal) };
+  // ─── নামজারি (mutation): সক্রিয় ওয়ারিশদের মধ্যে পুনর্বণ্টন ───
+  // ফারায়েয অংশ অপরিবর্তিত থাকে (মৃত্যুর সময় নির্ধারিত);
+  // নামজারিকৃত ওয়ারিশের অংশ বাদ দিয়ে বাকিদের কার্যকর অংশ ১০০% করা হয়।
+  const anyMutated = heirs.some((h) => h.mutated);
+  const totalMutatedShare = heirs.reduce(
+    (sum, h) => (h.mutated ? sum + (shares[h.id] ?? 0) : sum),
+    0,
+  );
+  const activeSum = heirs.reduce(
+    (sum, h) => (h.mutated ? sum : sum + (shares[h.id] ?? 0)),
+    0,
+  );
+  const effectiveShares: Record<string, number> = {};
+  heirs.forEach((h) => {
+    // নামজারি না থাকলে কার্যকর অংশ = মূল ফারায়েয অংশ (unallocated অংশ পুনর্বণ্টিত হবে না)
+    effectiveShares[h.id] = !anyMutated
+      ? (shares[h.id] ?? 0)
+      : h.mutated || activeSum <= 0
+        ? 0
+        : (shares[h.id] ?? 0) / activeSum;
+  });
+
+  return {
+    shares,
+    effectiveShares,
+    unallocated,
+    hasMutated: totalMutatedShare > 0,
+    totalMutatedShare,
+  };
 };

@@ -1,4 +1,5 @@
 import { Owner, Dag, ValidationError } from "../types";
+import { computeHeirShares } from "./heirShare";
 
 export const calculateShareRatio = (owner: Owner): number => {
   return owner.ana / 16 + owner.gonda / 320 + owner.kora / 1280 + owner.kranti / 3840 + owner.til / 76800;
@@ -64,10 +65,19 @@ export interface NormalizedOwnerShare extends NormalizedShare {
  */
 export const normalizeShares = (owners: Owner[]): NormalizedOwnerShare[] => {
   const originalShares = owners.map((owner) => calculateShareRatio(owner));
-  const totalActiveShare = owners.reduce(
-    (sum, owner, i) => (owner.mutated ? sum : sum + originalShares[i]),
-    0,
-  );
+
+  // কার্যকর অংশ: নামজারিকৃত মালিক বাদ + মৃত মালিকের নামজারিকৃত ওয়ারিশের অংশও বাদ
+  // (ওয়ারিশের নামজারিতে মালিকের লাইন থেকেও জমি কমে)
+  const activePortions = owners.map((owner, i) => {
+    if (owner.mutated) return 0;
+    let portion = originalShares[i];
+    if (owner.deceased && owner.heirs && owner.heirs.length > 0) {
+      portion *= 1 - computeHeirShares(owner.heirs).totalMutatedShare;
+    }
+    return portion;
+  });
+
+  const totalActiveShare = activePortions.reduce((sum, p) => sum + p, 0);
   const totalMutatedShare = owners.reduce(
     (sum, owner, i) => (owner.mutated ? sum + originalShares[i] : sum),
     0,
@@ -79,7 +89,8 @@ export const normalizeShares = (owners: Owner[]): NormalizedOwnerShare[] => {
       owner,
       mutated,
       originalShare: originalShares[i],
-      effectiveShare: mutated || totalActiveShare <= 0 ? 0 : originalShares[i] / totalActiveShare,
+      effectiveShare:
+        mutated || totalActiveShare <= 0 ? 0 : activePortions[i] / totalActiveShare,
       totalActiveShare,
       totalMutatedShare,
     };
