@@ -4,6 +4,8 @@ export type Heir = {
   id: string;
   name: string;
   relation: HeirRelation;
+  /** true হলে ওয়ারিশ নামজারিকৃত — তার অংশ বাদ দিতে হবে */
+  mutated?: boolean;
 };
 
 export type Owner = {
@@ -65,6 +67,8 @@ export type ResultRow = {
   isDeceased?: boolean;
   /** ওয়ারিশের রো */
   isHeir?: boolean;
+  /** ওয়ারিশ নামজারিকৃত */
+  isHeirMutated?: boolean;
   /** ওয়ারিশের পিতৃ/মাতা/স্বামী (মালিক) — চার্ট রঙের জন্য */
   parentOwner?: string;
   relation?: HeirRelation;

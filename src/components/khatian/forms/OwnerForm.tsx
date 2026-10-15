@@ -17,7 +17,7 @@ interface OwnerFormProps {
   onReorder: (newOwners: Owner[]) => void;
   calculateShareRatio: (owner: Owner) => number;
   onAddHeir: (ownerIndex: number) => void;
-  onHeirChange: (ownerIndex: number, heirId: string, field: "name" | "relation", value: string) => void;
+  onHeirChange: (ownerIndex: number, heirId: string, field: "name" | "relation" | "mutated", value: string | boolean) => void;
   onDeleteHeir: (ownerIndex: number, heirId: string) => void;
 }
 
@@ -368,7 +368,7 @@ const HeirRows = ({
 }: {
   ownerIndex: number;
   owner: Owner;
-  onHeirChange: (ownerIndex: number, heirId: string, field: "name" | "relation", value: string) => void;
+  onHeirChange: (ownerIndex: number, heirId: string, field: "name" | "relation" | "mutated", value: string | boolean) => void;
   onDeleteHeir: (ownerIndex: number, heirId: string) => void;
 }) => {
   const heirs = owner.heirs ?? [];
@@ -379,8 +379,10 @@ const HeirRows = ({
     <div className="space-y-2">
       {heirs.map((heir) => {
         const share = heirShares.shares[heir.id] ?? 0;
+        const effShare = heirShares.effectiveShares[heir.id] ?? 0;
+        const isMutated = !!heir.mutated;
         return (
-          <div key={heir.id} className="flex items-center gap-2">
+          <div key={heir.id} className={`flex items-center gap-2 ${isMutated ? "opacity-70" : ""}`}>
             <input
               type="text"
               placeholder="ওয়ারিশের নাম"
@@ -400,11 +402,43 @@ const HeirRows = ({
               <option value="son">ছেলে</option>
               <option value="daughter">মেয়ে</option>
             </select>
-            <span className="text-xs font-semibold text-violet-700 dark:text-violet-300 whitespace-nowrap w-24 text-right">
-              {toBengaliNumber((share * 100).toFixed(2))}%
-              <span className="block text-[10px] text-gray-500 dark:text-gray-400">
-                ({toBengaliNumber((share * ownerRatio * 100).toFixed(2))}% মালিকানা)
+            <label
+              className="flex items-center gap-1 text-xs font-semibold cursor-pointer select-none shrink-0 print-hide"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <input
+                type="checkbox"
+                checked={isMutated}
+                onChange={(e) => onHeirChange(ownerIndex, heir.id, "mutated", e.target.checked)}
+                onClick={(e) => e.stopPropagation()}
+                className="w-3.5 h-3.5 rounded accent-orange-600 cursor-pointer"
+              />
+              <span
+                className={isMutated ? "text-orange-700 dark:text-orange-400" : "text-gray-500 dark:text-gray-400"}
+              >
+                নামজারি
               </span>
+            </label>
+            <span
+              className={`text-xs font-semibold whitespace-nowrap w-28 text-right ${
+                isMutated ? "text-gray-400 line-through" : "text-violet-700 dark:text-violet-300"
+              }`}
+            >
+              {heirShares.hasMutated && !isMutated ? (
+                <>
+                  {toBengaliNumber((effShare * 100).toFixed(2))}%
+                  <span className="block text-[10px] text-gray-500 dark:text-gray-400">
+                    (মূল {toBengaliNumber((share * 100).toFixed(2))}%)
+                  </span>
+                </>
+              ) : (
+                <>
+                  {toBengaliNumber((share * 100).toFixed(2))}%
+                  <span className="block text-[10px] text-gray-500 dark:text-gray-400">
+                    ({toBengaliNumber((share * ownerRatio * 100).toFixed(2))}% মালিকানা)
+                  </span>
+                </>
+              )}
             </span>
             <button
               onClick={(e) => {

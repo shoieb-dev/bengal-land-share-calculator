@@ -358,6 +358,12 @@ export default function KhatiyanCalculator() {
               });
             }
           });
+          if (owner.heirs.every((h) => h.mutated)) {
+            newErrors.push({
+              type: "owner",
+              message: `${owner.name || `মালিক #${i + 1}`} — সব ওয়ারিশ নামজারিকৃত, অন্তত একজন সক্রিয় রাখুন`,
+            });
+          }
         }
       }
     });
@@ -427,13 +433,13 @@ export default function KhatiyanCalculator() {
     );
   };
 
-  const handleHeirChange = (ownerIndex: number, heirId: string, field: "name" | "relation", value: string) => {
+  const handleHeirChange = (ownerIndex: number, heirId: string, field: "name" | "relation" | "mutated", value: string | boolean) => {
     setOwners((prev) =>
       prev.map((o, i) =>
         i === ownerIndex
           ? {
               ...o,
-              heirs: (o.heirs ?? []).map((h) => (h.id === heirId ? { ...h, [field]: value } : h)),
+              heirs: (o.heirs ?? []).map((h) => (h.id === heirId ? ({ ...h, [field]: value } as Heir) : h)),
             }
           : o,
       ),
@@ -519,6 +525,7 @@ export default function KhatiyanCalculator() {
               ownerName: heir.name,
               land: parseFloat((land * share).toFixed(4)),
               isHeir: true,
+              isHeirMutated: heir.mutated,
               parentOwner: owner.name,
               relation: heir.relation,
             });
@@ -537,19 +544,28 @@ export default function KhatiyanCalculator() {
     return owners.reduce((sum, owner) => sum + calculateShareRatio(owner) * 100, 0);
   }, [owners]);
 
-  // ─── Mutation-aware totals: সক্রিয়দের মূল অংশ ও খারিজ অংশ ───
+  // ─── Mutation-aware totals: সক্রিয়দের মূল অংশ ও খারিজ অংশ (ওয়ারিশের নামজারিসহ) ───
   const { activeSharePercentage, mutatedSharePercentage, hasMutatedOwners } = useMemo(() => {
     let active = 0;
     let mutated = 0;
     owners.forEach((owner) => {
       const ratio = calculateShareRatio(owner) * 100;
-      if (owner.mutated) mutated += ratio;
-      else active += ratio;
+      if (owner.mutated) {
+        mutated += ratio;
+        return;
+      }
+      // মৃত মালিকের নামজারিকৃত ওয়ারিশের অংশও খারিজ হয়ে যায়
+      let mutatedHeirPct = 0;
+      if (owner.deceased && owner.heirs && owner.heirs.length > 0) {
+        mutatedHeirPct = computeHeirShares(owner.heirs).totalMutatedShare * ratio;
+      }
+      mutated += mutatedHeirPct;
+      active += ratio - mutatedHeirPct;
     });
     return {
       activeSharePercentage: active,
       mutatedSharePercentage: mutated,
-      hasMutatedOwners: owners.some((o) => o.mutated),
+      hasMutatedOwners: mutated > 0.001,
     };
   }, [owners]);
 
