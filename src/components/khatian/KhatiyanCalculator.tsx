@@ -12,10 +12,9 @@ import {
 } from "@/lib/utils/storage";
 import { normalizeShares } from "@/lib/utils/validation";
 import { computeHeirShares } from "@/lib/utils/heirShare";
-import { Calculator, FileText, RotateCcw, Save } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTheme } from "@/hooks/useTheme";
 import { showToast } from "@/lib/utils/toast";
+import { useTheme } from "@/hooks/useTheme";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ThemeToggle from "./ui/ThemeToggle";
 import AppToast from "../common/AppToast";
 import AutoSaveIndicator from "./ui/AutoSaveIndicator";
@@ -26,6 +25,7 @@ import KhatiyanHeaderForm from "./forms/KhatiyanHeaderForm";
 import LoadDataModal from "./modals/LoadDataModal";
 import { OwnerForm } from "./forms/OwnerForm";
 import { ResetModal } from "./modals/ResetModal";
+import { ShortcutHints } from "./ShortcutHints";
 import { ResultTable } from "./visualization/ResultTable";
 import TemplateModal from "./modals/TemplateModal";
 import SavedKhatiyansModal from "./modals/SavedKhatiyansModal";
@@ -40,7 +40,7 @@ import {
   SavedKhatiyanEntry,
 } from "@/lib/utils/khatiyanLibrary";
 import { KhatiyanTemplate } from "@/lib/constants/templates";
-import { Archive, FilePlus2, Layout, LibraryBig } from "lucide-react";
+import { Archive, Calculator, FilePlus2, FileText, Layout, LibraryBig, RotateCcw, Save } from "lucide-react";
 import ComplexTemplateModal from "./modals/ComplexTemplateModal";
 
 // Main Component
@@ -279,6 +279,15 @@ export default function KhatiyanCalculator() {
     showToast("নতুন খতিয়ান শুরু করুন", "info");
   };
 
+  // ─── Keyboard shortcuts (dispatched by KeyboardShortcutsLayer) ───
+  const shortcutActionRef = useRef<(action: string) => void>(() => {});
+
+  useEffect(() => {
+    const onShortcut = (e: Event) => shortcutActionRef.current((e as CustomEvent<string>).detail);
+    window.addEventListener("khatiyan-shortcut", onShortcut);
+    return () => window.removeEventListener("khatiyan-shortcut", onShortcut);
+  }, []);
+
   const handleRenameEntry = (id: string, name: string) => {
     if (renameLibraryEntry(id, name)) {
       refreshLibrary();
@@ -385,8 +394,11 @@ export default function KhatiyanCalculator() {
     return newErrors;
   };
 
-  const addDag = () => setDags([...dags, { name: "", land: 0 }]);
-  const addOwner = () => setOwners([...owners, { name: "", ana: 0, gonda: 0, kora: 0, kranti: 0, til: 0 }]);
+  const addDag = () => setDags((prev) => [...prev, { name: "", land: 0 }]);
+  const addOwner = () =>
+    setOwners((prev) => [...prev, { name: "", ana: 0, gonda: 0, kora: 0, kranti: 0, til: 0 }]);
+
+  // (keyboard-shortcut handlers removed — wired via khatiyan-shortcut events below)
 
   const handleDagChange = (index: number, field: keyof Dag, value: string | number) => {
     const newDags = [...dags];
@@ -540,6 +552,31 @@ export default function KhatiyanCalculator() {
     setErrors([]);
   };
 
+  // ─── Wire keyboard-shortcut actions (Alt+N / Alt+Shift+N / Ctrl+S / Ctrl+O / Ctrl+Enter / Esc) ───
+  useEffect(() => {
+    shortcutActionRef.current = (action: string) => {
+      if (action === "new-owner") {
+        addOwner();
+        showToast("নতুন মালিক যোগ হয়েছে", "info");
+      } else if (action === "new-khatiyan") {
+        handleNewWorkspace();
+      } else if (action === "save") {
+        handleManualSave();
+      } else if (action === "open-library") {
+        refreshLibrary();
+        setShowLibraryModal(true);
+      } else if (action === "calculate") {
+        calculateResult();
+      } else if (action === "close-modals") {
+        setShowErrorModal(false);
+        setShowLibraryModal(false);
+        setShowTemplateModal(false);
+        setShowComplexTemplateModal(false);
+        setShowLoadModal(false);
+      }
+    };
+  });
+
   const totalSharePercentage = useMemo(() => {
     return owners.reduce((sum, owner) => sum + calculateShareRatio(owner) * 100, 0);
   }, [owners]);
@@ -605,6 +642,7 @@ export default function KhatiyanCalculator() {
             autoSaveEnabled={autoSaveEnabled}
             onToggleAutoSave={handleToggleAutoSave}
           />
+          <ShortcutHints />
           <div className="border-t border-gray-700 mb-2" />
 
           {/* Template Button */}

@@ -45,6 +45,17 @@ It helps convert **Ana, Gonda, Kora, Kranti, and Til** units into **decimal (শ
 - 🎨 Clean Tailwind styling with warning/error states (`ErrorModal`)
 - 🍞 Toast notifications (`toast.ts`)
 - 🧭 Dark/light theme hooks (`useTheme.ts`)
+- ⌨️ Keyboard shortcuts (`useKeyboardShortcuts*`, `ShortcutHints`) — fast navigation without the mouse
+
+### ⌨️ Keyboard Shortcuts
+| Keys | Action |
+| ---- | ------ |
+| `Alt + N` | নতুন মালিক যোগ করুন (new owner) |
+| `Alt + Shift + N` | নতুন খতিয়ান শুরু করুন (snapshot current work first) |
+| `Ctrl + S` | সংরক্ষণ করুন (manual save) |
+| `Ctrl + O` | লাইব্রেরি খুলুন (saved khatiyans) |
+| `Ctrl + Enter` | ফলাফল হিসাব করুন (calculate) |
+| `Esc` | সব পপআপ/মোডাল বন্ধ করুন |
 
 ---
 
