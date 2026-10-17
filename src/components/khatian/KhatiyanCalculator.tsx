@@ -552,7 +552,7 @@ export default function KhatiyanCalculator() {
     setErrors([]);
   };
 
-  // ─── Wire keyboard-shortcut actions (Ctrl+N / Ctrl+Shift+N / Ctrl+S / Ctrl+O / Ctrl+Enter / Esc) ───
+  // ─── Wire keyboard-shortcut actions (Alt+N / Alt+Shift+N / Ctrl+S / Ctrl+O / Ctrl+Enter / Esc) ───
   useEffect(() => {
     shortcutActionRef.current = (action: string) => {
       if (action === "new-owner") {

@@ -28,13 +28,13 @@ export function KeyboardShortcutsLayer() {
 
     // Fast navigation
     {
-      ctrlKey: true,
+      altKey: true,
       key: "N",
       description: "নতুন মালিক (New Owner)",
       action: () => dispatchShortcut("new-owner"),
     },
     {
-      ctrlKey: true,
+      altKey: true,
       shiftKey: true,
       key: "N",
       description: "নতুন খতিয়ান (New Khatiyan)",

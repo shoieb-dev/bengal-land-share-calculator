@@ -50,8 +50,8 @@ It helps convert **Ana, Gonda, Kora, Kranti, and Til** units into **decimal (শ
 ### ⌨️ Keyboard Shortcuts
 | Keys | Action |
 | ---- | ------ |
-| `Ctrl + N` | নতুন মালিক যোগ করুন (new owner) |
-| `Ctrl + Shift + N` | নতুন খতিয়ান শুরু করুন (snapshot current work first) |
+| `Alt + N` | নতুন মালিক যোগ করুন (new owner) |
+| `Alt + Shift + N` | নতুন খতিয়ান শুরু করুন (snapshot current work first) |
 | `Ctrl + S` | সংরক্ষণ করুন (manual save) |
 | `Ctrl + O` | লাইব্রেরি খুলুন (saved khatiyans) |
 | `Ctrl + Enter` | ফলাফল হিসাব করুন (calculate) |

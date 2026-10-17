@@ -1,8 +1,8 @@
 "use client";
 
 const HINTS: { keys: string; label: string }[] = [
-  { keys: "Ctrl + N", label: "নতুন মালিক" },
-  { keys: "Ctrl + Shift + N", label: "নতুন খতিয়ান" },
+  { keys: "Alt + N", label: "নতুন মালিক" },
+  { keys: "Alt + Shift + N", label: "নতুন খতিয়ান" },
   { keys: "Ctrl + S", label: "সংরক্ষণ" },
   { keys: "Ctrl + O", label: "লাইব্রেরি খুলুন" },
   { keys: "Ctrl + Enter", label: "ফলাফল হিসাব" },
