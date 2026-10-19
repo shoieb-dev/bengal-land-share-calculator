@@ -694,20 +694,20 @@ export default function KhatiyanCalculator() {
     >
       <div className="max-w-7xl mx-auto">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-4 md:p-6 mb-6 border border-gray-200 dark:border-gray-700 print-hide">
-          <div className="relative mb-3 overflow-hidden rounded-xl border border-blue-200/70 bg-linear-to-br from-blue-50 via-indigo-50 to-sky-100 px-4 py-5 text-center dark:border-blue-800/50 dark:from-blue-950/60 dark:via-indigo-950/40 dark:to-sky-950/60">
+          <div className="relative mb-3 overflow-hidden rounded-xl border border-blue-200/70 bg-linear-to-br from-blue-50 via-indigo-50 to-sky-100 px-4 py-6 text-center dark:border-blue-800/50 dark:from-blue-950/60 dark:via-indigo-950/40 dark:to-sky-950/60">
             <div
               aria-hidden
               className="pointer-events-none absolute -top-16 left-1/2 h-40 w-[36rem] -translate-x-1/2 rounded-full bg-blue-400/20 blur-3xl dark:bg-blue-500/20"
             />
             <div className="relative flex items-center justify-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30">
                 <ScrollText size={24} />
               </span>
-              <h1 className="bg-linear-to-r from-sky-600 via-blue-600 to-indigo-600 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent md:text-4xl dark:from-sky-300 dark:via-blue-300 dark:to-indigo-300">
+              <h1 className="bg-linear-to-r from-sky-600 via-blue-600 to-indigo-600 bg-clip-text py-1 text-3xl font-extrabold leading-[1.6] text-transparent md:text-4xl dark:from-sky-300 dark:via-blue-300 dark:to-indigo-300">
                 খতিয়ান হিসাব
               </h1>
             </div>
-            <p className="relative mt-1.5 text-xs font-medium tracking-wide text-slate-500 md:text-sm dark:text-slate-400">
+            <p className="relative mt-1 text-xs font-medium tracking-wide text-slate-500 md:text-sm dark:text-slate-400">
               জমির মালিকানা ও বন্টন হিসাব
             </p>
           </div>
