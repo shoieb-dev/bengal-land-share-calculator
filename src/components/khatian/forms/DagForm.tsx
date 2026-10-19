@@ -4,6 +4,7 @@ import BulkAddDagModal from "../modals/BulkAddDagModal";
 import { Dag } from "@/lib/types";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
+import { INPUT_BASE } from "./formStyles";
 
 interface DagFormProps {
   dags: Dag[];
@@ -251,7 +252,7 @@ export default function DagForm({
                   placeholder="দাগ নং"
                   value={dag.name}
                   onChange={(e) => onDagChange(index, "name", e.target.value)}
-                  className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-blue-500 flex-1 placeholder:text-gray-400 dark:placeholder:text-gray-400"
+                  className={INPUT_BASE}
                   onClick={(e) => e.stopPropagation()}
                 />
                 <input
@@ -259,7 +260,7 @@ export default function DagForm({
                   placeholder="জমি (শতক)"
                   value={dag.land || ""}
                   onChange={(e) => onDagChange(index, "land", e.target.value)}
-                  className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-blue-500 flex-1 placeholder:text-gray-400 dark:placeholder:text-gray-400"
+                  className={INPUT_BASE}
                   onClick={(e) => e.stopPropagation()}
                 />
                 <button

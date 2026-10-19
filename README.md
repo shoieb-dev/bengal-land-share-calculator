@@ -46,6 +46,7 @@ It helps convert **Ana, Gonda, Kora, Kranti, and Til** units into **decimal (শ
 - 🍞 Toast notifications (`toast.ts`)
 - 🧭 Dark/light theme hooks (`useTheme.ts`)
 - ⌨️ Keyboard shortcuts (`useKeyboardShortcuts*`, `ShortcutHints`) — fast navigation without the mouse
+- ↩️ Undo/Redo (`useWorkspaceHistory`) — 50-step workspace history (Ctrl+Z / Ctrl+Y)
 
 ### ⌨️ Keyboard Shortcuts
 | Keys | Action |
@@ -55,6 +56,7 @@ It helps convert **Ana, Gonda, Kora, Kranti, and Til** units into **decimal (শ
 | `Ctrl + S` | সংরক্ষণ করুন (manual save) |
 | `Ctrl + O` | লাইব্রেরি খুলুন (saved khatiyans) |
 | `Ctrl + Enter` | ফলাফল হিসাব করুন (calculate) |
+| `Ctrl + Z` / `Ctrl + Y` | আগে / পরে (undo / redo, ৫০ ধাপ) |
 | `Esc` | সব পপআপ/মোডাল বন্ধ করুন |
 
 ---

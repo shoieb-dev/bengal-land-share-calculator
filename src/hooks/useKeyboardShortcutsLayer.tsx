@@ -9,6 +9,8 @@ export type KhatiyanShortcutAction =
   | "save"
   | "open-library"
   | "calculate"
+  | "undo"
+  | "redo"
   | "close-modals";
 
 function dispatchShortcut(action: KhatiyanShortcutAction) {
@@ -57,6 +59,25 @@ export function KeyboardShortcutsLayer() {
       key: "O",
       description: "খতিয়ান খুলুন (Open Khatiyan)",
       action: () => dispatchShortcut("open-library"),
+    },
+    {
+      ctrlKey: true,
+      key: "Z",
+      description: "আগের অবস্থা (Undo)",
+      action: () => dispatchShortcut("undo"),
+    },
+    {
+      ctrlKey: true,
+      key: "Y",
+      description: "পরের অবস্থা (Redo)",
+      action: () => dispatchShortcut("redo"),
+    },
+    {
+      ctrlKey: true,
+      shiftKey: true,
+      key: "Z",
+      description: "পরের অবস্থা (Redo)",
+      action: () => dispatchShortcut("redo"),
     },
     ],
     [],

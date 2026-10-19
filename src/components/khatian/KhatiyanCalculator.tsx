@@ -1,5 +1,14 @@
 "use client";
-import { Dag, DeleteModalType, Heir, KhatiyanHeader, Owner, ResetModalType, ResultRow, ValidationError } from "@/lib/types";
+import {
+  Dag,
+  DeleteModalType,
+  Heir,
+  KhatiyanHeader,
+  Owner,
+  ResetModalType,
+  ResultRow,
+  ValidationError,
+} from "@/lib/types";
 import { parseNumber, toBengaliNumber } from "@/lib/conversions/numberConversion";
 import {
   clearLocalStorage,
@@ -13,6 +22,7 @@ import {
 import { normalizeShares } from "@/lib/utils/validation";
 import { computeHeirShares } from "@/lib/utils/heirShare";
 import { showToast } from "@/lib/utils/toast";
+import { useWorkspaceHistory } from "@/hooks/useWorkspaceHistory";
 import { useTheme } from "@/hooks/useTheme";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ThemeToggle from "./ui/ThemeToggle";
@@ -40,7 +50,19 @@ import {
   SavedKhatiyanEntry,
 } from "@/lib/utils/khatiyanLibrary";
 import { KhatiyanTemplate } from "@/lib/constants/templates";
-import { Archive, Calculator, FilePlus2, FileText, Layout, LibraryBig, RotateCcw, Save } from "lucide-react";
+import {
+  Archive,
+  Calculator,
+  FilePlus2,
+  FileText,
+  Layout,
+  LibraryBig,
+  Redo2,
+  RotateCcw,
+  Save,
+  ScrollText,
+  Undo2,
+} from "lucide-react";
 import ComplexTemplateModal from "./modals/ComplexTemplateModal";
 
 // Main Component
@@ -67,6 +89,7 @@ export default function KhatiyanCalculator() {
 
   // Add handler
   const handleLoadTemplate = (template: KhatiyanTemplate) => {
+    commitHistory();
     // Load header
     setHeader({
       surveyType: template.header.surveyType || "বি এস",
@@ -92,6 +115,7 @@ export default function KhatiyanCalculator() {
   };
 
   const handleLoadComplexTemplate = (templateOwners: Owner[]) => {
+    commitHistory();
     setOwners(templateOwners);
     setDags([{ name: "১", land: 100 }]);
     setResult([]);
@@ -105,6 +129,38 @@ export default function KhatiyanCalculator() {
   const [libraryEntries, setLibraryEntries] = useState<SavedKhatiyanEntry[]>([]);
   const [activeEntryId, setActiveEntryId] = useState<string | null>(null);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+
+  // ─── Undo/Redo (coarse workspace snapshots on discrete actions) ───
+  const history = useWorkspaceHistory();
+  const takeSnapshot = useCallback(
+    () => ({ header: { ...header }, owners: [...owners], dags: [...dags] }),
+    [header, owners, dags],
+  );
+  const applySnapshot = useCallback((snap: { header: KhatiyanHeader; owners: Owner[]; dags: Dag[] }) => {
+    setHeader(snap.header);
+    setOwners(snap.owners);
+    setDags(snap.dags);
+    setResult([]);
+    setShowResult(false);
+    setErrors([]);
+  }, []);
+  const commitHistory = useCallback(() => {
+    history.commit(takeSnapshot());
+  }, [history, takeSnapshot]);
+  const handleUndo = useCallback(() => {
+    const snap = history.undo();
+    if (snap) {
+      applySnapshot(snap);
+      showToast("পূর্বের অবস্থায় ফেরত যাওয়া হয়েছে", "info");
+    }
+  }, [history, applySnapshot]);
+  const handleRedo = useCallback(() => {
+    const snap = history.redo();
+    if (snap) {
+      applySnapshot(snap);
+      showToast("পরের অবস্থায় যাওয়া হয়েছে", "info");
+    }
+  }, [history, applySnapshot]);
 
   // Check for saved data on mount
   useEffect(() => {
@@ -171,6 +227,7 @@ export default function KhatiyanCalculator() {
   const handleLoadData = () => {
     const data = loadFromLocalStorage();
     if (data) {
+      commitHistory();
       setHeader(data.header);
       setOwners(data.owners);
       setDags(data.dags);
@@ -197,6 +254,8 @@ export default function KhatiyanCalculator() {
 
   // Update reset function to clear storage
   const confirmReset = () => {
+    commitHistory();
+    history.clear();
     setHeader({
       surveyType: "",
       district: "",
@@ -256,6 +315,7 @@ export default function KhatiyanCalculator() {
 
   const handleOpenLibraryEntry = (entry: SavedKhatiyanEntry) => {
     if (entry.id !== activeEntryId) snapshotWorkspace();
+    commitHistory();
     setHeader(entry.header);
     setOwners(entry.owners);
     setDags(entry.dags);
@@ -269,6 +329,7 @@ export default function KhatiyanCalculator() {
 
   const handleNewWorkspace = () => {
     snapshotWorkspace();
+    commitHistory();
     setHeader({ surveyType: "", district: "", khatiyanNo: "", thana: "", mouja: "", jlNo: "" });
     setDags([]);
     setOwners([]);
@@ -281,6 +342,16 @@ export default function KhatiyanCalculator() {
 
   // ─── Keyboard shortcuts (dispatched by KeyboardShortcutsLayer) ───
   const shortcutActionRef = useRef<(action: string) => void>(() => {});
+
+  // Seed history baseline once so the first undo has something to return to.
+  const historySeeded = useRef(false);
+  useEffect(() => {
+    if (!historySeeded.current) {
+      historySeeded.current = true;
+      history.sync({ header: { ...header }, owners: [...owners], dags: [...dags] });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const onShortcut = (e: Event) => shortcutActionRef.current((e as CustomEvent<string>).detail);
@@ -394,9 +465,14 @@ export default function KhatiyanCalculator() {
     return newErrors;
   };
 
-  const addDag = () => setDags((prev) => [...prev, { name: "", land: 0 }]);
-  const addOwner = () =>
+  const addDag = () => {
+    commitHistory();
+    setDags((prev) => [...prev, { name: "", land: 0 }]);
+  };
+  const addOwner = () => {
+    commitHistory();
     setOwners((prev) => [...prev, { name: "", ana: 0, gonda: 0, kora: 0, kranti: 0, til: 0 }]);
+  };
 
   // (keyboard-shortcut handlers removed — wired via khatiyan-shortcut events below)
 
@@ -412,6 +488,7 @@ export default function KhatiyanCalculator() {
   };
 
   const handleBulkAddDags = (newDags: Dag[]) => {
+    commitHistory();
     setDags([...dags, ...newDags]);
   };
 
@@ -436,6 +513,7 @@ export default function KhatiyanCalculator() {
   };
 
   const handleAddHeir = (ownerIndex: number) => {
+    commitHistory();
     setOwners((prev) =>
       prev.map((o, i) =>
         i === ownerIndex
@@ -445,7 +523,12 @@ export default function KhatiyanCalculator() {
     );
   };
 
-  const handleHeirChange = (ownerIndex: number, heirId: string, field: "name" | "relation" | "mutated", value: string | boolean) => {
+  const handleHeirChange = (
+    ownerIndex: number,
+    heirId: string,
+    field: "name" | "relation" | "mutated",
+    value: string | boolean,
+  ) => {
     setOwners((prev) =>
       prev.map((o, i) =>
         i === ownerIndex
@@ -459,10 +542,9 @@ export default function KhatiyanCalculator() {
   };
 
   const handleDeleteHeir = (ownerIndex: number, heirId: string) => {
+    commitHistory();
     setOwners((prev) =>
-      prev.map((o, i) =>
-        i === ownerIndex ? { ...o, heirs: (o.heirs ?? []).filter((h) => h.id !== heirId) } : o,
-      ),
+      prev.map((o, i) => (i === ownerIndex ? { ...o, heirs: (o.heirs ?? []).filter((h) => h.id !== heirId) } : o)),
     );
   };
 
@@ -475,6 +557,7 @@ export default function KhatiyanCalculator() {
   };
 
   const confirmDelete = () => {
+    commitHistory();
     if (deleteModal.type === "dag") {
       setDags(dags.filter((_, i) => i !== deleteModal.index));
     } else if (deleteModal.type === "owner") {
@@ -567,6 +650,10 @@ export default function KhatiyanCalculator() {
         setShowLibraryModal(true);
       } else if (action === "calculate") {
         calculateResult();
+      } else if (action === "undo") {
+        handleUndo();
+      } else if (action === "redo") {
+        handleRedo();
       } else if (action === "close-modals") {
         setShowErrorModal(false);
         setShowLibraryModal(false);
@@ -607,14 +694,17 @@ export default function KhatiyanCalculator() {
   }, [owners]);
 
   const handleReorderOwners = (newOwners: Owner[]) => {
+    commitHistory();
     setOwners(newOwners);
   };
 
   const handleReorderDags = (newDags: Dag[]) => {
+    commitHistory();
     setDags(newDags);
   };
 
   const handleDeleteAllDags = () => {
+    commitHistory();
     setDags([]);
   };
 
@@ -625,14 +715,23 @@ export default function KhatiyanCalculator() {
     >
       <div className="max-w-7xl mx-auto">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-4 md:p-6 mb-6 border border-gray-200 dark:border-gray-700 print-hide">
-          <div className="mb-2">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-center text-blue-700 dark:text-blue-300">
-                খতিয়ান হিসাব
-              </h1>
-              <p className="text-center text-gray-600 dark:text-gray-400 text-sm md:text-base">
-                জমির মালিকানা ও বন্টন হিসাব
-              </p>
+          <div className="relative mb-3 overflow-hidden rounded-xl border border-blue-200/70 bg-linear-to-br from-blue-50 via-indigo-50 to-sky-100 px-4 py-6 text-center dark:border-blue-800/50 dark:from-blue-950/60 dark:via-indigo-950/40 dark:to-sky-950/60">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -top-16 left-1/2 h-40 w-[36rem] -translate-x-1/2 rounded-full bg-blue-400/20 blur-3xl dark:bg-blue-500/20"
+            />
+            <div className="relative flex items-center justify-center gap-5">
+              <span className="flex h-10 w-10 shrink-0 translate-y-[3px] items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30 md:h-11 md:w-11">
+                <ScrollText size={22} />
+              </span>
+              <div className="flex flex-col items-center justify-center gap-0.5">
+                <h1 className="bg-linear-to-r from-sky-600 via-blue-600 to-indigo-600 bg-clip-text text-3xl font-extrabold leading-[1.9] text-transparent md:text-4xl dark:from-sky-300 dark:via-blue-300 dark:to-indigo-300">
+                  খতিয়ান হিসাব
+                </h1>
+                <p className="relative mt-1 text-xs font-medium tracking-wide text-slate-500 md:text-sm dark:text-slate-400">
+                  জমির মালিকানা ও বন্টন হিসাব
+                </p>
+              </div>
             </div>
           </div>
 
@@ -642,23 +741,22 @@ export default function KhatiyanCalculator() {
             autoSaveEnabled={autoSaveEnabled}
             onToggleAutoSave={handleToggleAutoSave}
           />
-          <ShortcutHints />
-          <div className="border-t border-gray-700 mb-2" />
+          <div className="border-t border-gray-200 dark:border-gray-700 mb-2" />
 
           {/* Template Button */}
-          <div className="flex justify-center gap-3 mb-4 flex-wrap">
+          <div className="flex justify-center gap-2.5 mb-4 flex-wrap">
             <button
               onClick={() => setShowTemplateModal(true)}
-              className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition shadow-lg flex items-center gap-2"
+              className="bg-transparent text-indigo-700 dark:text-indigo-200 px-4 py-2.5 rounded-lg border border-indigo-500/50 hover:bg-indigo-500/15 hover:border-indigo-400 transition flex items-center gap-2 text-sm"
             >
-              <Layout size={20} /> সাধারণ টেমপ্লেট
+              <Layout size={18} /> সাধারণ টেমপ্লেট
             </button>
 
             <button
               onClick={() => setShowComplexTemplateModal(true)}
-              className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition shadow-lg flex items-center gap-2"
+              className="bg-transparent text-purple-700 dark:text-purple-200 px-4 py-2.5 rounded-lg border border-purple-500/50 hover:bg-purple-500/15 hover:border-purple-400 transition flex items-center gap-2 text-sm"
             >
-              <FileText size={20} /> জটিল টেমপ্লেট
+              <FileText size={18} /> জটিল টেমপ্লেট
             </button>
 
             {/* ─── Saved library: open + new ─── */}
@@ -667,9 +765,9 @@ export default function KhatiyanCalculator() {
                 refreshLibrary();
                 setShowLibraryModal(true);
               }}
-              className="bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition shadow-lg flex items-center gap-2 relative"
+              className="bg-transparent text-amber-700 dark:text-amber-200 px-4 py-2.5 rounded-lg border border-amber-500/50 hover:bg-amber-500/15 hover:border-amber-400 transition flex items-center gap-2 text-sm relative"
             >
-              <LibraryBig size={20} /> সংরক্ষিত খতিয়ান
+              <LibraryBig size={18} /> সংরক্ষিত খতিয়ান
               {libraryEntries.length > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full min-w-6 h-6 flex items-center justify-center px-1.5">
                   {toBengaliNumber(String(libraryEntries.length))}
@@ -677,12 +775,34 @@ export default function KhatiyanCalculator() {
               )}
             </button>
 
+            {/* Primary action */}
             <button
               onClick={handleNewWorkspace}
-              className="bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition shadow-lg flex items-center gap-2"
+              className="bg-teal-600 text-white px-6 py-2.5 rounded-lg hover:bg-teal-500 transition shadow-lg shadow-teal-900/40 flex items-center gap-2 text-sm font-semibold"
             >
-              <FilePlus2 size={20} /> নতুন খতিয়ান
+              <FilePlus2 size={18} /> নতুন খতিয়ান
             </button>
+
+            {/* ─── Undo / Redo ─── */}
+            <button
+              onClick={handleUndo}
+              disabled={!history.canUndo}
+              title="আগের অবস্থায় ফিরুন (Ctrl+Z)"
+              aria-label="আগের অবস্থায় ফিরুন"
+              className="bg-transparent text-slate-600 dark:text-slate-300 px-3 py-2.5 rounded-lg border border-slate-500/50 hover:bg-slate-500/15 hover:border-slate-400 transition flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <Undo2 size={18} />
+            </button>
+            <button
+              onClick={handleRedo}
+              disabled={!history.canRedo}
+              title="পরের অবস্থায় যান (Ctrl+Y)"
+              aria-label="পরের অবস্থায় যান"
+              className="bg-transparent text-slate-600 dark:text-slate-300 px-3 py-2.5 rounded-lg border border-slate-500/50 hover:bg-slate-500/15 hover:border-slate-400 transition flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <Redo2 size={18} />
+            </button>
+            <ShortcutHints />
           </div>
 
           {/* Khatian Header Form */}
