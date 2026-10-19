@@ -711,20 +711,20 @@ export default function KhatiyanCalculator() {
             autoSaveEnabled={autoSaveEnabled}
             onToggleAutoSave={handleToggleAutoSave}
           />
-          <div className="border-t border-gray-700 mb-2" />
+          <div className="border-t border-gray-200 dark:border-gray-700 mb-2" />
 
           {/* Template Button */}
           <div className="flex justify-center gap-2.5 mb-4 flex-wrap">
             <button
               onClick={() => setShowTemplateModal(true)}
-              className="bg-transparent text-indigo-200 px-4 py-2.5 rounded-lg border border-indigo-500/50 hover:bg-indigo-500/15 hover:border-indigo-400 transition flex items-center gap-2 text-sm"
+              className="bg-transparent text-indigo-700 dark:text-indigo-200 px-4 py-2.5 rounded-lg border border-indigo-500/50 hover:bg-indigo-500/15 hover:border-indigo-400 transition flex items-center gap-2 text-sm"
             >
               <Layout size={18} /> সাধারণ টেমপ্লেট
             </button>
 
             <button
               onClick={() => setShowComplexTemplateModal(true)}
-              className="bg-transparent text-purple-200 px-4 py-2.5 rounded-lg border border-purple-500/50 hover:bg-purple-500/15 hover:border-purple-400 transition flex items-center gap-2 text-sm"
+              className="bg-transparent text-purple-700 dark:text-purple-200 px-4 py-2.5 rounded-lg border border-purple-500/50 hover:bg-purple-500/15 hover:border-purple-400 transition flex items-center gap-2 text-sm"
             >
               <FileText size={18} /> জটিল টেমপ্লেট
             </button>
@@ -735,7 +735,7 @@ export default function KhatiyanCalculator() {
                 refreshLibrary();
                 setShowLibraryModal(true);
               }}
-              className="bg-transparent text-amber-200 px-4 py-2.5 rounded-lg border border-amber-500/50 hover:bg-amber-500/15 hover:border-amber-400 transition flex items-center gap-2 text-sm relative"
+              className="bg-transparent text-amber-700 dark:text-amber-200 px-4 py-2.5 rounded-lg border border-amber-500/50 hover:bg-amber-500/15 hover:border-amber-400 transition flex items-center gap-2 text-sm relative"
             >
               <LibraryBig size={18} /> সংরক্ষিত খতিয়ান
               {libraryEntries.length > 0 && (
@@ -759,7 +759,7 @@ export default function KhatiyanCalculator() {
               disabled={!history.canUndo}
               title="আগের অবস্থায় ফিরুন (Ctrl+Z)"
               aria-label="আগের অবস্থায় ফিরুন"
-              className="bg-transparent text-slate-300 px-3 py-2.5 rounded-lg border border-slate-500/50 hover:bg-slate-500/15 hover:border-slate-400 transition flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="bg-transparent text-slate-600 dark:text-slate-300 px-3 py-2.5 rounded-lg border border-slate-500/50 hover:bg-slate-500/15 hover:border-slate-400 transition flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <Undo2 size={18} />
             </button>
@@ -768,7 +768,7 @@ export default function KhatiyanCalculator() {
               disabled={!history.canRedo}
               title="পরের অবস্থায় যান (Ctrl+Y)"
               aria-label="পরের অবস্থায় যান"
-              className="bg-transparent text-slate-300 px-3 py-2.5 rounded-lg border border-slate-500/50 hover:bg-slate-500/15 hover:border-slate-400 transition flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="bg-transparent text-slate-600 dark:text-slate-300 px-3 py-2.5 rounded-lg border border-slate-500/50 hover:bg-slate-500/15 hover:border-slate-400 transition flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <Redo2 size={18} />
             </button>
