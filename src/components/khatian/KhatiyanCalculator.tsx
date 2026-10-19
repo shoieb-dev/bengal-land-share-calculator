@@ -1,5 +1,14 @@
 "use client";
-import { Dag, DeleteModalType, Heir, KhatiyanHeader, Owner, ResetModalType, ResultRow, ValidationError } from "@/lib/types";
+import {
+  Dag,
+  DeleteModalType,
+  Heir,
+  KhatiyanHeader,
+  Owner,
+  ResetModalType,
+  ResultRow,
+  ValidationError,
+} from "@/lib/types";
 import { parseNumber, toBengaliNumber } from "@/lib/conversions/numberConversion";
 import {
   clearLocalStorage,
@@ -41,7 +50,19 @@ import {
   SavedKhatiyanEntry,
 } from "@/lib/utils/khatiyanLibrary";
 import { KhatiyanTemplate } from "@/lib/constants/templates";
-import { Archive, Calculator, FilePlus2, FileText, Layout, LibraryBig, Redo2, RotateCcw, Save, ScrollText, Undo2 } from "lucide-react";
+import {
+  Archive,
+  Calculator,
+  FilePlus2,
+  FileText,
+  Layout,
+  LibraryBig,
+  Redo2,
+  RotateCcw,
+  Save,
+  ScrollText,
+  Undo2,
+} from "lucide-react";
 import ComplexTemplateModal from "./modals/ComplexTemplateModal";
 
 // Main Component
@@ -115,17 +136,14 @@ export default function KhatiyanCalculator() {
     () => ({ header: { ...header }, owners: [...owners], dags: [...dags] }),
     [header, owners, dags],
   );
-  const applySnapshot = useCallback(
-    (snap: { header: KhatiyanHeader; owners: Owner[]; dags: Dag[] }) => {
-      setHeader(snap.header);
-      setOwners(snap.owners);
-      setDags(snap.dags);
-      setResult([]);
-      setShowResult(false);
-      setErrors([]);
-    },
-    [],
-  );
+  const applySnapshot = useCallback((snap: { header: KhatiyanHeader; owners: Owner[]; dags: Dag[] }) => {
+    setHeader(snap.header);
+    setOwners(snap.owners);
+    setDags(snap.dags);
+    setResult([]);
+    setShowResult(false);
+    setErrors([]);
+  }, []);
   const commitHistory = useCallback(() => {
     history.commit(takeSnapshot());
   }, [history, takeSnapshot]);
@@ -505,7 +523,12 @@ export default function KhatiyanCalculator() {
     );
   };
 
-  const handleHeirChange = (ownerIndex: number, heirId: string, field: "name" | "relation" | "mutated", value: string | boolean) => {
+  const handleHeirChange = (
+    ownerIndex: number,
+    heirId: string,
+    field: "name" | "relation" | "mutated",
+    value: string | boolean,
+  ) => {
     setOwners((prev) =>
       prev.map((o, i) =>
         i === ownerIndex
@@ -521,9 +544,7 @@ export default function KhatiyanCalculator() {
   const handleDeleteHeir = (ownerIndex: number, heirId: string) => {
     commitHistory();
     setOwners((prev) =>
-      prev.map((o, i) =>
-        i === ownerIndex ? { ...o, heirs: (o.heirs ?? []).filter((h) => h.id !== heirId) } : o,
-      ),
+      prev.map((o, i) => (i === ownerIndex ? { ...o, heirs: (o.heirs ?? []).filter((h) => h.id !== heirId) } : o)),
     );
   };
 
@@ -699,17 +720,19 @@ export default function KhatiyanCalculator() {
               aria-hidden
               className="pointer-events-none absolute -top-16 left-1/2 h-40 w-[36rem] -translate-x-1/2 rounded-full bg-blue-400/20 blur-3xl dark:bg-blue-500/20"
             />
-            <div className="relative flex items-center justify-center gap-3">
+            <div className="relative flex items-center justify-center gap-5">
               <span className="flex h-10 w-10 shrink-0 translate-y-[3px] items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30 md:h-11 md:w-11">
                 <ScrollText size={22} />
               </span>
-              <h1 className="bg-linear-to-r from-sky-600 via-blue-600 to-indigo-600 bg-clip-text py-1 text-3xl font-extrabold leading-[1.6] text-transparent md:text-4xl dark:from-sky-300 dark:via-blue-300 dark:to-indigo-300">
-                খতিয়ান হিসাব
-              </h1>
+              <div className="flex flex-col items-center justify-center gap-0.5">
+                <h1 className="bg-linear-to-r from-sky-600 via-blue-600 to-indigo-600 bg-clip-text text-3xl font-extrabold leading-[1.9] text-transparent md:text-4xl dark:from-sky-300 dark:via-blue-300 dark:to-indigo-300">
+                  খতিয়ান হিসাব
+                </h1>
+                <p className="relative mt-1 text-xs font-medium tracking-wide text-slate-500 md:text-sm dark:text-slate-400">
+                  জমির মালিকানা ও বন্টন হিসাব
+                </p>
+              </div>
             </div>
-            <p className="relative mt-1 text-xs font-medium tracking-wide text-slate-500 md:text-sm dark:text-slate-400">
-              জমির মালিকানা ও বন্টন হিসাব
-            </p>
           </div>
 
           <AutoSaveIndicator
