@@ -2,6 +2,7 @@ import { KhatiyanHeader } from "@/lib/types";
 import { FileText } from "lucide-react";
 import { bangladeshDistricts, surveyTypes } from "@/lib/constants/options";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
+import { INPUT_BASE, LABEL_BASE } from "./formStyles";
 
 interface KhatiyanHeaderFormProps {
   header: KhatiyanHeader;
@@ -21,11 +22,11 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         {/* Survey Type */}
         <div>
-          <label className="block text-indigo-700 dark:text-indigo-200 text-sm mb-1">সার্ভে ধরন</label>
+          <label className={LABEL_BASE}>সার্ভে ধরন</label>
           <select
             value={header.surveyType}
             onChange={(e) => onChange("surveyType", e.target.value)}
-            className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-indigo-500"
+            className={INPUT_BASE}
           >
             <option value="">নির্বাচন করুন</option>
             {surveyTypes.map((type, index) => (
@@ -38,7 +39,7 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
 
         {/* Khatian No */}
         <div>
-          <label className="block text-indigo-700 dark:text-indigo-200 text-sm mb-1">খতিয়ান নং</label>
+          <label className={LABEL_BASE}>খতিয়ান নং</label>
           <input
             type="text"
             name="khotiyan_no"
@@ -46,17 +47,17 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
             value={header.khatiyanNo}
             onChange={(e) => onChange("khatiyanNo", e.target.value)}
             placeholder="যেমন: ৪৫৬"
-            className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-indigo-500 placeholder:text-gray-400 dark:placeholder:text-gray-400"
+            className={INPUT_BASE}
           />
         </div>
 
         {/* District */}
         <div>
-          <label className="block text-indigo-700 dark:text-indigo-200 text-sm mb-1">জেলা</label>
+          <label className={LABEL_BASE}>জেলা</label>
           <select
             value={header.district}
             onChange={(e) => onChange("district", e.target.value)}
-            className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-indigo-500"
+            className={INPUT_BASE}
           >
             <option value="">নির্বাচন করুন</option>
             {bangladeshDistricts.map((district, index) => (
@@ -69,19 +70,19 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
 
         {/* Thana */}
         <div>
-          <label className="block text-indigo-700 dark:text-indigo-200 text-sm mb-1">থানা/উপজেলা</label>
+          <label className={LABEL_BASE}>থানা/উপজেলা</label>
           <input
             type="text"
             value={header.thana}
             onChange={(e) => onChange("thana", e.target.value)}
             placeholder="যেমন: আনোয়ারা"
-            className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-indigo-500 placeholder:text-gray-400 dark:placeholder:text-gray-400"
+            className={INPUT_BASE}
           />
         </div>
 
         {/* Mouja */}
         <div>
-          <label className="block text-indigo-700 dark:text-indigo-200 text-sm mb-1">মৌজা</label>
+          <label className={LABEL_BASE}>মৌজা</label>
           <input
             type="text"
             name="mouja"
@@ -89,13 +90,13 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
             value={header.mouja}
             onChange={(e) => onChange("mouja", e.target.value)}
             placeholder="যেমন: গুয়াপঞ্চক"
-            className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-indigo-500 placeholder:text-gray-400 dark:placeholder:text-gray-400"
+            className={INPUT_BASE}
           />
         </div>
 
         {/* JL No */}
         <div>
-          <label className="block text-indigo-700 dark:text-indigo-200 text-sm mb-1">জেএল নং</label>
+          <label className={LABEL_BASE}>জেএল নং</label>
           <input
             type="text"
             name="jlNo"
@@ -103,7 +104,7 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
             value={header.jlNo}
             onChange={(e) => onChange("jlNo", e.target.value)}
             placeholder="যেমন: ১২৩"
-            className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-indigo-500 placeholder:text-gray-400 dark:placeholder:text-gray-400"
+            className={INPUT_BASE}
           />
         </div>
       </div>

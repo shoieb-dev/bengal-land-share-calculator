@@ -711,23 +711,22 @@ export default function KhatiyanCalculator() {
             autoSaveEnabled={autoSaveEnabled}
             onToggleAutoSave={handleToggleAutoSave}
           />
-          <ShortcutHints />
           <div className="border-t border-gray-700 mb-2" />
 
           {/* Template Button */}
-          <div className="flex justify-center gap-3 mb-4 flex-wrap">
+          <div className="flex justify-center gap-2.5 mb-4 flex-wrap">
             <button
               onClick={() => setShowTemplateModal(true)}
-              className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition shadow-lg flex items-center gap-2"
+              className="bg-transparent text-indigo-200 px-4 py-2.5 rounded-lg border border-indigo-500/50 hover:bg-indigo-500/15 hover:border-indigo-400 transition flex items-center gap-2 text-sm"
             >
-              <Layout size={20} /> সাধারণ টেমপ্লেট
+              <Layout size={18} /> সাধারণ টেমপ্লেট
             </button>
 
             <button
               onClick={() => setShowComplexTemplateModal(true)}
-              className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition shadow-lg flex items-center gap-2"
+              className="bg-transparent text-purple-200 px-4 py-2.5 rounded-lg border border-purple-500/50 hover:bg-purple-500/15 hover:border-purple-400 transition flex items-center gap-2 text-sm"
             >
-              <FileText size={20} /> জটিল টেমপ্লেট
+              <FileText size={18} /> জটিল টেমপ্লেট
             </button>
 
             {/* ─── Saved library: open + new ─── */}
@@ -736,9 +735,9 @@ export default function KhatiyanCalculator() {
                 refreshLibrary();
                 setShowLibraryModal(true);
               }}
-              className="bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition shadow-lg flex items-center gap-2 relative"
+              className="bg-transparent text-amber-200 px-4 py-2.5 rounded-lg border border-amber-500/50 hover:bg-amber-500/15 hover:border-amber-400 transition flex items-center gap-2 text-sm relative"
             >
-              <LibraryBig size={20} /> সংরক্ষিত খতিয়ান
+              <LibraryBig size={18} /> সংরক্ষিত খতিয়ান
               {libraryEntries.length > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full min-w-6 h-6 flex items-center justify-center px-1.5">
                   {toBengaliNumber(String(libraryEntries.length))}
@@ -746,11 +745,12 @@ export default function KhatiyanCalculator() {
               )}
             </button>
 
+            {/* Primary action */}
             <button
               onClick={handleNewWorkspace}
-              className="bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition shadow-lg flex items-center gap-2"
+              className="bg-teal-600 text-white px-6 py-2.5 rounded-lg hover:bg-teal-500 transition shadow-lg shadow-teal-900/40 flex items-center gap-2 text-sm font-semibold"
             >
-              <FilePlus2 size={20} /> নতুন খতিয়ান
+              <FilePlus2 size={18} /> নতুন খতিয়ান
             </button>
 
             {/* ─── Undo / Redo ─── */}
@@ -758,18 +758,21 @@ export default function KhatiyanCalculator() {
               onClick={handleUndo}
               disabled={!history.canUndo}
               title="আগের অবস্থায় ফিরুন (Ctrl+Z)"
-              className="bg-slate-600 text-white px-4 py-3 rounded-lg hover:bg-slate-700 transition shadow-lg flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="আগের অবস্থায় ফিরুন"
+              className="bg-transparent text-slate-300 px-3 py-2.5 rounded-lg border border-slate-500/50 hover:bg-slate-500/15 hover:border-slate-400 transition flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              <Undo2 size={20} />
+              <Undo2 size={18} />
             </button>
             <button
               onClick={handleRedo}
               disabled={!history.canRedo}
               title="পরের অবস্থায় যান (Ctrl+Y)"
-              className="bg-slate-600 text-white px-4 py-3 rounded-lg hover:bg-slate-700 transition shadow-lg flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="পরের অবস্থায় যান"
+              className="bg-transparent text-slate-300 px-3 py-2.5 rounded-lg border border-slate-500/50 hover:bg-slate-500/15 hover:border-slate-400 transition flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              <Redo2 size={20} />
+              <Redo2 size={18} />
             </button>
+            <ShortcutHints />
           </div>
 
           {/* Khatian Header Form */}
