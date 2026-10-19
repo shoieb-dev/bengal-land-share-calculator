@@ -6,6 +6,7 @@ const HINTS: { keys: string; label: string }[] = [
   { keys: "Ctrl + S", label: "সংরক্ষণ" },
   { keys: "Ctrl + O", label: "লাইব্রেরি খুলুন" },
   { keys: "Ctrl + Enter", label: "ফলাফল হিসাব" },
+  { keys: "Ctrl + Z / Ctrl + Y", label: "আগে / পরে" },
   { keys: "Esc", label: "পপআপ বন্ধ" },
 ];
 

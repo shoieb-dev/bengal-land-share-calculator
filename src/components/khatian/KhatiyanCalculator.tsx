@@ -13,6 +13,7 @@ import {
 import { normalizeShares } from "@/lib/utils/validation";
 import { computeHeirShares } from "@/lib/utils/heirShare";
 import { showToast } from "@/lib/utils/toast";
+import { useWorkspaceHistory } from "@/hooks/useWorkspaceHistory";
 import { useTheme } from "@/hooks/useTheme";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ThemeToggle from "./ui/ThemeToggle";
@@ -40,7 +41,7 @@ import {
   SavedKhatiyanEntry,
 } from "@/lib/utils/khatiyanLibrary";
 import { KhatiyanTemplate } from "@/lib/constants/templates";
-import { Archive, Calculator, FilePlus2, FileText, Layout, LibraryBig, RotateCcw, Save } from "lucide-react";
+import { Archive, Calculator, FilePlus2, FileText, Layout, LibraryBig, Redo2, RotateCcw, Save, Undo2 } from "lucide-react";
 import ComplexTemplateModal from "./modals/ComplexTemplateModal";
 
 // Main Component
@@ -67,6 +68,7 @@ export default function KhatiyanCalculator() {
 
   // Add handler
   const handleLoadTemplate = (template: KhatiyanTemplate) => {
+    commitHistory();
     // Load header
     setHeader({
       surveyType: template.header.surveyType || "বি এস",
@@ -92,6 +94,7 @@ export default function KhatiyanCalculator() {
   };
 
   const handleLoadComplexTemplate = (templateOwners: Owner[]) => {
+    commitHistory();
     setOwners(templateOwners);
     setDags([{ name: "১", land: 100 }]);
     setResult([]);
@@ -105,6 +108,41 @@ export default function KhatiyanCalculator() {
   const [libraryEntries, setLibraryEntries] = useState<SavedKhatiyanEntry[]>([]);
   const [activeEntryId, setActiveEntryId] = useState<string | null>(null);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+
+  // ─── Undo/Redo (coarse workspace snapshots on discrete actions) ───
+  const history = useWorkspaceHistory();
+  const takeSnapshot = useCallback(
+    () => ({ header: { ...header }, owners: [...owners], dags: [...dags] }),
+    [header, owners, dags],
+  );
+  const applySnapshot = useCallback(
+    (snap: { header: KhatiyanHeader; owners: Owner[]; dags: Dag[] }) => {
+      setHeader(snap.header);
+      setOwners(snap.owners);
+      setDags(snap.dags);
+      setResult([]);
+      setShowResult(false);
+      setErrors([]);
+    },
+    [],
+  );
+  const commitHistory = useCallback(() => {
+    history.commit(takeSnapshot());
+  }, [history, takeSnapshot]);
+  const handleUndo = useCallback(() => {
+    const snap = history.undo();
+    if (snap) {
+      applySnapshot(snap);
+      showToast("পূর্বের অবস্থায় ফেরত যাওয়া হয়েছে", "info");
+    }
+  }, [history, applySnapshot]);
+  const handleRedo = useCallback(() => {
+    const snap = history.redo();
+    if (snap) {
+      applySnapshot(snap);
+      showToast("পরের অবস্থায় যাওয়া হয়েছে", "info");
+    }
+  }, [history, applySnapshot]);
 
   // Check for saved data on mount
   useEffect(() => {
@@ -171,6 +209,7 @@ export default function KhatiyanCalculator() {
   const handleLoadData = () => {
     const data = loadFromLocalStorage();
     if (data) {
+      commitHistory();
       setHeader(data.header);
       setOwners(data.owners);
       setDags(data.dags);
@@ -197,6 +236,8 @@ export default function KhatiyanCalculator() {
 
   // Update reset function to clear storage
   const confirmReset = () => {
+    commitHistory();
+    history.clear();
     setHeader({
       surveyType: "",
       district: "",
@@ -256,6 +297,7 @@ export default function KhatiyanCalculator() {
 
   const handleOpenLibraryEntry = (entry: SavedKhatiyanEntry) => {
     if (entry.id !== activeEntryId) snapshotWorkspace();
+    commitHistory();
     setHeader(entry.header);
     setOwners(entry.owners);
     setDags(entry.dags);
@@ -269,6 +311,7 @@ export default function KhatiyanCalculator() {
 
   const handleNewWorkspace = () => {
     snapshotWorkspace();
+    commitHistory();
     setHeader({ surveyType: "", district: "", khatiyanNo: "", thana: "", mouja: "", jlNo: "" });
     setDags([]);
     setOwners([]);
@@ -281,6 +324,16 @@ export default function KhatiyanCalculator() {
 
   // ─── Keyboard shortcuts (dispatched by KeyboardShortcutsLayer) ───
   const shortcutActionRef = useRef<(action: string) => void>(() => {});
+
+  // Seed history baseline once so the first undo has something to return to.
+  const historySeeded = useRef(false);
+  useEffect(() => {
+    if (!historySeeded.current) {
+      historySeeded.current = true;
+      history.sync({ header: { ...header }, owners: [...owners], dags: [...dags] });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const onShortcut = (e: Event) => shortcutActionRef.current((e as CustomEvent<string>).detail);
@@ -394,9 +447,14 @@ export default function KhatiyanCalculator() {
     return newErrors;
   };
 
-  const addDag = () => setDags((prev) => [...prev, { name: "", land: 0 }]);
-  const addOwner = () =>
+  const addDag = () => {
+    commitHistory();
+    setDags((prev) => [...prev, { name: "", land: 0 }]);
+  };
+  const addOwner = () => {
+    commitHistory();
     setOwners((prev) => [...prev, { name: "", ana: 0, gonda: 0, kora: 0, kranti: 0, til: 0 }]);
+  };
 
   // (keyboard-shortcut handlers removed — wired via khatiyan-shortcut events below)
 
@@ -412,6 +470,7 @@ export default function KhatiyanCalculator() {
   };
 
   const handleBulkAddDags = (newDags: Dag[]) => {
+    commitHistory();
     setDags([...dags, ...newDags]);
   };
 
@@ -436,6 +495,7 @@ export default function KhatiyanCalculator() {
   };
 
   const handleAddHeir = (ownerIndex: number) => {
+    commitHistory();
     setOwners((prev) =>
       prev.map((o, i) =>
         i === ownerIndex
@@ -459,6 +519,7 @@ export default function KhatiyanCalculator() {
   };
 
   const handleDeleteHeir = (ownerIndex: number, heirId: string) => {
+    commitHistory();
     setOwners((prev) =>
       prev.map((o, i) =>
         i === ownerIndex ? { ...o, heirs: (o.heirs ?? []).filter((h) => h.id !== heirId) } : o,
@@ -475,6 +536,7 @@ export default function KhatiyanCalculator() {
   };
 
   const confirmDelete = () => {
+    commitHistory();
     if (deleteModal.type === "dag") {
       setDags(dags.filter((_, i) => i !== deleteModal.index));
     } else if (deleteModal.type === "owner") {
@@ -567,6 +629,10 @@ export default function KhatiyanCalculator() {
         setShowLibraryModal(true);
       } else if (action === "calculate") {
         calculateResult();
+      } else if (action === "undo") {
+        handleUndo();
+      } else if (action === "redo") {
+        handleRedo();
       } else if (action === "close-modals") {
         setShowErrorModal(false);
         setShowLibraryModal(false);
@@ -607,14 +673,17 @@ export default function KhatiyanCalculator() {
   }, [owners]);
 
   const handleReorderOwners = (newOwners: Owner[]) => {
+    commitHistory();
     setOwners(newOwners);
   };
 
   const handleReorderDags = (newDags: Dag[]) => {
+    commitHistory();
     setDags(newDags);
   };
 
   const handleDeleteAllDags = () => {
+    commitHistory();
     setDags([]);
   };
 
@@ -682,6 +751,24 @@ export default function KhatiyanCalculator() {
               className="bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition shadow-lg flex items-center gap-2"
             >
               <FilePlus2 size={20} /> নতুন খতিয়ান
+            </button>
+
+            {/* ─── Undo / Redo ─── */}
+            <button
+              onClick={handleUndo}
+              disabled={!history.canUndo}
+              title="আগের অবস্থায় ফিরুন (Ctrl+Z)"
+              className="bg-slate-600 text-white px-4 py-3 rounded-lg hover:bg-slate-700 transition shadow-lg flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Undo2 size={20} />
+            </button>
+            <button
+              onClick={handleRedo}
+              disabled={!history.canRedo}
+              title="পরের অবস্থায় যান (Ctrl+Y)"
+              className="bg-slate-600 text-white px-4 py-3 rounded-lg hover:bg-slate-700 transition shadow-lg flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Redo2 size={20} />
             </button>
           </div>
 
