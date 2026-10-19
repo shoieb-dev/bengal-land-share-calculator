@@ -700,8 +700,8 @@ export default function KhatiyanCalculator() {
               className="pointer-events-none absolute -top-16 left-1/2 h-40 w-[36rem] -translate-x-1/2 rounded-full bg-blue-400/20 blur-3xl dark:bg-blue-500/20"
             />
             <div className="relative flex items-center justify-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30">
-                <ScrollText size={24} />
+              <span className="flex h-10 w-10 shrink-0 translate-y-[3px] items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30 md:h-11 md:w-11">
+                <ScrollText size={22} />
               </span>
               <h1 className="bg-linear-to-r from-sky-600 via-blue-600 to-indigo-600 bg-clip-text py-1 text-3xl font-extrabold leading-[1.6] text-transparent md:text-4xl dark:from-sky-300 dark:via-blue-300 dark:to-indigo-300">
                 খতিয়ান হিসাব
