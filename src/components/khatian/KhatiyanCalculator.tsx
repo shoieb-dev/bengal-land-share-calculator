@@ -38,6 +38,7 @@ import { ResetModal } from "./modals/ResetModal";
 import { ShortcutHints } from "./ShortcutHints";
 import { ResultTable } from "./visualization/ResultTable";
 import TemplateModal from "./modals/TemplateModal";
+import ReverseConverterModal from "./modals/ReverseConverterModal";
 import SavedKhatiyansModal from "./modals/SavedKhatiyansModal";
 import {
   deleteEntry as deleteLibraryEntry,
@@ -60,6 +61,7 @@ import {
   Redo2,
   RotateCcw,
   Save,
+  Scale,
   ScrollText,
   Undo2,
 } from "lucide-react";
@@ -125,6 +127,7 @@ export default function KhatiyanCalculator() {
   const [showLoadModal, setShowLoadModal] = useState(false);
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [showReverseModal, setShowReverseModal] = useState(false);
   const [showLibraryModal, setShowLibraryModal] = useState(false);
   const [libraryEntries, setLibraryEntries] = useState<SavedKhatiyanEntry[]>([]);
   const [activeEntryId, setActiveEntryId] = useState<string | null>(null);
@@ -759,7 +762,15 @@ export default function KhatiyanCalculator() {
               <FileText size={18} /> জটিল টেমপ্লেট
             </button>
 
-            {/* ─── Saved library: open + new ─── */}
+            {/* ─── Reverse Land & Share Converter ─── */}
+          <button
+            onClick={() => setShowReverseModal(true)}
+            className="bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-500 transition shadow-lg shadow-indigo-900/40 flex items-center gap-2 text-sm"
+          >
+            <Scale size={18} /> রিভার্স কনভার্টার
+          </button>
+
+          {/* ─── Saved library: open + new ─── */}
             <button
               onClick={() => {
                 refreshLibrary();
@@ -963,6 +974,11 @@ export default function KhatiyanCalculator() {
         onDelete={handleDeleteEntry}
         onExport={handleExportLibrary}
         onImport={handleImportLibrary}
+      />
+      <ReverseConverterModal
+        show={showReverseModal}
+        onClose={() => setShowReverseModal(false)}
+        khatiyanTotalShotok={dags.reduce((sum, dag) => sum + dag.land, 0)}
       />
     </div>
   );
