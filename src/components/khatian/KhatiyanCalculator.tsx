@@ -763,14 +763,14 @@ export default function KhatiyanCalculator() {
             </button>
 
             {/* ─── Reverse Land & Share Converter ─── */}
-          <button
-            onClick={() => setShowReverseModal(true)}
-            className="bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-500 transition shadow-lg shadow-indigo-900/40 flex items-center gap-2 text-sm"
-          >
-            <Scale size={18} /> রিভার্স কনভার্টার
-          </button>
+            <button
+              onClick={() => setShowReverseModal(true)}
+              className="bg-transparent text-indigo-700 dark:text-indigo-200 px-4 py-2.5 rounded-lg border border-indigo-500/50 hover:bg-indigo-500/15 hover:border-indigo-400 transition flex items-center gap-2 text-sm"
+            >
+              <Scale size={18} /> রিভার্স কনভার্টার
+            </button>
 
-          {/* ─── Saved library: open + new ─── */}
+            {/* ─── Saved library: open + new ─── */}
             <button
               onClick={() => {
                 refreshLibrary();
@@ -789,7 +789,7 @@ export default function KhatiyanCalculator() {
             {/* Primary action */}
             <button
               onClick={handleNewWorkspace}
-              className="bg-teal-600 text-white px-6 py-2.5 rounded-lg hover:bg-teal-500 transition shadow-lg shadow-teal-900/40 flex items-center gap-2 text-sm font-semibold"
+              className="bg-transparent text-teal-600 dark:text-teal-200 px-6 py-2.5 rounded-lg border border-teal-500/50 hover:bg-teal-500/15 hover:border-teal-400 transition flex items-center gap-2 text-sm font-semibold"
             >
               <FilePlus2 size={18} /> নতুন খতিয়ান
             </button>
