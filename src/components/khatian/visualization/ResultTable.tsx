@@ -37,8 +37,6 @@ export const ResultTable = ({
   // • কার্যকর হিস্যা (শতকরা/সহস্রাংশ): originalShare / totalActiveShare → যোগফল ১০০%
   // • কার্যকর অংশ (১৬ আনা) + মোট জমির সব কলাম: অবশিষ্ট জমি অনুযায়ী originalShare দিয়েই
   //   গণনা হয় (mutation-এ নিয়ে যাওয়া জমি বাদ), তাই যোগফল ১০০% হবে না — কমবে।
-  // calculateResult-এর setOwners(ownersWithTotalLand) ওভাররাইটে effectiveShare
-  // হারিয়ে গেলেও এখানে normalizeShares() আবার চালিয়ে মূল/কার্যকর হিস্যা বের করি।
   const normalizedOwners = useMemo(() => normalizeShares(owners), [owners]);
   const mutationInfo = useMemo(() => {
     const totalActiveShare = normalizedOwners.length > 0 ? normalizedOwners[0].totalActiveShare : 0;

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { X, Plus, Copy } from "lucide-react";
+import { X, Plus } from "lucide-react";
 import { parseNumber } from "@/lib/conversions/numberConversion";
 import { showToast } from "@/lib/utils/toast";
 
