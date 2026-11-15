@@ -407,6 +407,7 @@ export const ResultTable = ({
           <thead>
             <tr className="bg-[#e5e7eb]">
               <th className="border border-[#4b5563] p-2 text-left">দাগ নং</th>
+              <th className="border border-[#4b5563] p-2 text-left">জমির রকম</th>
               <th className="border border-[#4b5563] p-2 text-right">জমি (শতক)</th>
               <th className="border border-[#4b5563] p-2 text-right">জমি (গন্ডা-কড়া)</th>
               <th className="border border-[#4b5563] p-2 text-right">জমি (কাঠা)</th>
@@ -418,6 +419,7 @@ export const ResultTable = ({
               return (
                 <tr key={i} className={i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}>
                   <td className="border border-[#4b5563] p-2">{toBengaliNumber(row.name)}</td>
+                  <td className="border border-[#4b5563] p-2">{row.landType || "নাল"}</td>
                   <LandMeasurementCells land={row.land} />
                 </tr>
               );
@@ -433,6 +435,7 @@ export const ResultTable = ({
           <thead>
             <tr className="bg-[#e5e7eb]">
               <th className="border border-[#4b5563] p-2 text-left">দাগ নং</th>
+              <th className="border border-[#4b5563] p-2 text-left">জমির রকম</th>
               <th className="border border-[#4b5563] p-2 text-left">মালিকের নাম</th>
               <th className="border border-[#4b5563] p-2 text-right">জমি (শতক)</th>
               <th className="border border-[#4b5563] p-2 text-right">জমি (গন্ডা-কড়া)</th>
@@ -460,6 +463,7 @@ export const ResultTable = ({
                   }
                 >
                   <td className="border border-[#4b5563] p-2">{toBengaliNumber(row.dagName)}</td>
+                  <td className="border border-[#4b5563] p-2">{row.landType || "নাল"}</td>
                   <td
                     className={`border border-[#4b5563] p-2 ${
                       isRowMutated || isRowDeceased || isRowHeirMutated

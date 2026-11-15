@@ -6,6 +6,25 @@ import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import { INPUT_BASE } from "./formStyles";
 
+const landTypes = [
+  "নাল",
+  "কৃষি",
+  "বাড়ি",
+  "ভিটি",
+  "পুকুর",
+  "খাই",
+  "ডোবা",
+  "পাউন্ডি",
+  "কবরস্থান",
+  "মসজিদ",
+  "মন্দির",
+  "বাগান",
+  "সুপারিবাগান",
+  "দোকান",
+  "খাল",
+  "পথ",
+];
+
 interface DagFormProps {
   dags: Dag[];
   onDagChange: (index: number, field: keyof Dag, value: string | number) => void;
@@ -255,6 +274,20 @@ export default function DagForm({
                   className={INPUT_BASE}
                   onClick={(e) => e.stopPropagation()}
                 />
+                <select
+                  aria-label="জমির রকম"
+                  value={dag.landType || ""}
+                  onChange={(e) => onDagChange(index, "landType", e.target.value)}
+                  className={INPUT_BASE}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <option value="">জমির রকম</option>
+                  {landTypes.map((landType) => (
+                    <option key={landType} value={landType}>
+                      {landType}
+                    </option>
+                  ))}
+                </select>
                 <input
                   type="text"
                   placeholder="জমি (শতক)"
