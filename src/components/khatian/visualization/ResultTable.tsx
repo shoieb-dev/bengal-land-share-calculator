@@ -164,37 +164,57 @@ export const ResultTable = ({
 
   return (
     <div className="bg-white text-black rounded-lg shadow-xl p-4 md:p-6 border border-[#374151]" id="printable-area">
-      {header && (header.surveyType || header.district || header.khatiyanNo) && (
-        <>
-          <h1 className="text-2xl font-bold text-center mb-4">{header.surveyType} খতিয়ান</h1>
+      {header &&
+        (header.surveyType ||
+          header.district ||
+          header.khatiyanNo ||
+          header.reSaNo !== undefined ||
+          header.correspondingKhatiyanNo?.trim() ||
+          header.remarks?.trim()) && (
+          <>
+            <h1 className="text-2xl font-bold text-center mb-4">
+              {header.surveyType ? `${header.surveyType} খতিয়ান` : "খতিয়ানের তথ্য"}
+            </h1>
 
-          {/* Header Section (from Section 1) */}
-          <div className="text-sm md:text-base mb-6 space-y-2 border-b border-[#4b5563] pb-4">
-            <div className="grid grid-cols-3">
-              <div>
-                <span className="font-semibold">জিলাঃ</span> {header.district}
+            {/* Header Section (from Section 1) */}
+            <div className="text-sm md:text-base mb-6 space-y-2 border-b border-[#4b5563] pb-4">
+              <div className="grid grid-cols-3">
+                <div>
+                  <span className="font-semibold">জিলাঃ</span> {header.district}
+                </div>
+                <div className="md:ml-40">
+                  <span className="font-semibold">থানাঃ</span> {header.thana}
+                </div>
+                <div className="md:ml-40">
+                  <span className="font-semibold">খতিয়ান নংঃ</span> {toBengaliNumber(header.khatiyanNo ?? "")}
+                </div>
               </div>
-              <div className="md:ml-40">
-                <span className="font-semibold">থানাঃ</span> {header.thana}
+              <div className="grid grid-cols-3">
+                <div>
+                  <span className="font-semibold">মৌজাঃ</span> {header.mouja}
+                </div>
+                <div className="md:ml-40">
+                  <span className="font-semibold">জে. এল নংঃ</span> {toBengaliNumber(header.jlNo ?? "")}
+                </div>
+                <div className="md:ml-40">
+                  <span className="font-semibold">রে: সা: নংঃ</span>{" "}
+                  {header.reSaNo?.trim() ? toBengaliNumber(header.reSaNo) : ""}
+                </div>
               </div>
-              <div className="md:ml-40">
-                <span className="font-semibold">খতিয়ান নংঃ</span> {toBengaliNumber(header.khatiyanNo ?? "")}
-              </div>
+              {header.correspondingKhatiyanNo?.trim() && (
+                <p>
+                  <span className="font-semibold">সংশ্লিষ্ট খতিয়ান নংঃ</span>{" "}
+                  {header.correspondingKhatiyanNo.trim()}
+                </p>
+              )}
+              {header.remarks?.trim() && (
+                <p className="whitespace-pre-wrap break-words rounded border border-gray-300 px-3 py-2">
+                  <span className="font-semibold">মন্তব্যঃ</span> {header.remarks.trim()}
+                </p>
+              )}
             </div>
-            <div className="grid grid-cols-3">
-              <div>
-                <span className="font-semibold">মৌজাঃ</span> {header.mouja}
-              </div>
-              <div className="md:ml-40">
-                <span className="font-semibold">জে. এল নংঃ</span> {toBengaliNumber(header.jlNo ?? "")}
-              </div>
-              <div className="md:ml-40">
-                <span className="font-semibold">রে: সা: নংঃ</span>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
 
       <h2 className="text-2xl font-bold text-center text-black mb-4">হিসাবের ফলাফল</h2>
 
@@ -407,6 +427,7 @@ export const ResultTable = ({
           <thead>
             <tr className="bg-[#e5e7eb]">
               <th className="border border-[#4b5563] p-2 text-left">দাগ নং</th>
+              <th className="border border-[#4b5563] p-2 text-left">জমির রকম</th>
               <th className="border border-[#4b5563] p-2 text-right">জমি (শতক)</th>
               <th className="border border-[#4b5563] p-2 text-right">জমি (গন্ডা-কড়া)</th>
               <th className="border border-[#4b5563] p-2 text-right">জমি (কাঠা)</th>
@@ -418,6 +439,7 @@ export const ResultTable = ({
               return (
                 <tr key={i} className={i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}>
                   <td className="border border-[#4b5563] p-2">{toBengaliNumber(row.name)}</td>
+                  <td className="border border-[#4b5563] p-2">{row.landType || "নাল"}</td>
                   <LandMeasurementCells land={row.land} />
                 </tr>
               );
@@ -433,6 +455,7 @@ export const ResultTable = ({
           <thead>
             <tr className="bg-[#e5e7eb]">
               <th className="border border-[#4b5563] p-2 text-left">দাগ নং</th>
+              <th className="border border-[#4b5563] p-2 text-left">জমির রকম</th>
               <th className="border border-[#4b5563] p-2 text-left">মালিকের নাম</th>
               <th className="border border-[#4b5563] p-2 text-right">জমি (শতক)</th>
               <th className="border border-[#4b5563] p-2 text-right">জমি (গন্ডা-কড়া)</th>
@@ -460,6 +483,7 @@ export const ResultTable = ({
                   }
                 >
                   <td className="border border-[#4b5563] p-2">{toBengaliNumber(row.dagName)}</td>
+                  <td className="border border-[#4b5563] p-2">{row.landType || "নাল"}</td>
                   <td
                     className={`border border-[#4b5563] p-2 ${
                       isRowMutated || isRowDeceased || isRowHeirMutated

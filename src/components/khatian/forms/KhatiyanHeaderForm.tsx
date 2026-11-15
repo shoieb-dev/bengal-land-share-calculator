@@ -10,6 +10,19 @@ interface KhatiyanHeaderFormProps {
 }
 
 export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderFormProps) {
+  const summaryParts = [
+    header.surveyType ? `${header.surveyType} খতিয়ান` : undefined,
+    header.district ? `জেলা: ${header.district}` : undefined,
+    header.thana ? `থানা: ${header.thana}` : undefined,
+    header.khatiyanNo ? `খতিয়ান নং: ${toBengaliNumber(header.khatiyanNo)}` : undefined,
+    header.mouja ? `মৌজা: ${header.mouja}` : undefined,
+    header.jlNo ? `জে. এল নং: ${toBengaliNumber(header.jlNo)}` : undefined,
+    `রে: সা: নং: ${header.reSaNo?.trim() ? toBengaliNumber(header.reSaNo) : ""}`,
+    header.correspondingKhatiyanNo?.trim()
+      ? `সংশ্লিষ্ট খতিয়ান নং: ${header.correspondingKhatiyanNo.trim()}`
+      : undefined,
+  ].filter((part): part is string => Boolean(part));
+
   return (
     <div className="bg-linear-to-br from-indigo-50 to-purple-100 dark:from-indigo-900 dark:to-purple-900 p-4 md:p-5 rounded-lg shadow-lg mb-6 border border-indigo-200 dark:border-indigo-700">
       <h3 className="font-bold text-lg mb-3 text-indigo-800 dark:text-indigo-200 flex items-center">
@@ -37,28 +50,10 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
           </select>
         </div>
 
-        {/* Khatian No */}
-        <div>
-          <label className={LABEL_BASE}>খতিয়ান নং</label>
-          <input
-            type="text"
-            name="khotiyan_no"
-            autoComplete="on"
-            value={header.khatiyanNo}
-            onChange={(e) => onChange("khatiyanNo", e.target.value)}
-            placeholder="যেমন: ৪৫৬"
-            className={INPUT_BASE}
-          />
-        </div>
-
         {/* District */}
         <div>
           <label className={LABEL_BASE}>জেলা</label>
-          <select
-            value={header.district}
-            onChange={(e) => onChange("district", e.target.value)}
-            className={INPUT_BASE}
-          >
+          <select value={header.district} onChange={(e) => onChange("district", e.target.value)} className={INPUT_BASE}>
             <option value="">নির্বাচন করুন</option>
             {bangladeshDistricts.map((district, index) => (
               <option key={index} value={district}>
@@ -80,6 +75,20 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
           />
         </div>
 
+        {/* Khatian No */}
+        <div>
+          <label className={LABEL_BASE}>খতিয়ান নং</label>
+          <input
+            type="text"
+            name="khotiyan_no"
+            autoComplete="on"
+            value={header.khatiyanNo}
+            onChange={(e) => onChange("khatiyanNo", e.target.value)}
+            placeholder="যেমন: ৪৫৬"
+            className={INPUT_BASE}
+          />
+        </div>
+
         {/* Mouja */}
         <div>
           <label className={LABEL_BASE}>মৌজা</label>
@@ -96,7 +105,7 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
 
         {/* JL No */}
         <div>
-          <label className={LABEL_BASE}>জেএল নং</label>
+          <label className={LABEL_BASE}>জে. এল নং</label>
           <input
             type="text"
             name="jlNo"
@@ -107,19 +116,54 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
             className={INPUT_BASE}
           />
         </div>
+
+        {/* Revisional Survey No */}
+        <div>
+          <label className={LABEL_BASE}>রে: সা: নংঃ</label>
+          <input
+            type="text"
+            value={header.reSaNo ?? ""}
+            onChange={(e) => onChange("reSaNo", e.target.value)}
+            placeholder="যেমন: ১২৩"
+            className={INPUT_BASE}
+          />
+        </div>
+
+        <div>
+          <label className={LABEL_BASE}>সংশ্লিষ্ট খতিয়ান নং (ঐচ্ছিক)</label>
+          <input
+            type="text"
+            value={header.correspondingKhatiyanNo ?? ""}
+            onChange={(e) => onChange("correspondingKhatiyanNo", e.target.value)}
+            placeholder="যেমন: আর.এস. ১২৩"
+            className={INPUT_BASE}
+          />
+        </div>
+
+        <div>
+          <label className={LABEL_BASE}>মন্তব্য (ঐচ্ছিক)</label>
+          <textarea
+            value={header.remarks ?? ""}
+            onChange={(e) => onChange("remarks", e.target.value)}
+            placeholder="এই খতিয়ান সম্পর্কে মন্তব্য লিখুন"
+            rows={1}
+            className={`${INPUT_BASE} resize-y`}
+          />
+        </div>
       </div>
 
       {/* Summary Display */}
-      {(header.surveyType || header.district || header.khatiyanNo) && (
+      {(summaryParts.length > 0 || header.remarks?.trim()) && (
         <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded border border-indigo-200 dark:border-gray-200">
-          <p className="text-gray-700 dark:text-gray-300 text-sm">
-            {header.surveyType && <span className="font-semibold">{header.surveyType} খতিয়ান</span>}
-            {header.khatiyanNo && <span> নং {toBengaliNumber(header.khatiyanNo)}</span>}
-            {header.mouja && <span>, মৌজা: {header.mouja}</span>}
-            {header.jlNo && <span>, জেএল নং: {toBengaliNumber(header.jlNo)}</span>}
-            {header.thana && <span>, থানা: {header.thana}</span>}
-            {header.district && <span>, জেলা: {header.district}</span>}
-          </p>
+          {summaryParts.length > 0 && (
+            <p className="text-gray-700 dark:text-gray-300 text-sm">{summaryParts.join(" · ")}</p>
+          )}
+          {header.remarks?.trim() && (
+            <p className="mt-1 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
+              <span className="font-semibold">মন্তব্য: </span>
+              {header.remarks.trim()}
+            </p>
+          )}
         </div>
       )}
     </div>

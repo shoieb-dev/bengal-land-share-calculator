@@ -32,6 +32,7 @@ export type Owner = {
 export type Dag = {
   name: string;
   land: number;
+  landType?: string;
 };
 
 export type KhatiyanHeader = {
@@ -41,6 +42,9 @@ export type KhatiyanHeader = {
   thana: string;
   mouja: string;
   jlNo: string;
+  reSaNo?: string;
+  correspondingKhatiyanNo?: string;
+  remarks?: string;
 };
 
 export type ValidationError = {
@@ -61,6 +65,7 @@ export type ResetModalType = {
 
 export type ResultRow = {
   dagName: string;
+  landType?: string;
   ownerName: string;
   land: number;
   /** মৃত মালিকের মূল রো (muted/strikethrough দেখাতে) */
