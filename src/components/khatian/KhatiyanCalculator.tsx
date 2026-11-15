@@ -87,6 +87,7 @@ export default function KhatiyanCalculator() {
     thana: "আনোয়ারা",
     mouja: "গুয়াপঞ্চক",
     jlNo: "২",
+    reSaNo: "",
   });
 
   // Add handler
@@ -100,6 +101,9 @@ export default function KhatiyanCalculator() {
       thana: template.header.thana || "",
       mouja: template.header.mouja || "",
       jlNo: template.header.jlNo || "",
+      reSaNo: template.header.reSaNo || "",
+      correspondingKhatiyanNo: template.header.correspondingKhatiyanNo || "",
+      remarks: template.header.remarks || "",
     });
 
     // Load owners
@@ -266,6 +270,9 @@ export default function KhatiyanCalculator() {
       thana: "",
       mouja: "",
       jlNo: "",
+      reSaNo: "",
+      correspondingKhatiyanNo: "",
+      remarks: "",
     });
     setDags([]);
     setOwners([]);
@@ -333,7 +340,17 @@ export default function KhatiyanCalculator() {
   const handleNewWorkspace = () => {
     snapshotWorkspace();
     commitHistory();
-    setHeader({ surveyType: "", district: "", khatiyanNo: "", thana: "", mouja: "", jlNo: "" });
+    setHeader({
+      surveyType: "",
+      district: "",
+      khatiyanNo: "",
+      thana: "",
+      mouja: "",
+      jlNo: "",
+      reSaNo: "",
+      correspondingKhatiyanNo: "",
+      remarks: "",
+    });
     setDags([]);
     setOwners([]);
     setResult([]);

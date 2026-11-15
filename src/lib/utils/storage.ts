@@ -50,6 +50,7 @@ export const loadFromLocalStorage = (): StoredData | null => {
       thana: "",
       mouja: "",
       jlNo: "",
+      reSaNo: "",
     };
 
     return {

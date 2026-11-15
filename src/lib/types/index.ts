@@ -42,6 +42,9 @@ export type KhatiyanHeader = {
   thana: string;
   mouja: string;
   jlNo: string;
+  reSaNo?: string;
+  correspondingKhatiyanNo?: string;
+  remarks?: string;
 };
 
 export type ValidationError = {
