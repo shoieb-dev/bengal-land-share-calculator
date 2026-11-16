@@ -148,6 +148,36 @@ option {
   background-color: #fff;
 }
 
+@page {
+  margin: 10mm 5mm 10mm;
+
+  @top-left {
+    content: none;
+  }
+
+  @top-center {
+    content: none;
+  }
+
+  @top-right {
+    content: none;
+  }
+
+  @bottom-left {
+    content: none;
+  }
+
+  @bottom-center {
+    content: counter(page, bengali) "/" counter(pages, bengali);
+    color: #6b7280;
+    font-size: 9pt;
+  }
+
+  @bottom-right {
+    content: none;
+  }
+}
+
 @media print {
   /* Print must always use the light color scheme, even in app dark mode.
      The app sets an inline color-scheme: dark on <html>, which makes
@@ -185,7 +215,7 @@ option {
     color: black;
   }
   #printable-area table {
-    font-size: 9px !important;
+    font-size: 11px !important;
     table-layout: auto;
     width: 100%;
   }
