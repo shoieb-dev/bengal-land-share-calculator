@@ -263,7 +263,7 @@ export const ResultTable = ({
         </p>
       )} */}
       <div className="overflow-x-auto mb-6">
-        <table className="w-full border-collapse border border-[#4b5563] md:text-sm">
+        <table className="w-full border-collapse border border-[#4b5563]">
           <thead>
             <tr className="bg-[#e5e7eb]">
               <th className="border border-[#4b5563] p-2 text-center whitespace-nowrap">ক্রম</th>
@@ -295,7 +295,9 @@ export const ResultTable = ({
                 <Fragment key={i}>
                   <tr className={isMutated ? "bg-gray-200 opacity-70" : i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}>
                     <td className="border border-[#4b5563] p-2 text-center">{toBengaliNumber(i + 1)}</td>
-                    <td className={`border border-[#4b5563] p-2 ${isMutated ? "line-through text-gray-500" : ""}`}>
+                    <td
+                      className={`border border-[#4b5563] p-2 ${isMutated ? "line-through text-gray-500" : owner.deceased ? "text-gray-600" : ""}`}
+                    >
                       {owner.name}
                       {isMutated && (
                         <>
@@ -364,17 +366,17 @@ export const ResultTable = ({
                           >
                             <td className="border border-[#4b5563] p-2 text-center text-gray-400">↳</td>
                             <td
-                              className={`border border-[#4b5563] p-2 pl-6 text-sm ${
+                              className={`border border-[#4b5563] p-2 pl-6 ${
                                 isHeirMutated ? "line-through text-gray-500" : ""
                               }`}
                             >
                               {heir.name}{" "}
-                              <span className={`text-xs ${isHeirMutated ? "text-gray-500" : "text-violet-700"}`}>
+                              <span className={`${isHeirMutated ? "text-gray-500" : "text-violet-700"}`}>
                                 ({HEIR_RELATION_LABELS[heir.relation]})
                               </span>
                               {isHeirMutated && <span className="text-xs text-gray-500"> (নামজারিকৃত)</span>}
                             </td>
-                            <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap text-sm">
+                            <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
                               {anaB.ana > 0 ? `${anaOptions.find((o) => o.value === anaB.ana)?.label} ` : ""}
                               {anaB.gonda > 0 ? `${gondaOptions.find((o) => o.value === anaB.gonda)?.label} ` : ""}
                               {anaB.kora > 0 ? `${koraOptions.find((o) => o.value === anaB.kora)?.label} ` : ""}
@@ -470,7 +472,7 @@ export const ResultTable = ({
       {/* -------------------- SECONDARY TABLE: DAG WISE LAND AMOUNT -------------------- */}
       <h3 className="font-bold text-lg mb-2">২. দাগভিত্তিক জমির পরিমাণ</h3>
       <div className="overflow-x-auto mb-6">
-        <table className="w-full border-collapse border border-[#4b5563] md:text-sm">
+        <table className="w-full border-collapse border border-[#4b5563]">
           <thead>
             <tr className="bg-[#e5e7eb]">
               <th className="border border-[#4b5563] p-2 text-center">ক্রম</th>
@@ -500,7 +502,7 @@ export const ResultTable = ({
       {/* -------------------- THIRD TABLE: DAG WISE DISTRIBUTION (Existing Result Table) -------------------- */}
       <h3 className="font-bold text-lg mb-2">৩. দাগভিত্তিক জমির বন্টন</h3>
       <div className="overflow-x-auto mb-6">
-        <table className="w-full border-collapse border border-[#4b5563] md:text-sm">
+        <table className="w-full border-collapse border border-[#4b5563]">
           <thead>
             <tr className="bg-[#e5e7eb]">
               <th className="border border-[#4b5563] p-2 text-left">দাগ নং</th>
