@@ -25,7 +25,7 @@ import { showToast } from "@/lib/utils/toast";
 import { useWorkspaceHistory } from "@/hooks/useWorkspaceHistory";
 import { useTheme } from "@/hooks/useTheme";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import ThemeToggle from "./ui/ThemeToggle";
+import FloatingActions from "./ui/FloatingActions";
 import AppToast from "../common/AppToast";
 import AutoSaveIndicator from "./ui/AutoSaveIndicator";
 import DagForm from "./forms/DagForm";
@@ -954,7 +954,12 @@ export default function KhatiyanCalculator() {
         )}
       </div>
 
-      <ThemeToggle theme={theme} onToggle={toggleTheme} mounted={mounted} variant="floating" />
+      <FloatingActions
+        showPrint={showResult && result.length > 0}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        mounted={mounted}
+      />
 
       <AppToast />
 

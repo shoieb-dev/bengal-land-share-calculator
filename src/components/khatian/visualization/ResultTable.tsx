@@ -32,6 +32,11 @@ export const ResultTable = ({
 }: ResultTableProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
+  const [visibleOwnerColumns, setVisibleOwnerColumns] = useState({
+    percentage: false,
+    thousandth: false,
+    point: false,
+  });
 
   // ─── Mutation: দ্বৈত মডেল ───
   // • কার্যকর হিস্যা (শতকরা/সহস্রাংশ): originalShare / totalActiveShare → যোগফল ১০০%
@@ -203,8 +208,7 @@ export const ResultTable = ({
               </div>
               {header.correspondingKhatiyanNo?.trim() && (
                 <p>
-                  <span className="font-semibold">সংশ্লিষ্ট খতিয়ান নংঃ</span>{" "}
-                  {header.correspondingKhatiyanNo.trim()}
+                  <span className="font-semibold">সংশ্লিষ্ট খতিয়ান নংঃ</span> {header.correspondingKhatiyanNo.trim()}
                 </p>
               )}
               {header.remarks?.trim() && (
@@ -220,6 +224,37 @@ export const ResultTable = ({
 
       {/* -------------------- PRIMARY TABLE: OWNER SHARE (Owner Total Table) -------------------- */}
       <h3 className="font-bold text-lg mb-2">১. মালিকের নাম ও অংশ</h3>
+      <fieldset className="print-hide mb-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+        <legend className="mb-1 font-semibold">অতিরিক্ত কলাম দেখান:</legend>
+        <label className="inline-flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            checked={visibleOwnerColumns.percentage}
+            onChange={(event) =>
+              setVisibleOwnerColumns((current) => ({ ...current, percentage: event.target.checked }))
+            }
+          />
+          অংশ (শতকরা)
+        </label>
+        <label className="inline-flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            checked={visibleOwnerColumns.thousandth}
+            onChange={(event) =>
+              setVisibleOwnerColumns((current) => ({ ...current, thousandth: event.target.checked }))
+            }
+          />
+          অংশ (সহস্রাংশ)
+        </label>
+        <label className="inline-flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            checked={visibleOwnerColumns.point}
+            onChange={(event) => setVisibleOwnerColumns((current) => ({ ...current, point: event.target.checked }))}
+          />
+          মোট জমি (অজুতাংশ/পয়েন্ট)
+        </label>
+      </fieldset>
       {/* {mutationInfo.hasMutated && (
         <p className="mb-2 text-sm font-semibold text-orange-700">
           নামজারিকৃত অংশ ({toBengaliNumber((mutationInfo.totalMutatedShare * 100).toFixed(2))}%) বাদ দিয়ে অবশিষ্ট{" "}
@@ -234,15 +269,21 @@ export const ResultTable = ({
               <th className="border border-[#4b5563] p-2 text-center whitespace-nowrap">ক্রম</th>
               <th className="border border-[#4b5563] p-2 text-left whitespace-nowrap">মালিকের নাম</th>
               <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">অংশ (১৬ আনা)</th>
-              <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">অংশ (শতকরা)</th>
+              {visibleOwnerColumns.percentage && (
+                <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">অংশ (শতকরা)</th>
+              )}
               {/* {mutationInfo.hasMutated && (
                 <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">কার্যকর অংশ (শতকরা)</th>
               )} */}
-              <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                {mutationInfo.hasMutated ? "কার্যকর অংশ (সহস্রাংশ)" : "অংশ (সহস্রাংশ)"}
-              </th>
+              {visibleOwnerColumns.thousandth && (
+                <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                  {mutationInfo.hasMutated ? "কার্যকর অংশ (সহস্রাংশ)" : "অংশ (সহস্রাংশ)"}
+                </th>
+              )}
               <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">মোট জমি (শতক)</th>
-              <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">মোট জমি (অজুতাংশ/পয়েন্ট)</th>
+              {visibleOwnerColumns.point && (
+                <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">মোট জমি (অজুতাংশ/পয়েন্ট)</th>
+              )}
               <th className="border border-[#4b5563] p-2 text-right whitespace-nowrap">মোট জমি (গন্ডা-কড়া)</th>
             </tr>
           </thead>
@@ -280,23 +321,29 @@ export const ResultTable = ({
                         ? `${toBengaliNumber(((owner.shareRatio || 0) * 100).toFixed(2))}%`
                         : ""}
                     </td>
-                    <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                      {toBengaliNumber((originalShare * 100).toFixed(2))}%
-                    </td>
+                    {visibleOwnerColumns.percentage && (
+                      <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                        {toBengaliNumber((originalShare * 100).toFixed(2))}%
+                      </td>
+                    )}
                     {/* {mutationInfo.hasMutated && (
                     <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap font-semibold">
                       {isMutated ? "---" : `${toBengaliNumber((effectiveShare * 100).toFixed(2))}%`}
                     </td>
                   )} */}
-                    <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                      {toBengaliNumber(effectiveShare.toFixed(3))}
-                    </td>
+                    {visibleOwnerColumns.thousandth && (
+                      <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                        {toBengaliNumber(effectiveShare.toFixed(3))}
+                      </td>
+                    )}
                     <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
                       {toBengaliNumber(land.toFixed(2))}
                     </td>
-                    <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                      {toBengaliNumber(land.toFixed(2).replace(".", "").padStart(4, "0"))}
-                    </td>
+                    {visibleOwnerColumns.point && (
+                      <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                        {toBengaliNumber(land.toFixed(2).replace(".", "").padStart(4, "0"))}
+                      </td>
+                    )}
                     <GondaKoraCell land={land} />
                   </tr>
                   {owner.deceased &&
@@ -334,18 +381,24 @@ export const ResultTable = ({
                               {anaB.kranti > 0 ? `${krantiOptions.find((o) => o.value === anaB.kranti)?.label} ` : ""}
                               {anaB.til > 0 ? `${tilOptions.find((o) => o.value === anaB.til)?.label} ` : ""}
                             </td>
-                            <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                              {toBengaliNumber((share * originalShare * 100).toFixed(2))}%
-                            </td>
-                            <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                              {toBengaliNumber((effShare * effectiveShare).toFixed(3))}
-                            </td>
+                            {visibleOwnerColumns.percentage && (
+                              <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                                {toBengaliNumber((share * originalShare * 100).toFixed(2))}%
+                              </td>
+                            )}
+                            {visibleOwnerColumns.thousandth && (
+                              <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                                {toBengaliNumber((effShare * effectiveShare).toFixed(3))}
+                              </td>
+                            )}
                             <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
                               {toBengaliNumber(heirLand.toFixed(2))}
                             </td>
-                            <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                              {toBengaliNumber(heirLand.toFixed(2).replace(".", "").padStart(4, "0"))}
-                            </td>
+                            {visibleOwnerColumns.point && (
+                              <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                                {toBengaliNumber(heirLand.toFixed(2).replace(".", "").padStart(4, "0"))}
+                              </td>
+                            )}
                             <GondaKoraCell land={heirLand} />
                           </tr>
                         );
@@ -364,17 +417,21 @@ export const ResultTable = ({
                   <> → {toBengaliNumber((mutationInfo.totalActiveShare * 16).toFixed(2))} আনা</>
                 )}
               </td>
-              <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                {toBengaliNumber(totalSharePercentage.toFixed(2))}%
-              </td>
+              {visibleOwnerColumns.percentage && (
+                <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                  {toBengaliNumber(totalSharePercentage.toFixed(2))}%
+                </td>
+              )}
               {/*               {mutationInfo.hasMutated && (
                 <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap font-semibold">
                   {toBengaliNumber((mutationInfo.totalActiveShare * 100).toFixed(2))}% → ১০০.০০%
                 </td>
               )} */}
-              <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                {toBengaliNumber((totalSharePercentage / 100).toFixed(3))}
-              </td>
+              {visibleOwnerColumns.thousandth && (
+                <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                  {toBengaliNumber((totalSharePercentage / 100).toFixed(3))}
+                </td>
+              )}
               <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
                 {toBengaliNumber(owners.reduce((sum, o) => sum + (o.totalLand || 0), 0).toFixed(2))}
                 {/* 
@@ -386,24 +443,14 @@ export const ResultTable = ({
                   ).toFixed(2),
                 )} */}
               </td>
-              <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
-                {(() => {
-                  const total = owners.reduce((sum, o) => sum + (o.totalLand || 0), 0);
-                  return `${toBengaliNumber(total.toFixed(2).replace(".", ""))}`;
-                })()}
-                {/* 
-                {(() => {
-                  const total = totalActiveLand;
-                  return `${toBengaliNumber(total.toFixed(2).replace(".", ""))}`;
-                })()}
-                {(() => {
-                  const total = mutationInfo.hasMutated
-                    ? normalizedOwners.filter((n) => !n.mutated).reduce((sum, n) => sum + (n.owner.totalLand || 0), 0)
-                    : owners.reduce((sum, o) => sum + (o.totalLand || 0), 0);
-                  return `${toBengaliNumber(total.toFixed(2).replace(".", ""))}`;
-                })()}
-                */}
-              </td>
+              {visibleOwnerColumns.point && (
+                <td className="border border-[#4b5563] p-2 text-right whitespace-nowrap">
+                  {(() => {
+                    const total = owners.reduce((sum, o) => sum + (o.totalLand || 0), 0);
+                    return `${toBengaliNumber(total.toFixed(2).replace(".", ""))}`;
+                  })()}
+                </td>
+              )}
               <GondaKoraCell land={owners.reduce((sum, o) => sum + (o.totalLand || 0), 0)} />
               {/* 
               <GondaKoraCell land={totalActiveLand} />
@@ -426,6 +473,7 @@ export const ResultTable = ({
         <table className="w-full border-collapse border border-[#4b5563] md:text-sm">
           <thead>
             <tr className="bg-[#e5e7eb]">
+              <th className="border border-[#4b5563] p-2 text-center">ক্রম</th>
               <th className="border border-[#4b5563] p-2 text-left">দাগ নং</th>
               <th className="border border-[#4b5563] p-2 text-left">জমির রকম</th>
               <th className="border border-[#4b5563] p-2 text-right">জমি (শতক)</th>
@@ -438,6 +486,7 @@ export const ResultTable = ({
             {dags.map((row, i) => {
               return (
                 <tr key={i} className={i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}>
+                  <td className="border border-[#4b5563] p-2 text-center">{toBengaliNumber(i + 1)}</td>
                   <td className="border border-[#4b5563] p-2">{toBengaliNumber(row.name)}</td>
                   <td className="border border-[#4b5563] p-2">{row.landType || "নাল"}</td>
                   <LandMeasurementCells land={row.land} />
