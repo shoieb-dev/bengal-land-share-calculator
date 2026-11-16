@@ -473,6 +473,7 @@ export const ResultTable = ({
         <table className="w-full border-collapse border border-[#4b5563] md:text-sm">
           <thead>
             <tr className="bg-[#e5e7eb]">
+              <th className="border border-[#4b5563] p-2 text-center">ক্রম</th>
               <th className="border border-[#4b5563] p-2 text-left">দাগ নং</th>
               <th className="border border-[#4b5563] p-2 text-left">জমির রকম</th>
               <th className="border border-[#4b5563] p-2 text-right">জমি (শতক)</th>
@@ -485,6 +486,7 @@ export const ResultTable = ({
             {dags.map((row, i) => {
               return (
                 <tr key={i} className={i % 2 === 0 ? "bg-[#f9fafb]" : "bg-[#f3f4f6]"}>
+                  <td className="border border-[#4b5563] p-2 text-center">{toBengaliNumber(i + 1)}</td>
                   <td className="border border-[#4b5563] p-2">{toBengaliNumber(row.name)}</td>
                   <td className="border border-[#4b5563] p-2">{row.landType || "নাল"}</td>
                   <LandMeasurementCells land={row.land} />
