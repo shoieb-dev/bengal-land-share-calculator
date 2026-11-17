@@ -216,7 +216,7 @@ export const ResultTable = ({
                 </p>
               )}
               {header.remarks?.trim() && (
-                <p className="whitespace-pre-wrap break-words rounded border border-gray-300 px-3 py-2">
+                <p className="whitespace-pre-wrap break-words rounded border border-gray-300 px-1 py-0.5">
                   <span className="font-semibold">মন্তব্যঃ</span> {header.remarks.trim()}
                 </p>
               )}
