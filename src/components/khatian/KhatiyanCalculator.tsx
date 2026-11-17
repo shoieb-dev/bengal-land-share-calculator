@@ -300,6 +300,16 @@ export default function KhatiyanCalculator() {
 
   // Update handleHeaderChange
   const handleHeaderChange = (field: keyof KhatiyanHeader, value: string) => {
+    const identifiesKhatiyan =
+      field === "surveyType" ||
+      field === "khatiyanNo" ||
+      field === "district" ||
+      field === "thana" ||
+      field === "mouja" ||
+      field === "jlNo";
+    if (identifiesKhatiyan && header[field] !== value) {
+      setActiveEntryId(null);
+    }
     setHeader({ ...header, [field]: value });
   };
 
