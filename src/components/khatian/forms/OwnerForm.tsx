@@ -8,12 +8,14 @@ import { showToast } from "@/lib/utils/toast";
 import { computeHeirShares } from "@/lib/utils/heirShare";
 import { calculateShareRatio } from "@/lib/utils/validation";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
+import BulkAddOwnerModal from "../modals/BulkAddOwnerModal";
 
 interface OwnerFormProps {
   owners: Owner[];
   onOwnerChange: (index: number, field: keyof Owner, value: string | number | boolean) => void;
   onDelete: (index: number, name: string) => void;
   onAdd: () => void;
+  onBulkAdd: (names: string[]) => void;
   onReorder: (newOwners: Owner[]) => void;
   calculateShareRatio: (owner: Owner) => number;
   onAddHeir: (ownerIndex: number) => void;
@@ -26,6 +28,7 @@ export const OwnerForm = ({
   onOwnerChange,
   onDelete,
   onAdd,
+  onBulkAdd,
   onReorder,
   calculateShareRatio,
   onAddHeir,
@@ -33,6 +36,7 @@ export const OwnerForm = ({
   onDeleteHeir,
 }: OwnerFormProps) => {
   const [pendingReset, setPendingReset] = useState<number | null>(null);
+  const [showBulkAdd, setShowBulkAdd] = useState(false);
 
   const {
     draggedIndex,
@@ -86,26 +90,35 @@ export const OwnerForm = ({
           মালিকের তালিকা
         </h3>
 
-        {/* Copy to All Button */}
-        {owners.length > 1 && owners[0] && calculateShareRatio(owners[0]) > 0 && (
+        <div className="flex gap-2 flex-wrap">
           <button
-            onClick={() => {
-              const firstOwner = owners[0];
-              owners.forEach((_, index) => {
-                if (index > 0) {
-                  onOwnerChange(index, "ana", firstOwner.ana);
-                  onOwnerChange(index, "gonda", firstOwner.gonda);
-                  onOwnerChange(index, "kora", firstOwner.kora);
-                  onOwnerChange(index, "kranti", firstOwner.kranti);
-                  onOwnerChange(index, "til", firstOwner.til);
-                }
-              });
-            }}
-            className="bg-yellow-600 text-white px-3 py-1 rounded hover:bg-yellow-700 transition flex items-center gap-1 text-sm"
+            onClick={() => setShowBulkAdd(true)}
+            className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition flex items-center gap-1 text-sm"
           >
-            <Copy size={14} /> সবাইকে প্রথম মালিকের অংশ দিন
+            <Copy size={16} /> একাধিক যোগ
           </button>
-        )}
+
+          {/* Copy to All Button */}
+          {owners.length > 1 && owners[0] && calculateShareRatio(owners[0]) > 0 && (
+            <button
+              onClick={() => {
+                const firstOwner = owners[0];
+                owners.forEach((_, index) => {
+                  if (index > 0) {
+                    onOwnerChange(index, "ana", firstOwner.ana);
+                    onOwnerChange(index, "gonda", firstOwner.gonda);
+                    onOwnerChange(index, "kora", firstOwner.kora);
+                    onOwnerChange(index, "kranti", firstOwner.kranti);
+                    onOwnerChange(index, "til", firstOwner.til);
+                  }
+                });
+              }}
+              className="bg-yellow-600 text-white px-3 py-1 rounded hover:bg-yellow-700 transition flex items-center gap-1 text-sm"
+            >
+              <Copy size={14} /> সবাইকে প্রথম মালিকের অংশ দিন
+            </button>
+          )}
+        </div>
       </div>
 
       {owners.length === 0 ? (
@@ -345,6 +358,8 @@ export const OwnerForm = ({
       >
         <Plus size={18} /> নতুন মালিক যোগ করুন
       </button>
+
+      <BulkAddOwnerModal show={showBulkAdd} onClose={() => setShowBulkAdd(false)} onAdd={onBulkAdd} />
 
       <ConfirmDialog
         open={pendingReset !== null}

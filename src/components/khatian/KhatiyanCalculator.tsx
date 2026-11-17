@@ -505,6 +505,13 @@ export default function KhatiyanCalculator() {
     commitHistory();
     setOwners((prev) => [...prev, { name: "", ana: 0, gonda: 0, kora: 0, kranti: 0, til: 0 }]);
   };
+  const handleBulkAddOwners = (names: string[]) => {
+    commitHistory();
+    setOwners((prev) => [
+      ...prev,
+      ...names.map((name): Owner => ({ name, ana: 0, gonda: 0, kora: 0, kranti: 0, til: 0 })),
+    ]);
+  };
 
   // (keyboard-shortcut handlers removed — wired via khatiyan-shortcut events below)
 
@@ -900,6 +907,7 @@ export default function KhatiyanCalculator() {
             onOwnerChange={handleOwnerChange}
             onDelete={(index, name) => openDeleteModal("owner", index, name)}
             onAdd={addOwner}
+            onBulkAdd={handleBulkAddOwners}
             calculateShareRatio={calculateShareRatio}
             onReorder={handleReorderOwners}
             onAddHeir={handleAddHeir}
