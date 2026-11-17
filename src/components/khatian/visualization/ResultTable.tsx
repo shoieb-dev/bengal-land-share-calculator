@@ -183,27 +183,31 @@ export const ResultTable = ({
 
             {/* Header Section (from Section 1) */}
             <div className="text-sm md:text-base mb-6 space-y-2 border-b border-[#4b5563] pb-4">
-              <div className="grid grid-cols-3">
-                <div>
-                  <span className="font-semibold">জিলাঃ</span> {header.district}
+              <div className="grid grid-cols-3 gap-x-2">
+                <div className="min-w-0 w-fit max-w-full justify-self-left space-y-2 text-left">
+                  <div>
+                    <span className="font-semibold">জিলাঃ</span> {header.district}
+                  </div>
+                  <div>
+                    <span className="font-semibold">মৌজাঃ</span> {header.mouja}
+                  </div>
                 </div>
-                <div className="md:ml-40">
-                  <span className="font-semibold">থানাঃ</span> {header.thana}
+                <div className="min-w-0 w-fit max-w-full justify-self-center space-y-2 text-left">
+                  <div>
+                    <span className="font-semibold">থানাঃ</span> {header.thana}
+                  </div>
+                  <div>
+                    <span className="font-semibold">জে. এল নংঃ</span> {toBengaliNumber(header.jlNo ?? "")}
+                  </div>
                 </div>
-                <div className="md:ml-40">
-                  <span className="font-semibold">খতিয়ান নংঃ</span> {toBengaliNumber(header.khatiyanNo ?? "")}
-                </div>
-              </div>
-              <div className="grid grid-cols-3">
-                <div>
-                  <span className="font-semibold">মৌজাঃ</span> {header.mouja}
-                </div>
-                <div className="md:ml-40">
-                  <span className="font-semibold">জে. এল নংঃ</span> {toBengaliNumber(header.jlNo ?? "")}
-                </div>
-                <div className="md:ml-40">
-                  <span className="font-semibold">রে: সা: নংঃ</span>{" "}
-                  {header.reSaNo?.trim() ? toBengaliNumber(header.reSaNo) : ""}
+                <div className="min-w-0 w-fit max-w-full justify-self-center space-y-2 text-left">
+                  <div>
+                    <span className="font-semibold">খতিয়ান নংঃ</span> {toBengaliNumber(header.khatiyanNo ?? "")}
+                  </div>
+                  <div>
+                    <span className="font-semibold">রে: সা: নংঃ</span>{" "}
+                    {header.reSaNo?.trim() ? toBengaliNumber(header.reSaNo) : ""}
+                  </div>
                 </div>
               </div>
               {header.correspondingKhatiyanNo?.trim() && (
