@@ -181,6 +181,18 @@ export default function KhatiyanCalculator() {
     }
   }, []);
 
+  useEffect(() => {
+    const locationDetails = [
+      `${header.mouja.trim() || "-"}`,
+      `${header.thana.trim() || "-"}`,
+      `${header.district.trim() || "-"}`,
+    ].join(", ");
+
+    document.title = `${header.surveyType.trim() || "-"} খতিয়ান হিসাব:${toBengaliNumber(
+      header.khatiyanNo.trim() || "-",
+    )} (${locationDetails})`;
+  }, [header]);
+
   // Auto-save function
   const handleAutoSave = useCallback(() => {
     if (!autoSaveEnabled) return;
