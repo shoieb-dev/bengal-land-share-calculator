@@ -110,7 +110,7 @@ export default function OwnerPresetControls({ owners }: { owners: Owner[] }) {
                   প্রিসেট সেটিংস
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  মালিক গ্রুপ ও ওয়ারিশ টেমপ্লেট পরিচালনা করুন
+                  মালিক টেমপ্লেট ও ওয়ারিশ টেমপ্লেট পরিচালনা করুন
                 </p>
               </div>
               <button
@@ -138,7 +138,11 @@ export default function OwnerPresetControls({ owners }: { owners: Owner[] }) {
                 />
               </label>
 
-              <div role="tablist" aria-label="প্রিসেটের ধরন" className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
+              <div
+                role="tablist"
+                aria-label="প্রিসেটের ধরন"
+                className="flex gap-2 border-b border-gray-200 dark:border-gray-700"
+              >
                 <button
                   type="button"
                   role="tab"
@@ -223,15 +227,16 @@ function OwnerPresetManager({
   const save = (updateSelected: boolean) => {
     const trimmedName = name.trim();
     if (!trimmedName || members.length === 0 || members.some((member) => !member.name.trim())) {
-      showToast("গ্রুপের নাম দিন এবং প্রত্যেক সদস্যের নাম পূরণ করুন।", "info");
+      showToast("টেমপ্লেটের নাম দিন এবং প্রত্যেক সদস্যের নাম পূরণ করুন।", "info");
       return;
     }
 
-    const next = updateSelected && selectedId
-      ? presets.map((preset) =>
-          preset.id === selectedId ? { ...preset, name: trimmedName, owners: makePresetOwners(members) } : preset,
-        )
-      : [...presets, { id: createId(), name: trimmedName, owners: makePresetOwners(members) }];
+    const next =
+      updateSelected && selectedId
+        ? presets.map((preset) =>
+            preset.id === selectedId ? { ...preset, name: trimmedName, owners: makePresetOwners(members) } : preset,
+          )
+        : [...presets, { id: createId(), name: trimmedName, owners: makePresetOwners(members) }];
     try {
       saveOwnerPresets(next);
       broadcastPresetsUpdated();
@@ -239,10 +244,10 @@ function OwnerPresetManager({
         const addedPreset = next[next.length - 1];
         setSelectedId(addedPreset.id);
       }
-      showToast(updateSelected ? "মালিক গ্রুপ আপডেট হয়েছে।" : "মালিক গ্রুপ সংরক্ষণ হয়েছে।", "success");
+      showToast(updateSelected ? "মালিক টেমপ্লেট আপডেট হয়েছে।" : "মালিক টেমপ্লেট সংরক্ষণ হয়েছে।", "success");
     } catch (error) {
       console.error("Error saving owner group preset:", error);
-      showToast("মালিক গ্রুপ সংরক্ষণ করা যায়নি। ব্রাউজারের স্টোরেজ পরীক্ষা করুন।", "error");
+      showToast("মালিক টেমপ্লেট সংরক্ষণ করা যায়নি। ব্রাউজারের স্টোরেজ পরীক্ষা করুন।", "error");
     }
   };
 
@@ -254,17 +259,17 @@ function OwnerPresetManager({
       setSelectedId("");
       setName("");
       setMembers([]);
-      showToast("মালিক গ্রুপ মুছে ফেলা হয়েছে।", "success");
+      showToast("মালিক টেমপ্লেট মুছে ফেলা হয়েছে।", "success");
     } catch (error) {
       console.error("Error deleting owner group preset:", error);
-      showToast("মালিক গ্রুপ মুছে ফেলা যায়নি।", "error");
+      showToast("মালিক টেমপ্লেট মুছে ফেলা যায়নি।", "error");
     }
   };
 
   return (
     <section>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <h3 className="font-semibold text-gray-900 dark:text-gray-100">মালিক গ্রুপ</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100">মালিক টেমপ্লেট</h3>
         <div className="flex gap-2">
           <button
             type="button"
@@ -279,7 +284,7 @@ function OwnerPresetManager({
             onClick={startNewGroup}
             className="flex items-center gap-1 rounded bg-green-700 px-3 py-1.5 text-sm text-white hover:bg-green-800"
           >
-            <Plus size={14} /> নতুন গ্রুপ
+            <Plus size={14} /> নতুন টেমপ্লেট
           </button>
         </div>
       </div>
@@ -305,17 +310,22 @@ function OwnerPresetManager({
                   </span>
                 </div>
                 <p className="line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
-                  {preset.owners.map((owner) => owner.name).filter(Boolean).join("، ") || "সদস্যের নাম নেই"}
+                  {preset.owners
+                    .map((owner) => owner.name)
+                    .filter(Boolean)
+                    .join("، ") || "সদস্যের নাম নেই"}
                 </p>
                 <span className="mt-2 inline-block text-[11px] text-gray-400">
-                  {selectedId === preset.id ? "নির্বাচিত" : "মালিক গ্রুপ"}
+                  {selectedId === preset.id ? "নির্বাচিত" : "মালিক টেমপ্লেট"}
                 </span>
               </button>
             ))}
           </div>
         ) : (
           <p className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-            {presets.length === 0 ? "এখনো কোনো মালিক গ্রুপ নেই। নতুন গ্রুপ তৈরি করুন।" : "কোনো মিল পাওয়া যায়নি।"}
+            {presets.length === 0
+              ? "এখনো কোনো মালিক টেমপ্লেট নেই। নতুন টেমপ্লেট তৈরি করুন।"
+              : "কোনো মিল পাওয়া যায়নি।"}
           </p>
         )}
 
@@ -324,93 +334,118 @@ function OwnerPresetManager({
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="গ্রুপের নাম"
-              aria-label="মালিক গ্রুপের নাম"
+              placeholder="টেমপ্লেটের নাম"
+              aria-label="মালিক টেমপ্লেটের নাম"
               className={`${controlClass} w-full`}
             />
             {members.length > 0 && (
-          <div className="space-y-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                গ্রুপের সদস্য ({members.length})
-              </p>
-              <button
-                type="button"
-                onClick={() => setMembers((previous) => [...previous, createBlankOwner()])}
-                className="flex items-center gap-1 rounded bg-green-700 px-2.5 py-1.5 text-xs text-white hover:bg-green-800"
-              >
-                <Plus size={13} /> সদস্য যোগ
-              </button>
-            </div>
-            {members.map((member, index) => (
-              <div key={index} className="rounded-md border border-gray-200 p-3 dark:border-gray-700">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
-                    সদস্য {index + 1}
-                  </span>
+              <div className="space-y-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                    টেমপ্লেটের সদস্য ({members.length})
+                  </p>
                   <button
                     type="button"
-                    onClick={() => setMembers((previous) => previous.filter((_, memberIndex) => memberIndex !== index))}
-                    aria-label={`সদস্য ${index + 1} মুছুন`}
-                    className="rounded p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
+                    onClick={() => setMembers((previous) => [...previous, createBlankOwner()])}
+                    className="flex items-center gap-1 rounded bg-green-700 px-2.5 py-1.5 text-xs text-white hover:bg-green-800"
                   >
-                    <Trash2 size={15} />
+                    <Plus size={13} /> সদস্য যোগ
                   </button>
                 </div>
-                <input
-                  value={member.name}
-                  onChange={(event) =>
-                    setMembers((previous) =>
-                      previous.map((item, memberIndex) =>
-                        memberIndex === index ? { ...item, name: event.target.value } : item,
-                      ),
-                    )
-                  }
-                  placeholder="সদস্যের নাম"
-                  aria-label={`সদস্য ${index + 1} এর নাম`}
-                  className={`${controlClass} mb-2 w-full`}
-                />
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-                  <ShareSelect label="আনা" value={member.ana} options={anaOptions} onChange={(value) => updateMember(index, "ana", value, setMembers)} />
-                  <ShareSelect label="গন্ডা" value={member.gonda} options={gondaOptions} onChange={(value) => updateMember(index, "gonda", value, setMembers)} />
-                  <ShareSelect label="কড়া" value={member.kora} options={koraOptions} onChange={(value) => updateMember(index, "kora", value, setMembers)} />
-                  <ShareSelect label="ক্রান্তি" value={member.kranti} options={krantiOptions} onChange={(value) => updateMember(index, "kranti", value, setMembers)} />
-                  <ShareSelect label="তিল" value={member.til} options={tilOptions} onChange={(value) => updateMember(index, "til", value, setMembers)} />
-                </div>
-                <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-600 dark:text-gray-300">
-                  <label className="flex items-center gap-1.5">
+                {members.map((member, index) => (
+                  <div key={index} className="rounded-md border border-gray-200 p-3 dark:border-gray-700">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">সদস্য {index + 1}</span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMembers((previous) => previous.filter((_, memberIndex) => memberIndex !== index))
+                        }
+                        aria-label={`সদস্য ${index + 1} মুছুন`}
+                        className="rounded p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
                     <input
-                      type="checkbox"
-                      checked={!!member.mutated}
+                      value={member.name}
                       onChange={(event) =>
                         setMembers((previous) =>
                           previous.map((item, memberIndex) =>
-                            memberIndex === index ? { ...item, mutated: event.target.checked } : item,
+                            memberIndex === index ? { ...item, name: event.target.value } : item,
                           ),
                         )
                       }
+                      placeholder="সদস্যের নাম"
+                      aria-label={`সদস্য ${index + 1} এর নাম`}
+                      className={`${controlClass} mb-2 w-full`}
                     />
-                    নামজারি হয়েছে
-                  </label>
-                  <label className="flex items-center gap-1.5">
-                    <input
-                      type="checkbox"
-                      checked={!!member.deceased}
-                      onChange={(event) =>
-                        setMembers((previous) =>
-                          previous.map((item, memberIndex) =>
-                            memberIndex === index ? { ...item, deceased: event.target.checked } : item,
-                          ),
-                        )
-                      }
-                    />
-                    মৃত মালিক
-                  </label>
-                </div>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                      <ShareSelect
+                        label="আনা"
+                        value={member.ana}
+                        options={anaOptions}
+                        onChange={(value) => updateMember(index, "ana", value, setMembers)}
+                      />
+                      <ShareSelect
+                        label="গন্ডা"
+                        value={member.gonda}
+                        options={gondaOptions}
+                        onChange={(value) => updateMember(index, "gonda", value, setMembers)}
+                      />
+                      <ShareSelect
+                        label="কড়া"
+                        value={member.kora}
+                        options={koraOptions}
+                        onChange={(value) => updateMember(index, "kora", value, setMembers)}
+                      />
+                      <ShareSelect
+                        label="ক্রান্তি"
+                        value={member.kranti}
+                        options={krantiOptions}
+                        onChange={(value) => updateMember(index, "kranti", value, setMembers)}
+                      />
+                      <ShareSelect
+                        label="তিল"
+                        value={member.til}
+                        options={tilOptions}
+                        onChange={(value) => updateMember(index, "til", value, setMembers)}
+                      />
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-600 dark:text-gray-300">
+                      <label className="flex items-center gap-1.5">
+                        <input
+                          type="checkbox"
+                          checked={!!member.mutated}
+                          onChange={(event) =>
+                            setMembers((previous) =>
+                              previous.map((item, memberIndex) =>
+                                memberIndex === index ? { ...item, mutated: event.target.checked } : item,
+                              ),
+                            )
+                          }
+                        />
+                        নামজারি হয়েছে
+                      </label>
+                      <label className="flex items-center gap-1.5">
+                        <input
+                          type="checkbox"
+                          checked={!!member.deceased}
+                          onChange={(event) =>
+                            setMembers((previous) =>
+                              previous.map((item, memberIndex) =>
+                                memberIndex === index ? { ...item, deceased: event.target.checked } : item,
+                              ),
+                            )
+                          }
+                        />
+                        মৃত মালিক
+                      </label>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            )}
           </>
         )}
         {(selectedId || members.length > 0) && (
@@ -480,13 +515,7 @@ function ShareSelect({
   );
 }
 
-function HeirTemplateManager({
-  templates,
-  searchTerm,
-}: {
-  templates: HeirTemplate[];
-  searchTerm: string;
-}) {
+function HeirTemplateManager({ templates, searchTerm }: { templates: HeirTemplate[]; searchTerm: string }) {
   const [selectedId, setSelectedId] = useState("");
   const [name, setName] = useState("");
   const [heirs, setHeirs] = useState<Array<Pick<Heir, "name" | "relation" | "mutated">>>([]);
@@ -519,13 +548,14 @@ function HeirTemplateManager({
       return;
     }
 
-    const next = updateSelected && selectedId
-      ? templates.map((template) =>
-          template.id === selectedId
-            ? { ...template, name: trimmedName, heirs: heirs.map((heir) => ({ ...heir })) }
-            : template,
-        )
-      : [...templates, { id: createId(), name: trimmedName, heirs: heirs.map((heir) => ({ ...heir })) }];
+    const next =
+      updateSelected && selectedId
+        ? templates.map((template) =>
+            template.id === selectedId
+              ? { ...template, name: trimmedName, heirs: heirs.map((heir) => ({ ...heir })) }
+              : template,
+          )
+        : [...templates, { id: createId(), name: trimmedName, heirs: heirs.map((heir) => ({ ...heir })) }];
     try {
       saveHeirTemplates(next);
       broadcastPresetsUpdated();
@@ -586,7 +616,10 @@ function HeirTemplateManager({
                   </span>
                 </div>
                 <p className="line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
-                  {template.heirs.map((heir) => heir.name).filter(Boolean).join("، ") || "ওয়ারিশের নাম নেই"}
+                  {template.heirs
+                    .map((heir) => heir.name)
+                    .filter(Boolean)
+                    .join("، ") || "ওয়ারিশের নাম নেই"}
                 </p>
                 <span className="mt-2 inline-block text-[11px] text-gray-400">
                   {selectedId === template.id ? "নির্বাচিত" : "ওয়ারিশ টেমপ্লেট"}
@@ -596,7 +629,9 @@ function HeirTemplateManager({
           </div>
         ) : (
           <p className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-            {templates.length === 0 ? "এখনো কোনো ওয়ারিশ টেমপ্লেট নেই। নতুন টেমপ্লেট তৈরি করুন।" : "কোনো মিল পাওয়া যায়নি।"}
+            {templates.length === 0
+              ? "এখনো কোনো ওয়ারিশ টেমপ্লেট নেই। নতুন টেমপ্লেট তৈরি করুন।"
+              : "কোনো মিল পাওয়া যায়নি।"}
           </p>
         )}
 
@@ -610,63 +645,63 @@ function HeirTemplateManager({
               className={`${controlClass} w-full`}
             />
             {heirs.length > 0 && (
-          <div className="space-y-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">ওয়ারিশ তালিকা ({heirs.length})</p>
-              <button
-                type="button"
-                onClick={() => setHeirs((previous) => [...previous, { name: "", relation: "son" }])}
-                className="flex items-center gap-1 rounded bg-violet-700 px-2.5 py-1.5 text-xs text-white hover:bg-violet-800"
-              >
-                <Plus size={13} /> ওয়ারিশ যোগ
-              </button>
-            </div>
-            {heirs.map((heir, index) => (
-              <div key={index} className="flex flex-wrap items-center gap-2">
-                <input
-                  value={heir.name}
-                  onChange={(event) =>
-                    setHeirs((previous) =>
-                      previous.map((item, heirIndex) =>
-                        heirIndex === index ? { ...item, name: event.target.value } : item,
-                      ),
-                    )
-                  }
-                  placeholder={`ওয়ারিশ ${index + 1} এর নাম`}
-                  aria-label={`ওয়ারিশ ${index + 1} এর নাম`}
-                  className={`${controlClass} min-w-40 flex-1`}
-                />
-                <select
-                  value={heir.relation}
-                  onChange={(event) =>
-                    setHeirs((previous) =>
-                      previous.map((item, heirIndex) =>
-                        heirIndex === index
-                          ? { ...item, relation: event.target.value as HeirRelation }
-                          : item,
-                      ),
-                    )
-                  }
-                  aria-label={`ওয়ারিশ ${index + 1} এর সম্পর্ক`}
-                  className={controlClass}
-                >
-                  <option value="wife">স্ত্রী</option>
-                  <option value="husband">স্বামী</option>
-                  <option value="son">ছেলে</option>
-                  <option value="daughter">মেয়ে</option>
-                </select>
-                <button
-                  type="button"
-                  onClick={() => setHeirs((previous) => previous.filter((_, heirIndex) => heirIndex !== index))}
-                  aria-label={`ওয়ারিশ ${index + 1} মুছুন`}
-                  className="rounded p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
-                >
-                  <Trash2 size={16} />
-                </button>
+              <div className="space-y-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                    ওয়ারিশ তালিকা ({heirs.length})
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setHeirs((previous) => [...previous, { name: "", relation: "son" }])}
+                    className="flex items-center gap-1 rounded bg-violet-700 px-2.5 py-1.5 text-xs text-white hover:bg-violet-800"
+                  >
+                    <Plus size={13} /> ওয়ারিশ যোগ
+                  </button>
+                </div>
+                {heirs.map((heir, index) => (
+                  <div key={index} className="flex flex-wrap items-center gap-2">
+                    <input
+                      value={heir.name}
+                      onChange={(event) =>
+                        setHeirs((previous) =>
+                          previous.map((item, heirIndex) =>
+                            heirIndex === index ? { ...item, name: event.target.value } : item,
+                          ),
+                        )
+                      }
+                      placeholder={`ওয়ারিশ ${index + 1} এর নাম`}
+                      aria-label={`ওয়ারিশ ${index + 1} এর নাম`}
+                      className={`${controlClass} min-w-40 flex-1`}
+                    />
+                    <select
+                      value={heir.relation}
+                      onChange={(event) =>
+                        setHeirs((previous) =>
+                          previous.map((item, heirIndex) =>
+                            heirIndex === index ? { ...item, relation: event.target.value as HeirRelation } : item,
+                          ),
+                        )
+                      }
+                      aria-label={`ওয়ারিশ ${index + 1} এর সম্পর্ক`}
+                      className={controlClass}
+                    >
+                      <option value="wife">স্ত্রী</option>
+                      <option value="husband">স্বামী</option>
+                      <option value="son">ছেলে</option>
+                      <option value="daughter">মেয়ে</option>
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setHeirs((previous) => previous.filter((_, heirIndex) => heirIndex !== index))}
+                      aria-label={`ওয়ারিশ ${index + 1} মুছুন`}
+                      className="rounded p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            )}
           </>
         )}
         {(selectedId || heirs.length > 0) && (
@@ -706,10 +741,10 @@ export function OwnerPresetDropdown({ onApply }: { onApply: (owners: Owner[]) =>
         event.currentTarget.value = "";
         if (preset) onApply(preset.owners);
       }}
-      aria-label="এই রোতে মালিক গ্রুপ প্রয়োগ"
+      aria-label="এই রোতে মালিক টেমপ্লেট প্রয়োগ"
       className="min-w-40 rounded border border-green-300 bg-white px-2 py-1.5 text-xs text-gray-800 dark:border-green-700 dark:bg-gray-700 dark:text-gray-100"
     >
-      <option value="">মালিক গ্রুপ প্রিসেট</option>
+      <option value="">মালিক টেমপ্লেট প্রিসেট</option>
       {presets.map((preset) => (
         <option key={preset.id} value={preset.id}>
           {preset.name}
