@@ -759,6 +759,11 @@ export default function KhatiyanCalculator() {
     setDags([]);
   };
 
+  const handleDeleteAllOwners = () => {
+    commitHistory();
+    setOwners([]);
+  };
+
   return (
     <div
       className="min-h-screen bg-linear-to-br from-slate-100 to-sky-200 dark:from-slate-950 dark:to-sky-950 py-4 md:py-8 px-3 md:px-4"
@@ -923,6 +928,7 @@ export default function KhatiyanCalculator() {
             onAddHeir={handleAddHeir}
             onHeirChange={handleHeirChange}
             onDeleteHeir={handleDeleteHeir}
+            onDeleteAll={handleDeleteAllOwners}
           />
 
           {/* Dag Form */}

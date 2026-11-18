@@ -2,7 +2,7 @@ import { useState } from "react";
 import { anaOptions, gondaOptions, koraOptions, krantiOptions, tilOptions } from "@/lib/constants/options";
 import { Owner } from "@/lib/types";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
-import { Copy, GripVertical, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { Copy, GripVertical, Plus, RotateCcw, Trash2, XCircle } from "lucide-react";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import { showToast } from "@/lib/utils/toast";
 import { computeHeirShares } from "@/lib/utils/heirShare";
@@ -19,8 +19,14 @@ interface OwnerFormProps {
   onReorder: (newOwners: Owner[]) => void;
   calculateShareRatio: (owner: Owner) => number;
   onAddHeir: (ownerIndex: number) => void;
-  onHeirChange: (ownerIndex: number, heirId: string, field: "name" | "relation" | "mutated", value: string | boolean) => void;
+  onHeirChange: (
+    ownerIndex: number,
+    heirId: string,
+    field: "name" | "relation" | "mutated",
+    value: string | boolean,
+  ) => void;
   onDeleteHeir: (ownerIndex: number, heirId: string) => void;
+  onDeleteAll: () => void;
 }
 
 export const OwnerForm = ({
@@ -34,9 +40,11 @@ export const OwnerForm = ({
   onAddHeir,
   onHeirChange,
   onDeleteHeir,
+  onDeleteAll,
 }: OwnerFormProps) => {
   const [pendingReset, setPendingReset] = useState<number | null>(null);
   const [showBulkAdd, setShowBulkAdd] = useState(false);
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
 
   const {
     draggedIndex,
@@ -116,6 +124,16 @@ export const OwnerForm = ({
               className="bg-yellow-600 text-white px-3 py-1 rounded hover:bg-yellow-700 transition flex items-center gap-1 text-sm"
             >
               <Copy size={14} /> সবাইকে প্রথম মালিকের অংশ দিন
+            </button>
+          )}
+
+          {owners.length > 0 && (
+            <button
+              onClick={() => setShowDeleteAllConfirm(true)}
+              className="bg-red-700 text-white px-3 py-1 rounded hover:bg-red-800 transition flex items-center gap-1 text-sm"
+              title="সব মালিক মুছে ফেলুন"
+            >
+              <XCircle size={16} /> সব মুছুন
             </button>
           )}
         </div>
@@ -370,6 +388,18 @@ export const OwnerForm = ({
         onConfirm={confirmResetOwner}
         onCancel={() => setPendingReset(null)}
       />
+      <ConfirmDialog
+        open={showDeleteAllConfirm}
+        title="সব মালিক মুছে ফেলবেন?"
+        message={`আপনি কি নিশ্চিত যে সবগুলো (${owners.length}টি) মালিক মুছে ফেলতে চান? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।`}
+        confirmLabel="সব মুছে ফেলুন"
+        destructive
+        onConfirm={() => {
+          onDeleteAll();
+          setShowDeleteAllConfirm(false);
+        }}
+        onCancel={() => setShowDeleteAllConfirm(false)}
+      />
     </div>
   );
 };
@@ -383,7 +413,12 @@ const HeirRows = ({
 }: {
   ownerIndex: number;
   owner: Owner;
-  onHeirChange: (ownerIndex: number, heirId: string, field: "name" | "relation" | "mutated", value: string | boolean) => void;
+  onHeirChange: (
+    ownerIndex: number,
+    heirId: string,
+    field: "name" | "relation" | "mutated",
+    value: string | boolean,
+  ) => void;
   onDeleteHeir: (ownerIndex: number, heirId: string) => void;
 }) => {
   const heirs = owner.heirs ?? [];
@@ -428,9 +463,7 @@ const HeirRows = ({
                 onClick={(e) => e.stopPropagation()}
                 className="w-3.5 h-3.5 rounded accent-orange-600 cursor-pointer"
               />
-              <span
-                className={isMutated ? "text-orange-700 dark:text-orange-400" : "text-gray-500 dark:text-gray-400"}
-              >
+              <span className={isMutated ? "text-orange-700 dark:text-orange-400" : "text-gray-500 dark:text-gray-400"}>
                 নামজারি
               </span>
             </label>
