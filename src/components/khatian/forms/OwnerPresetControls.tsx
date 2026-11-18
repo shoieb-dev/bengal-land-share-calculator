@@ -10,7 +10,7 @@ import {
   saveOwnerPresets,
 } from "@/lib/utils/presets";
 import { showToast } from "@/lib/utils/toast";
-import { Plus, Save, Settings2, Trash2, X } from "lucide-react";
+import { Plus, Save, Search, Settings2, Trash2, Users, X } from "lucide-react";
 
 const PRESETS_UPDATED_EVENT = "khatiyan-presets-updated";
 const controlClass =
@@ -69,6 +69,8 @@ export default function OwnerPresetControls({ owners }: { owners: Owner[] }) {
   const ownerPresets = usePresetList(loadOwnerPresets);
   const heirTemplates = usePresetList(loadHeirTemplates);
   const [showModal, setShowModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<"owners" | "heirs">("owners");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (!showModal) return;
@@ -100,7 +102,7 @@ export default function OwnerPresetControls({ owners }: { owners: Owner[] }) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="preset-settings-title"
-            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-2xl dark:bg-gray-800"
+            className="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-indigo-300 bg-white shadow-2xl shadow-indigo-500/25 ring-1 ring-indigo-400/40 dark:border-indigo-500 dark:bg-gray-800 dark:shadow-indigo-400/30 dark:ring-indigo-400/50"
           >
             <header className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
               <div>
@@ -121,9 +123,55 @@ export default function OwnerPresetControls({ owners }: { owners: Owner[] }) {
               </button>
             </header>
 
-            <div className="space-y-6 p-4">
-              <OwnerPresetManager owners={owners} presets={ownerPresets} />
-              <HeirTemplateManager templates={heirTemplates} />
+            <div className="space-y-4 overflow-y-auto p-4">
+              <label className="relative block">
+                <Search
+                  size={18}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                />
+                <input
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="প্রিসেট খুঁজুন..."
+                  aria-label="প্রিসেট খুঁজুন"
+                  className={`${controlClass} w-full pl-10`}
+                />
+              </label>
+
+              <div role="tablist" aria-label="প্রিসেটের ধরন" className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === "owners"}
+                  onClick={() => setActiveTab("owners")}
+                  className={`flex items-center gap-2 border-b-2 px-4 py-2 text-sm font-medium transition ${
+                    activeTab === "owners"
+                      ? "border-indigo-600 text-indigo-700 dark:text-indigo-300"
+                      : "border-transparent text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                  }`}
+                >
+                  <Users size={16} /> মালিক টেমপ্লেট
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === "heirs"}
+                  onClick={() => setActiveTab("heirs")}
+                  className={`flex items-center gap-2 border-b-2 px-4 py-2 text-sm font-medium transition ${
+                    activeTab === "heirs"
+                      ? "border-violet-600 text-violet-700 dark:text-violet-300"
+                      : "border-transparent text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                  }`}
+                >
+                  ওয়ারিশ টেমপ্লেট
+                </button>
+              </div>
+
+              {activeTab === "owners" ? (
+                <OwnerPresetManager owners={owners} presets={ownerPresets} searchTerm={searchTerm} />
+              ) : (
+                <HeirTemplateManager templates={heirTemplates} searchTerm={searchTerm} />
+              )}
             </div>
           </div>
         </div>
@@ -132,10 +180,26 @@ export default function OwnerPresetControls({ owners }: { owners: Owner[] }) {
   );
 }
 
-function OwnerPresetManager({ owners, presets }: { owners: Owner[]; presets: OwnerPreset[] }) {
+function OwnerPresetManager({
+  owners,
+  presets,
+  searchTerm,
+}: {
+  owners: Owner[];
+  presets: OwnerPreset[];
+  searchTerm: string;
+}) {
   const [selectedId, setSelectedId] = useState("");
   const [name, setName] = useState("");
   const [members, setMembers] = useState<Owner[]>([]);
+  const filteredPresets = presets.filter((preset) => {
+    const query = searchTerm.trim().toLocaleLowerCase();
+    return (
+      !query ||
+      preset.name.toLocaleLowerCase().includes(query) ||
+      preset.owners.some((owner) => owner.name.toLocaleLowerCase().includes(query))
+    );
+  });
 
   const selectPreset = (id: string) => {
     setSelectedId(id);
@@ -220,27 +284,51 @@ function OwnerPresetManager({ owners, presets }: { owners: Owner[]; presets: Own
         </div>
       </div>
       <div className="space-y-2">
-        <select
-          value={selectedId}
-          onChange={(event) => selectPreset(event.target.value)}
-          className={`${controlClass} w-full`}
-          aria-label="সম্পাদনার জন্য মালিক গ্রুপ নির্বাচন"
-        >
-          <option value="">সংরক্ষিত গ্রুপ নির্বাচন করুন</option>
-          {presets.map((preset) => (
-            <option key={preset.id} value={preset.id}>
-              {preset.name}
-            </option>
-          ))}
-        </select>
-        <input
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="গ্রুপের নাম"
-          aria-label="মালিক গ্রুপের নাম"
-          className={`${controlClass} w-full`}
-        />
-        {members.length > 0 && (
+        {filteredPresets.length > 0 ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredPresets.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                aria-pressed={selectedId === preset.id}
+                onClick={() => selectPreset(preset.id)}
+                className={`rounded-lg border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-md ${
+                  selectedId === preset.id
+                    ? "border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200 dark:bg-indigo-950/40 dark:ring-indigo-900"
+                    : "border-gray-200 bg-white hover:border-indigo-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-indigo-700"
+                }`}
+              >
+                <div className="mb-2 flex items-start justify-between gap-2">
+                  <span className="font-semibold text-gray-900 dark:text-gray-100">{preset.name}</span>
+                  <span className="shrink-0 rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-medium text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-200">
+                    {preset.owners.length} জন
+                  </span>
+                </div>
+                <p className="line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
+                  {preset.owners.map((owner) => owner.name).filter(Boolean).join("، ") || "সদস্যের নাম নেই"}
+                </p>
+                <span className="mt-2 inline-block text-[11px] text-gray-400">
+                  {selectedId === preset.id ? "নির্বাচিত" : "মালিক গ্রুপ"}
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
+            {presets.length === 0 ? "এখনো কোনো মালিক গ্রুপ নেই। নতুন গ্রুপ তৈরি করুন।" : "কোনো মিল পাওয়া যায়নি।"}
+          </p>
+        )}
+
+        {(selectedId || members.length > 0) && (
+          <>
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="গ্রুপের নাম"
+              aria-label="মালিক গ্রুপের নাম"
+              className={`${controlClass} w-full`}
+            />
+            {members.length > 0 && (
           <div className="space-y-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
@@ -323,24 +411,29 @@ function OwnerPresetManager({ owners, presets }: { owners: Owner[]; presets: Own
             ))}
           </div>
         )}
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => (selectedId ? save(true) : save(false))}
-            className="flex items-center gap-1 rounded bg-blue-700 px-3 py-2 text-sm text-white hover:bg-blue-800"
-          >
-            {selectedId ? <Save size={14} /> : <Plus size={14} />}
-            {selectedId ? "আপডেট সংরক্ষণ" : "নতুন সংরক্ষণ"}
-          </button>
-          <button
-            type="button"
-            onClick={remove}
-            disabled={!selectedId}
-            className="flex items-center gap-1 rounded bg-red-700 px-3 py-2 text-sm text-white hover:bg-red-800 disabled:opacity-50"
-          >
-            <Trash2 size={14} /> মুছুন
-          </button>
-        </div>
+          </>
+        )}
+        {(selectedId || members.length > 0) && (
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => (selectedId ? save(true) : save(false))}
+              className="flex items-center gap-1 rounded bg-blue-700 px-3 py-2 text-sm text-white hover:bg-blue-800"
+            >
+              {selectedId ? <Save size={14} /> : <Plus size={14} />}
+              {selectedId ? "আপডেট সংরক্ষণ" : "নতুন সংরক্ষণ"}
+            </button>
+            {selectedId && (
+              <button
+                type="button"
+                onClick={remove}
+                className="flex items-center gap-1 rounded bg-red-700 px-3 py-2 text-sm text-white hover:bg-red-800"
+              >
+                <Trash2 size={14} /> মুছুন
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -389,12 +482,22 @@ function ShareSelect({
 
 function HeirTemplateManager({
   templates,
+  searchTerm,
 }: {
   templates: HeirTemplate[];
+  searchTerm: string;
 }) {
   const [selectedId, setSelectedId] = useState("");
   const [name, setName] = useState("");
   const [heirs, setHeirs] = useState<Array<Pick<Heir, "name" | "relation" | "mutated">>>([]);
+  const filteredTemplates = templates.filter((template) => {
+    const query = searchTerm.trim().toLocaleLowerCase();
+    return (
+      !query ||
+      template.name.toLocaleLowerCase().includes(query) ||
+      template.heirs.some((heir) => heir.name.toLocaleLowerCase().includes(query))
+    );
+  });
 
   const selectTemplate = (id: string) => {
     setSelectedId(id);
@@ -461,28 +564,52 @@ function HeirTemplateManager({
           <Plus size={14} /> নতুন টেমপ্লেট
         </button>
       </div>
-      <div className="space-y-2">
-        <select
-          value={selectedId}
-          onChange={(event) => selectTemplate(event.target.value)}
-          className={`${controlClass} w-full`}
-          aria-label="সম্পাদনার জন্য ওয়ারিশ টেমপ্লেট নির্বাচন"
-        >
-          <option value="">সংরক্ষিত টেমপ্লেট নির্বাচন করুন</option>
-          {templates.map((template) => (
-            <option key={template.id} value={template.id}>
-              {template.name}
-            </option>
-          ))}
-        </select>
-        <input
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="টেমপ্লেটের নাম"
-          aria-label="ওয়ারিশ টেমপ্লেটের নাম"
-          className={`${controlClass} w-full`}
-        />
-        {heirs.length > 0 && (
+      <div className="space-y-3">
+        {filteredTemplates.length > 0 ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredTemplates.map((template) => (
+              <button
+                key={template.id}
+                type="button"
+                aria-pressed={selectedId === template.id}
+                onClick={() => selectTemplate(template.id)}
+                className={`rounded-lg border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-md ${
+                  selectedId === template.id
+                    ? "border-violet-500 bg-violet-50 ring-2 ring-violet-200 dark:bg-violet-950/40 dark:ring-violet-900"
+                    : "border-gray-200 bg-white hover:border-violet-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-violet-700"
+                }`}
+              >
+                <div className="mb-2 flex items-start justify-between gap-2">
+                  <span className="font-semibold text-gray-900 dark:text-gray-100">{template.name}</span>
+                  <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-200">
+                    {template.heirs.length} জন
+                  </span>
+                </div>
+                <p className="line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
+                  {template.heirs.map((heir) => heir.name).filter(Boolean).join("، ") || "ওয়ারিশের নাম নেই"}
+                </p>
+                <span className="mt-2 inline-block text-[11px] text-gray-400">
+                  {selectedId === template.id ? "নির্বাচিত" : "ওয়ারিশ টেমপ্লেট"}
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
+            {templates.length === 0 ? "এখনো কোনো ওয়ারিশ টেমপ্লেট নেই। নতুন টেমপ্লেট তৈরি করুন।" : "কোনো মিল পাওয়া যায়নি।"}
+          </p>
+        )}
+
+        {(selectedId || heirs.length > 0) && (
+          <>
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="টেমপ্লেটের নাম"
+              aria-label="ওয়ারিশ টেমপ্লেটের নাম"
+              className={`${controlClass} w-full`}
+            />
+            {heirs.length > 0 && (
           <div className="space-y-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">ওয়ারিশ তালিকা ({heirs.length})</p>
@@ -540,24 +667,29 @@ function HeirTemplateManager({
             ))}
           </div>
         )}
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => (selectedId ? save(true) : save(false))}
-            className="flex items-center gap-1 rounded bg-blue-700 px-3 py-2 text-sm text-white hover:bg-blue-800"
-          >
-            {selectedId ? <Save size={14} /> : <Plus size={14} />}
-            {selectedId ? "আপডেট সংরক্ষণ" : "নতুন সংরক্ষণ"}
-          </button>
-          <button
-            type="button"
-            onClick={remove}
-            disabled={!selectedId}
-            className="flex items-center gap-1 rounded bg-red-700 px-3 py-2 text-sm text-white hover:bg-red-800 disabled:opacity-50"
-          >
-            <Trash2 size={14} /> মুছুন
-          </button>
-        </div>
+          </>
+        )}
+        {(selectedId || heirs.length > 0) && (
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => (selectedId ? save(true) : save(false))}
+              className="flex items-center gap-1 rounded bg-blue-700 px-3 py-2 text-sm text-white hover:bg-blue-800"
+            >
+              {selectedId ? <Save size={14} /> : <Plus size={14} />}
+              {selectedId ? "আপডেট সংরক্ষণ" : "নতুন সংরক্ষণ"}
+            </button>
+            {selectedId && (
+              <button
+                type="button"
+                onClick={remove}
+                className="flex items-center gap-1 rounded bg-red-700 px-3 py-2 text-sm text-white hover:bg-red-800"
+              >
+                <Trash2 size={14} /> মুছুন
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
