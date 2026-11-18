@@ -10,7 +10,7 @@ import {
   saveOwnerPresets,
 } from "@/lib/utils/presets";
 import { showToast } from "@/lib/utils/toast";
-import { Plus, Save, Search, Settings2, Trash2, Users, X } from "lucide-react";
+import { FileText, Plus, Save, Search, Settings2, Trash2, Users, X } from "lucide-react";
 
 const PRESETS_UPDATED_EVENT = "khatiyan-presets-updated";
 const controlClass =
@@ -167,6 +167,7 @@ export default function OwnerPresetControls({ owners }: { owners: Owner[] }) {
                       : "border-transparent text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
                   }`}
                 >
+                  <FileText size={16} />
                   ওয়ারিশ টেমপ্লেট
                 </button>
               </div>
