@@ -16,34 +16,35 @@ export default function BulkAddDagModal({ show, onClose, onAdd }: BulkAddDagModa
 
   if (!show) return null;
 
+  const numbers = dagNumbers
+    .split(/[,\s]+/)
+    .map((number) => number.trim())
+    .filter((number) => number.length > 0);
+  const landAmounts = landAmount
+    .split(/[,\s]+/)
+    .map((amount) => amount.trim())
+    .filter((amount) => amount.length > 0);
+
   const handleAdd = () => {
-    if (!dagNumbers.trim() || !landAmount) {
+    if (numbers.length === 0 || landAmounts.length === 0) {
       showToast("দাগ নম্বর এবং জমির পরিমাণ লিখুন", "error");
       return;
     }
 
-    // Parse dag numbers (comma or space separated)
-    const numbers = dagNumbers
-      .split(/[,\s]+/)
-      .map((n) => n.trim())
-      .filter((n) => n.length > 0);
-
-    if (numbers.length === 0) {
-      showToast("সঠিক দাগ নম্বর লিখুন", "error");
+    if (landAmounts.length > 1 && landAmounts.length !== numbers.length) {
+      showToast("দাগ নম্বর এবং জমির পরিমাণের সংখ্যা মিলতে হবে", "error");
       return;
     }
 
-    const parsedValue = typeof landAmount === "string" ? parseNumber(landAmount) : landAmount;
-    const parsedNumber = typeof parsedValue === "string" ? parseFloat(parsedValue) : Number(parsedValue);
-    if (!parsedNumber || parsedNumber <= 0) {
+    const parsedAmounts = landAmounts.map((amount) => parseNumber(amount));
+    if (parsedAmounts.some((amount) => !Number.isFinite(amount) || amount <= 0)) {
       showToast("সঠিক পরিমাণ লিখুন", "error");
       return;
     }
 
-    const amount = parsedNumber;
-    const newDags = numbers.map((num) => ({
+    const newDags = numbers.map((num, index) => ({
       name: num,
-      land: amount,
+      land: parsedAmounts.length === 1 ? parsedAmounts[0] : parsedAmounts[index],
     }));
 
     onAdd(newDags);
@@ -61,7 +62,7 @@ export default function BulkAddDagModal({ show, onClose, onAdd }: BulkAddDagModa
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-bold text-gray-100 mb-2">একসাথে একাধিক দাগ যোগ করুন</h3>
-            <p className="text-gray-300 text-sm">একই পরিমাণ জমি সহ একাধিক দাগ দ্রুত যোগ করুন</p>
+            <p className="text-gray-300 text-sm">প্রতিটি দাগের জন্য আলাদা বা একই পরিমাণ জমি দিন</p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-200">
             <X size={20} />
@@ -84,12 +85,14 @@ export default function BulkAddDagModal({ show, onClose, onAdd }: BulkAddDagModa
 
           {/* Land Amount */}
           <div>
-            <label className="block text-gray-300 mb-2 text-sm">প্রতিটি দাগের জমি (শতক)</label>
+            <label className="block text-gray-300 mb-2 text-sm">
+              জমির পরিমাণ (শতক; কমা বা স্পেস দিয়ে আলাদা করুন)
+            </label>
             <input
               type="text"
               value={landAmount}
               onChange={(e) => setLandAmount(e.target.value)}
-              placeholder="যেমন: ১০০ বা ৫০.৫"
+              placeholder="যেমন: ১০, ২০, ৩০ অথবা সবার জন্য ১০"
               className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded focus:ring-2 focus:ring-blue-500 xl:col-span-2 placeholder:text-gray-400 dark:placeholder:text-gray-400"
             />
           </div>
@@ -99,7 +102,12 @@ export default function BulkAddDagModal({ show, onClose, onAdd }: BulkAddDagModa
             <div className="bg-blue-900 border border-blue-700 p-3 rounded text-sm">
               <p className="text-blue-200 mb-1">প্রিভিউ:</p>
               <p className="text-gray-300">
-                {dagNumbers.split(/[,\s]+/).filter((n) => n.trim()).length} টি দাগ, প্রতিটিতে {landAmount} শতক জমি
+                {numbers.length} টি দাগ
+                {landAmounts.length === 1
+                  ? `, প্রতিটিতে ${landAmounts[0]} শতক`
+                  : landAmounts.length === numbers.length
+                    ? `: ${numbers.map((number, index) => `${number} দাগে ${landAmounts[index]} শতক`).join(", ")}`
+                    : `; ${landAmounts.length} টি জমির পরিমাণ দেওয়া হয়েছে, দাগের সংখ্যার সঙ্গে মিলতে হবে`}
               </p>
             </div>
           )}

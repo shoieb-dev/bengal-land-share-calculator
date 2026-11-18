@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Trash2, Plus, Copy, Zap, ArrowDown, GripVertical, XCircle } from "lucide-react";
+import { Trash2, Plus, Copy, Tag, Zap, GripVertical, XCircle } from "lucide-react";
 import BulkAddDagModal from "../modals/BulkAddDagModal";
 import { Dag } from "@/lib/types";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
@@ -12,8 +12,10 @@ const landTypes = [
   "বাড়ি",
   "ভিটি",
   "পুকুর",
+  "পুকুরপাড়",
   "খাই",
   "ডোবা",
+  "লায়েক পতিত",
   "পাউন্ডি",
   "কবরস্থান",
   "মসজিদ",
@@ -76,6 +78,12 @@ export default function DagForm({
     if (previousDag && previousDag.land > 0) {
       onDagChange(index, "land", previousDag.land);
     }
+  };
+
+  const copyLandTypeFromAbove = (index: number) => {
+    if (index === 0) return;
+
+    onDagChange(index, "landType", dags[index - 1].landType || "");
   };
 
   const handleQuickFill = () => {
@@ -247,61 +255,74 @@ export default function DagForm({
                     : "border-gray-200 dark:border-gray-700"
               } cursor-move`}
             >
-              {/* Copy Button - Show for 2nd dag onwards */}
-              {index > 0 && (
-                <div className="px-3 pt-2">
-                  <button
-                    onClick={() => copyLandFromAbove(index)}
-                    className="bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 transition flex items-center gap-1 text-xs"
-                    title="উপরের দাগের পরিমাণ কপি করুন"
-                  >
-                    <ArrowDown size={12} /> উপরের দাগের পরিমাণ কপি ({dags[index - 1].land || 0})
-                  </button>
-                </div>
-              )}
-
-              <div className="flex flex-col sm:flex-row gap-2 p-3">
+              <div className="flex flex-col items-stretch sm:flex-row sm:items-end gap-2 p-3">
                 {/* Drag Handle */}
-                <div className="flex items-center justify-center cursor-grab active:cursor-grabbing sm:w-auto">
+                <div className="flex items-center justify-center cursor-grab active:cursor-grabbing sm:w-auto sm:h-[38px]">
                   <GripVertical size={20} className="text-gray-500" />
                 </div>
 
-                <input
-                  type="text"
-                  placeholder="দাগ নং"
-                  value={dag.name}
-                  onChange={(e) => onDagChange(index, "name", e.target.value)}
-                  className={INPUT_BASE}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <select
-                  aria-label="জমির রকম"
-                  value={dag.landType || ""}
-                  onChange={(e) => onDagChange(index, "landType", e.target.value)}
-                  className={INPUT_BASE}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <option value="">জমির রকম</option>
-                  {landTypes.map((landType) => (
-                    <option key={landType} value={landType}>
-                      {landType}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="text"
-                  placeholder="জমি (শতক)"
-                  value={dag.land || ""}
-                  onChange={(e) => onDagChange(index, "land", e.target.value)}
-                  className={INPUT_BASE}
-                  onClick={(e) => e.stopPropagation()}
-                />
+                <div className="flex-1 min-w-0">
+                  <input
+                    type="text"
+                    placeholder="দাগ নং"
+                    value={dag.name}
+                    onChange={(e) => onDagChange(index, "name", e.target.value)}
+                    className={INPUT_BASE}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+                <div className="flex flex-1 min-w-0 items-center gap-1">
+                  {index > 0 && (
+                    <button
+                      onClick={() => copyLandTypeFromAbove(index)}
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-emerald-300 bg-emerald-50 text-emerald-700 transition-all duration-200 hover:-translate-y-0.5 hover:bg-emerald-100 hover:shadow-sm active:translate-y-0 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-900"
+                      title={`উপরের দাগের জমির রকম কপি করুন (${dags[index - 1].landType || "—"})`}
+                      aria-label={`উপরের দাগের জমির রকম কপি করুন (${dags[index - 1].landType || "খালি"})`}
+                    >
+                      <Tag size={14} />
+                    </button>
+                  )}
+                  <select
+                    aria-label="জমির রকম"
+                    value={dag.landType || ""}
+                    onChange={(e) => onDagChange(index, "landType", e.target.value)}
+                    className={`${INPUT_BASE} min-w-0`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <option value="">জমির রকম</option>
+                    {landTypes.map((landType) => (
+                      <option key={landType} value={landType}>
+                        {landType}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-1 min-w-0 items-center gap-1">
+                  {index > 0 && (
+                    <button
+                      onClick={() => copyLandFromAbove(index)}
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-purple-300 bg-purple-50 text-purple-700 transition-all duration-200 hover:-translate-y-0.5 hover:bg-purple-100 hover:shadow-sm active:translate-y-0 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-200 dark:hover:bg-purple-900"
+                      title={`উপরের দাগের পরিমাণ কপি করুন (${dags[index - 1].land || 0})`}
+                      aria-label={`উপরের দাগের পরিমাণ কপি করুন (${dags[index - 1].land || 0})`}
+                    >
+                      <Copy size={14} />
+                    </button>
+                  )}
+                  <input
+                    type="text"
+                    placeholder="জমি (শতক)"
+                    value={dag.land || ""}
+                    onChange={(e) => onDagChange(index, "land", e.target.value)}
+                    className={`${INPUT_BASE} min-w-0`}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onDelete(index, dag.name || `দাগ #${index + 1}`);
                   }}
-                  className="bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700 transition flex items-center justify-center gap-1"
+                  className="bg-red-600 text-white px-3 py-2 h-[38px] rounded hover:bg-red-700 transition flex items-center justify-center gap-1"
                 >
                   <Trash2 size={16} /> <span className="hidden sm:inline">মুছুন</span>
                 </button>
