@@ -583,7 +583,7 @@ function HeirTemplateManager({ templates, searchTerm }: { templates: HeirTemplat
   };
 
   return (
-    <section className="border-t border-gray-200 pt-5 dark:border-gray-700">
+    <section>
       <div className="mb-2 flex items-center justify-between gap-2">
         <h3 className="font-semibold text-gray-900 dark:text-gray-100">ওয়ারিশ টেমপ্লেট</h3>
         <button
