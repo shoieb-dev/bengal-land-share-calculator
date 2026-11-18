@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { anaOptions, gondaOptions, koraOptions, krantiOptions, tilOptions } from "@/lib/constants/options";
 import { Owner } from "@/lib/types";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
@@ -27,6 +27,7 @@ interface OwnerFormProps {
   ) => void;
   onDeleteHeir: (ownerIndex: number, heirId: string) => void;
   onDeleteAll: () => void;
+  onDeleteSelected: (indexes: number[]) => void;
 }
 
 export const OwnerForm = ({
@@ -41,10 +42,20 @@ export const OwnerForm = ({
   onHeirChange,
   onDeleteHeir,
   onDeleteAll,
+  onDeleteSelected,
 }: OwnerFormProps) => {
   const [pendingReset, setPendingReset] = useState<number | null>(null);
   const [showBulkAdd, setShowBulkAdd] = useState(false);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
+  const [showDeleteSelectedConfirm, setShowDeleteSelectedConfirm] = useState(false);
+  const [selectedIndexes, setSelectedIndexes] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    setSelectedIndexes((previous) => {
+      const validIndexes = new Set(Array.from(previous).filter((index) => index < owners.length));
+      return validIndexes.size === previous.size ? previous : validIndexes;
+    });
+  }, [owners.length]);
 
   const {
     draggedIndex,
@@ -55,7 +66,10 @@ export const OwnerForm = ({
     handleDragLeave,
     handleDrop,
     handleDragEnd,
-  } = useDragAndDrop(owners, onReorder);
+  } = useDragAndDrop(owners, (newOwners) => {
+    setSelectedIndexes(new Set());
+    onReorder(newOwners);
+  });
 
   const resetOwner = (index: number) => {
     setPendingReset(index);
@@ -86,6 +100,30 @@ export const OwnerForm = ({
     onOwnerChange(index, "kora", previousOwner.kora);
     onOwnerChange(index, "kranti", previousOwner.kranti);
     onOwnerChange(index, "til", previousOwner.til);
+  };
+
+  const toggleOwnerSelection = (index: number) => {
+    setSelectedIndexes((previous) => {
+      const next = new Set(previous);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedIndexes((previous) =>
+      previous.size === owners.length ? new Set() : new Set(owners.map((_, index) => index)),
+    );
+  };
+
+  const confirmDeleteSelected = () => {
+    onDeleteSelected(Array.from(selectedIndexes).sort((a, b) => b - a));
+    setSelectedIndexes(new Set());
+    setShowDeleteSelectedConfirm(false);
   };
 
   return (
@@ -136,6 +174,18 @@ export const OwnerForm = ({
               <XCircle size={16} /> সব মুছুন
             </button>
           )}
+
+          {owners.length > 0 && (
+            <button
+              onClick={() => setShowDeleteSelectedConfirm(true)}
+              disabled={selectedIndexes.size === 0}
+              className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition flex items-center gap-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+              title="সিলেক্ট করা মালিক মুছে ফেলুন"
+            >
+              <Trash2 size={16} /> সিলেক্ট করাগুলো মুছুন
+              {selectedIndexes.size > 0 && ` (${selectedIndexes.size})`}
+            </button>
+          )}
         </div>
       </div>
 
@@ -146,6 +196,16 @@ export const OwnerForm = ({
         </div>
       ) : (
         <div className="space-y-3">
+          <label className="flex items-center gap-2 w-fit cursor-pointer select-none text-sm font-semibold text-green-800 dark:text-green-200">
+            <input
+              type="checkbox"
+              checked={owners.length > 0 && selectedIndexes.size === owners.length}
+              onChange={toggleSelectAll}
+              className="w-4 h-4 rounded accent-red-600 cursor-pointer"
+            />
+            সব মালিক সিলেক্ট করুন
+          </label>
+
           {owners.map((owner, index) => (
             <div
               key={index}
@@ -164,9 +224,20 @@ export const OwnerForm = ({
                     : "border-gray-200 dark:border-gray-700"
               } cursor-move`}
             >
-              {/* Copy Button - Show for 2nd owner onwards */}
-              {index > 0 && (
-                <div className="mb-2">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <label className="flex items-center gap-2 cursor-pointer select-none text-sm font-semibold text-gray-700 dark:text-gray-200">
+                  <input
+                    type="checkbox"
+                    checked={selectedIndexes.has(index)}
+                    onChange={() => toggleOwnerSelection(index)}
+                    onClick={(event) => event.stopPropagation()}
+                    className="w-4 h-4 rounded accent-red-600 cursor-pointer"
+                  />
+                  মালিক সিলেক্ট করুন
+                </label>
+
+                {/* Copy Button - Show for 2nd owner onwards */}
+                {index > 0 && (
                   <button
                     onClick={() => copyFromAbove(index)}
                     className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition flex items-center gap-1 text-sm"
@@ -174,8 +245,8 @@ export const OwnerForm = ({
                   >
                     <Copy size={14} /> উপরের মালিকের অংশ কপি করুন
                   </button>
-                </div>
-              )}
+                )}
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-8 gap-2 md:gap-3 items-center">
                 {/* Drag Handle */}
@@ -399,6 +470,15 @@ export const OwnerForm = ({
           setShowDeleteAllConfirm(false);
         }}
         onCancel={() => setShowDeleteAllConfirm(false)}
+      />
+      <ConfirmDialog
+        open={showDeleteSelectedConfirm}
+        title="সিলেক্ট করা মালিক মুছে ফেলবেন?"
+        message={`আপনি কি নিশ্চিত যে সিলেক্ট করা ${selectedIndexes.size}টি মালিক মুছে ফেলতে চান?`}
+        confirmLabel="সিলেক্ট করাগুলো মুছুন"
+        destructive
+        onConfirm={confirmDeleteSelected}
+        onCancel={() => setShowDeleteSelectedConfirm(false)}
       />
     </div>
   );
