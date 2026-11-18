@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { anaOptions, gondaOptions, koraOptions, krantiOptions, tilOptions } from "@/lib/constants/options";
-import { Owner } from "@/lib/types";
+import { Heir, Owner } from "@/lib/types";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 import { Copy, GripVertical, Plus, RotateCcw, Trash2, XCircle } from "lucide-react";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
@@ -9,6 +9,7 @@ import { computeHeirShares } from "@/lib/utils/heirShare";
 import { calculateShareRatio } from "@/lib/utils/validation";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import BulkAddOwnerModal from "../modals/BulkAddOwnerModal";
+import OwnerPresetControls, { HeirTemplateDropdown, OwnerPresetDropdown } from "./OwnerPresetControls";
 
 interface OwnerFormProps {
   owners: Owner[];
@@ -26,6 +27,11 @@ interface OwnerFormProps {
     value: string | boolean,
   ) => void;
   onDeleteHeir: (ownerIndex: number, heirId: string) => void;
+  onApplyOwnerPreset: (ownerIndex: number, owners: Owner[]) => void;
+  onApplyHeirTemplate: (
+    ownerIndex: number,
+    heirs: Array<Pick<Heir, "name" | "relation" | "mutated">>,
+  ) => void;
   onDeleteAll: () => void;
   onDeleteSelected: (indexes: number[]) => void;
 }
@@ -41,6 +47,8 @@ export const OwnerForm = ({
   onAddHeir,
   onHeirChange,
   onDeleteHeir,
+  onApplyOwnerPreset,
+  onApplyHeirTemplate,
   onDeleteAll,
   onDeleteSelected,
 }: OwnerFormProps) => {
@@ -137,6 +145,8 @@ export const OwnerForm = ({
         </h3>
 
         <div className="flex gap-2 flex-wrap">
+          <OwnerPresetControls owners={owners} />
+
           <button
             onClick={() => setShowBulkAdd(true)}
             className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition flex items-center gap-1 text-sm"
@@ -225,18 +235,20 @@ export const OwnerForm = ({
               } cursor-move`}
             >
               <div className="mb-2 flex items-center justify-between gap-2">
-                <label className="flex items-center gap-2 cursor-pointer select-none text-sm font-semibold text-gray-700 dark:text-gray-200">
-                  <input
-                    type="checkbox"
-                    checked={selectedIndexes.has(index)}
-                    onChange={() => toggleOwnerSelection(index)}
-                    onClick={(event) => event.stopPropagation()}
-                    className="w-4 h-4 rounded accent-red-600 cursor-pointer"
-                  />
-                  মালিক সিলেক্ট করুন
-                </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer select-none text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    <input
+                      type="checkbox"
+                      checked={selectedIndexes.has(index)}
+                      onChange={() => toggleOwnerSelection(index)}
+                      onClick={(event) => event.stopPropagation()}
+                      className="w-4 h-4 rounded accent-red-600 cursor-pointer"
+                    />
+                    মালিক সিলেক্ট করুন
+                  </label>
+                  <OwnerPresetDropdown onApply={(presetOwners) => onApplyOwnerPreset(index, presetOwners)} />
+                </div>
 
-                {/* Copy Button - Show for 2nd owner onwards */}
                 {index > 0 && (
                   <button
                     onClick={() => copyFromAbove(index)}
@@ -403,15 +415,18 @@ export const OwnerForm = ({
                 <div className="mt-2 p-3 bg-violet-50 dark:bg-violet-900/30 rounded border border-violet-200 dark:border-violet-700 print-hide">
                   <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
                     <span className="text-sm font-semibold text-violet-800 dark:text-violet-200">ওয়ারিশ তালিকা</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onAddHeir(index);
-                      }}
-                      className="bg-violet-600 text-white px-3 py-1 rounded hover:bg-violet-700 transition flex items-center gap-1 text-xs"
-                    >
-                      <Plus size={14} /> ওয়ারিশ যোগ করুন
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <HeirTemplateDropdown onApply={(heirs) => onApplyHeirTemplate(index, heirs)} />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddHeir(index);
+                        }}
+                        className="bg-violet-600 text-white px-3 py-1 rounded hover:bg-violet-700 transition flex items-center gap-1 text-xs"
+                      >
+                        <Plus size={14} /> ওয়ারিশ যোগ করুন
+                      </button>
+                    </div>
                   </div>
 
                   {(!owner.heirs || owner.heirs.length === 0) && (

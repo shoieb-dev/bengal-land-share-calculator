@@ -1,0 +1,621 @@
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Heir, HeirRelation, Owner } from "@/lib/types";
+import { anaOptions, gondaOptions, koraOptions, krantiOptions, tilOptions } from "@/lib/constants/options";
+import {
+  HeirTemplate,
+  loadHeirTemplates,
+  loadOwnerPresets,
+  OwnerPreset,
+  saveHeirTemplates,
+  saveOwnerPresets,
+} from "@/lib/utils/presets";
+import { showToast } from "@/lib/utils/toast";
+import { Plus, Save, Settings2, Trash2, X } from "lucide-react";
+
+const PRESETS_UPDATED_EVENT = "khatiyan-presets-updated";
+const controlClass =
+  "bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded text-sm";
+
+const createId = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `preset_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+const createBlankOwner = (): Owner => ({ name: "", ana: 0, gonda: 0, kora: 0, kranti: 0, til: 0 });
+
+const makePresetOwners = (owners: Owner[]) =>
+  owners.map((owner) => ({
+    name: owner.name,
+    ana: owner.ana,
+    gonda: owner.gonda,
+    kora: owner.kora,
+    kranti: owner.kranti,
+    til: owner.til,
+    mutated: owner.mutated,
+    deceased: owner.deceased,
+    heirs: owner.heirs?.map(({ name, relation, mutated }) => ({
+      id: createId(),
+      name,
+      relation,
+      mutated,
+    })),
+  }));
+
+const broadcastPresetsUpdated = () => {
+  window.dispatchEvent(new Event(PRESETS_UPDATED_EVENT));
+};
+
+function usePresetList<T>(load: () => T[]) {
+  const [presets, setPresets] = useState<T[]>([]);
+
+  useEffect(() => {
+    const refresh = () => {
+      try {
+        setPresets(load());
+      } catch (error) {
+        console.error("Error loading presets:", error);
+        showToast("প্রিসেট লোড করা যায়নি। ব্রাউজারের সংরক্ষিত ডেটা পরীক্ষা করুন।", "error");
+      }
+    };
+    refresh();
+    window.addEventListener(PRESETS_UPDATED_EVENT, refresh);
+    return () => window.removeEventListener(PRESETS_UPDATED_EVENT, refresh);
+  }, [load]);
+
+  return presets;
+}
+
+export default function OwnerPresetControls({ owners }: { owners: Owner[] }) {
+  const ownerPresets = usePresetList(loadOwnerPresets);
+  const heirTemplates = usePresetList(loadHeirTemplates);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    if (!showModal) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setShowModal(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [showModal]);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setShowModal(true)}
+        className="flex items-center gap-1 rounded bg-gray-700 px-3 py-1 text-sm text-white transition hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-500"
+      >
+        <Settings2 size={16} /> প্রিসেট সেটিংস
+      </button>
+
+      {showModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setShowModal(false);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="preset-settings-title"
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-2xl dark:bg-gray-800"
+          >
+            <header className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+              <div>
+                <h2 id="preset-settings-title" className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  প্রিসেট সেটিংস
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  মালিক গ্রুপ ও ওয়ারিশ টেমপ্লেট পরিচালনা করুন
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                aria-label="প্রিসেট সেটিংস বন্ধ করুন"
+                className="rounded p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <X size={20} />
+              </button>
+            </header>
+
+            <div className="space-y-6 p-4">
+              <OwnerPresetManager owners={owners} presets={ownerPresets} />
+              <HeirTemplateManager templates={heirTemplates} />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function OwnerPresetManager({ owners, presets }: { owners: Owner[]; presets: OwnerPreset[] }) {
+  const [selectedId, setSelectedId] = useState("");
+  const [name, setName] = useState("");
+  const [members, setMembers] = useState<Owner[]>([]);
+
+  const selectPreset = (id: string) => {
+    setSelectedId(id);
+    const preset = presets.find((item) => item.id === id);
+    setName(preset?.name ?? "");
+    setMembers(preset?.owners.map((owner) => ({ ...owner, heirs: owner.heirs?.map((heir) => ({ ...heir })) })) ?? []);
+  };
+
+  const startNewGroup = () => {
+    setSelectedId("");
+    setName("");
+    setMembers([createBlankOwner()]);
+  };
+
+  const loadCurrentOwners = () => {
+    setSelectedId("");
+    setName("");
+    setMembers(makePresetOwners(owners));
+  };
+
+  const save = (updateSelected: boolean) => {
+    const trimmedName = name.trim();
+    if (!trimmedName || members.length === 0 || members.some((member) => !member.name.trim())) {
+      showToast("গ্রুপের নাম দিন এবং প্রত্যেক সদস্যের নাম পূরণ করুন।", "info");
+      return;
+    }
+
+    const next = updateSelected && selectedId
+      ? presets.map((preset) =>
+          preset.id === selectedId ? { ...preset, name: trimmedName, owners: makePresetOwners(members) } : preset,
+        )
+      : [...presets, { id: createId(), name: trimmedName, owners: makePresetOwners(members) }];
+    try {
+      saveOwnerPresets(next);
+      broadcastPresetsUpdated();
+      if (!updateSelected || !selectedId) {
+        const addedPreset = next[next.length - 1];
+        setSelectedId(addedPreset.id);
+      }
+      showToast(updateSelected ? "মালিক গ্রুপ আপডেট হয়েছে।" : "মালিক গ্রুপ সংরক্ষণ হয়েছে।", "success");
+    } catch (error) {
+      console.error("Error saving owner group preset:", error);
+      showToast("মালিক গ্রুপ সংরক্ষণ করা যায়নি। ব্রাউজারের স্টোরেজ পরীক্ষা করুন।", "error");
+    }
+  };
+
+  const remove = () => {
+    if (!selectedId) return;
+    try {
+      saveOwnerPresets(presets.filter((preset) => preset.id !== selectedId));
+      broadcastPresetsUpdated();
+      setSelectedId("");
+      setName("");
+      setMembers([]);
+      showToast("মালিক গ্রুপ মুছে ফেলা হয়েছে।", "success");
+    } catch (error) {
+      console.error("Error deleting owner group preset:", error);
+      showToast("মালিক গ্রুপ মুছে ফেলা যায়নি।", "error");
+    }
+  };
+
+  return (
+    <section>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100">মালিক গ্রুপ</h3>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={loadCurrentOwners}
+            disabled={owners.length === 0}
+            className="rounded border border-green-700 px-2.5 py-1.5 text-xs text-green-800 hover:bg-green-50 disabled:opacity-50 dark:text-green-200 dark:hover:bg-green-950/30"
+          >
+            বর্তমান তালিকা নিন
+          </button>
+          <button
+            type="button"
+            onClick={startNewGroup}
+            className="flex items-center gap-1 rounded bg-green-700 px-3 py-1.5 text-sm text-white hover:bg-green-800"
+          >
+            <Plus size={14} /> নতুন গ্রুপ
+          </button>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <select
+          value={selectedId}
+          onChange={(event) => selectPreset(event.target.value)}
+          className={`${controlClass} w-full`}
+          aria-label="সম্পাদনার জন্য মালিক গ্রুপ নির্বাচন"
+        >
+          <option value="">সংরক্ষিত গ্রুপ নির্বাচন করুন</option>
+          {presets.map((preset) => (
+            <option key={preset.id} value={preset.id}>
+              {preset.name}
+            </option>
+          ))}
+        </select>
+        <input
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder="গ্রুপের নাম"
+          aria-label="মালিক গ্রুপের নাম"
+          className={`${controlClass} w-full`}
+        />
+        {members.length > 0 && (
+          <div className="space-y-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                গ্রুপের সদস্য ({members.length})
+              </p>
+              <button
+                type="button"
+                onClick={() => setMembers((previous) => [...previous, createBlankOwner()])}
+                className="flex items-center gap-1 rounded bg-green-700 px-2.5 py-1.5 text-xs text-white hover:bg-green-800"
+              >
+                <Plus size={13} /> সদস্য যোগ
+              </button>
+            </div>
+            {members.map((member, index) => (
+              <div key={index} className="rounded-md border border-gray-200 p-3 dark:border-gray-700">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                    সদস্য {index + 1}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMembers((previous) => previous.filter((_, memberIndex) => memberIndex !== index))}
+                    aria-label={`সদস্য ${index + 1} মুছুন`}
+                    className="rounded p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+                <input
+                  value={member.name}
+                  onChange={(event) =>
+                    setMembers((previous) =>
+                      previous.map((item, memberIndex) =>
+                        memberIndex === index ? { ...item, name: event.target.value } : item,
+                      ),
+                    )
+                  }
+                  placeholder="সদস্যের নাম"
+                  aria-label={`সদস্য ${index + 1} এর নাম`}
+                  className={`${controlClass} mb-2 w-full`}
+                />
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                  <ShareSelect label="আনা" value={member.ana} options={anaOptions} onChange={(value) => updateMember(index, "ana", value, setMembers)} />
+                  <ShareSelect label="গন্ডা" value={member.gonda} options={gondaOptions} onChange={(value) => updateMember(index, "gonda", value, setMembers)} />
+                  <ShareSelect label="কড়া" value={member.kora} options={koraOptions} onChange={(value) => updateMember(index, "kora", value, setMembers)} />
+                  <ShareSelect label="ক্রান্তি" value={member.kranti} options={krantiOptions} onChange={(value) => updateMember(index, "kranti", value, setMembers)} />
+                  <ShareSelect label="তিল" value={member.til} options={tilOptions} onChange={(value) => updateMember(index, "til", value, setMembers)} />
+                </div>
+                <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-600 dark:text-gray-300">
+                  <label className="flex items-center gap-1.5">
+                    <input
+                      type="checkbox"
+                      checked={!!member.mutated}
+                      onChange={(event) =>
+                        setMembers((previous) =>
+                          previous.map((item, memberIndex) =>
+                            memberIndex === index ? { ...item, mutated: event.target.checked } : item,
+                          ),
+                        )
+                      }
+                    />
+                    নামজারি হয়েছে
+                  </label>
+                  <label className="flex items-center gap-1.5">
+                    <input
+                      type="checkbox"
+                      checked={!!member.deceased}
+                      onChange={(event) =>
+                        setMembers((previous) =>
+                          previous.map((item, memberIndex) =>
+                            memberIndex === index ? { ...item, deceased: event.target.checked } : item,
+                          ),
+                        )
+                      }
+                    />
+                    মৃত মালিক
+                  </label>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => (selectedId ? save(true) : save(false))}
+            className="flex items-center gap-1 rounded bg-blue-700 px-3 py-2 text-sm text-white hover:bg-blue-800"
+          >
+            {selectedId ? <Save size={14} /> : <Plus size={14} />}
+            {selectedId ? "আপডেট সংরক্ষণ" : "নতুন সংরক্ষণ"}
+          </button>
+          <button
+            type="button"
+            onClick={remove}
+            disabled={!selectedId}
+            className="flex items-center gap-1 rounded bg-red-700 px-3 py-2 text-sm text-white hover:bg-red-800 disabled:opacity-50"
+          >
+            <Trash2 size={14} /> মুছুন
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function updateMember(
+  index: number,
+  field: "ana" | "gonda" | "kora" | "kranti" | "til",
+  value: number,
+  setMembers: Dispatch<SetStateAction<Owner[]>>,
+) {
+  setMembers((previous) =>
+    previous.map((member, memberIndex) => (memberIndex === index ? { ...member, [field]: value } : member)),
+  );
+}
+
+function ShareSelect({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  options: Array<{ label: string; value: number }>;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <label className="min-w-0 text-[11px] text-gray-500 dark:text-gray-400">
+      {label}
+      <select
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+        aria-label={label}
+        className={`${controlClass} mt-1 w-full !px-1.5 !py-1.5 text-xs`}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function HeirTemplateManager({
+  templates,
+}: {
+  templates: HeirTemplate[];
+}) {
+  const [selectedId, setSelectedId] = useState("");
+  const [name, setName] = useState("");
+  const [heirs, setHeirs] = useState<Array<Pick<Heir, "name" | "relation" | "mutated">>>([]);
+
+  const selectTemplate = (id: string) => {
+    setSelectedId(id);
+    const template = templates.find((item) => item.id === id);
+    setName(template?.name ?? "");
+    setHeirs(template?.heirs.map((heir) => ({ ...heir })) ?? []);
+  };
+
+  const startNewTemplate = () => {
+    setSelectedId("");
+    setName("");
+    setHeirs([{ name: "", relation: "son" }]);
+  };
+
+  const save = (updateSelected: boolean) => {
+    const trimmedName = name.trim();
+    if (!trimmedName || heirs.length === 0 || heirs.some((heir) => !heir.name.trim())) {
+      showToast("টেমপ্লেটের নাম দিন এবং প্রত্যেক ওয়ারিশের নাম পূরণ করুন।", "info");
+      return;
+    }
+
+    const next = updateSelected && selectedId
+      ? templates.map((template) =>
+          template.id === selectedId
+            ? { ...template, name: trimmedName, heirs: heirs.map((heir) => ({ ...heir })) }
+            : template,
+        )
+      : [...templates, { id: createId(), name: trimmedName, heirs: heirs.map((heir) => ({ ...heir })) }];
+    try {
+      saveHeirTemplates(next);
+      broadcastPresetsUpdated();
+      if (!updateSelected || !selectedId) setSelectedId(next[next.length - 1].id);
+      showToast(updateSelected ? "ওয়ারিশ টেমপ্লেট আপডেট হয়েছে।" : "ওয়ারিশ টেমপ্লেট সংরক্ষণ হয়েছে।", "success");
+    } catch (error) {
+      console.error("Error saving heir template:", error);
+      showToast("ওয়ারিশ টেমপ্লেট সংরক্ষণ করা যায়নি। ব্রাউজারের স্টোরেজ পরীক্ষা করুন।", "error");
+    }
+  };
+
+  const remove = () => {
+    if (!selectedId) return;
+    try {
+      saveHeirTemplates(templates.filter((template) => template.id !== selectedId));
+      broadcastPresetsUpdated();
+      setSelectedId("");
+      setName("");
+      setHeirs([]);
+      showToast("ওয়ারিশ টেমপ্লেট মুছে ফেলা হয়েছে।", "success");
+    } catch (error) {
+      console.error("Error deleting heir template:", error);
+      showToast("ওয়ারিশ টেমপ্লেট মুছে ফেলা যায়নি।", "error");
+    }
+  };
+
+  return (
+    <section className="border-t border-gray-200 pt-5 dark:border-gray-700">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100">ওয়ারিশ টেমপ্লেট</h3>
+        <button
+          type="button"
+          onClick={startNewTemplate}
+          className="flex items-center gap-1 rounded bg-violet-700 px-3 py-1.5 text-sm text-white hover:bg-violet-800"
+        >
+          <Plus size={14} /> নতুন টেমপ্লেট
+        </button>
+      </div>
+      <div className="space-y-2">
+        <select
+          value={selectedId}
+          onChange={(event) => selectTemplate(event.target.value)}
+          className={`${controlClass} w-full`}
+          aria-label="সম্পাদনার জন্য ওয়ারিশ টেমপ্লেট নির্বাচন"
+        >
+          <option value="">সংরক্ষিত টেমপ্লেট নির্বাচন করুন</option>
+          {templates.map((template) => (
+            <option key={template.id} value={template.id}>
+              {template.name}
+            </option>
+          ))}
+        </select>
+        <input
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder="টেমপ্লেটের নাম"
+          aria-label="ওয়ারিশ টেমপ্লেটের নাম"
+          className={`${controlClass} w-full`}
+        />
+        {heirs.length > 0 && (
+          <div className="space-y-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">ওয়ারিশ তালিকা ({heirs.length})</p>
+              <button
+                type="button"
+                onClick={() => setHeirs((previous) => [...previous, { name: "", relation: "son" }])}
+                className="flex items-center gap-1 rounded bg-violet-700 px-2.5 py-1.5 text-xs text-white hover:bg-violet-800"
+              >
+                <Plus size={13} /> ওয়ারিশ যোগ
+              </button>
+            </div>
+            {heirs.map((heir, index) => (
+              <div key={index} className="flex flex-wrap items-center gap-2">
+                <input
+                  value={heir.name}
+                  onChange={(event) =>
+                    setHeirs((previous) =>
+                      previous.map((item, heirIndex) =>
+                        heirIndex === index ? { ...item, name: event.target.value } : item,
+                      ),
+                    )
+                  }
+                  placeholder={`ওয়ারিশ ${index + 1} এর নাম`}
+                  aria-label={`ওয়ারিশ ${index + 1} এর নাম`}
+                  className={`${controlClass} min-w-40 flex-1`}
+                />
+                <select
+                  value={heir.relation}
+                  onChange={(event) =>
+                    setHeirs((previous) =>
+                      previous.map((item, heirIndex) =>
+                        heirIndex === index
+                          ? { ...item, relation: event.target.value as HeirRelation }
+                          : item,
+                      ),
+                    )
+                  }
+                  aria-label={`ওয়ারিশ ${index + 1} এর সম্পর্ক`}
+                  className={controlClass}
+                >
+                  <option value="wife">স্ত্রী</option>
+                  <option value="husband">স্বামী</option>
+                  <option value="son">ছেলে</option>
+                  <option value="daughter">মেয়ে</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setHeirs((previous) => previous.filter((_, heirIndex) => heirIndex !== index))}
+                  aria-label={`ওয়ারিশ ${index + 1} মুছুন`}
+                  className="rounded p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => (selectedId ? save(true) : save(false))}
+            className="flex items-center gap-1 rounded bg-blue-700 px-3 py-2 text-sm text-white hover:bg-blue-800"
+          >
+            {selectedId ? <Save size={14} /> : <Plus size={14} />}
+            {selectedId ? "আপডেট সংরক্ষণ" : "নতুন সংরক্ষণ"}
+          </button>
+          <button
+            type="button"
+            onClick={remove}
+            disabled={!selectedId}
+            className="flex items-center gap-1 rounded bg-red-700 px-3 py-2 text-sm text-white hover:bg-red-800 disabled:opacity-50"
+          >
+            <Trash2 size={14} /> মুছুন
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function OwnerPresetDropdown({ onApply }: { onApply: (owners: Owner[]) => void }) {
+  const presets = usePresetList(loadOwnerPresets);
+
+  return (
+    <select
+      defaultValue=""
+      onChange={(event) => {
+        const preset = presets.find((item) => item.id === event.target.value);
+        event.currentTarget.value = "";
+        if (preset) onApply(preset.owners);
+      }}
+      aria-label="এই রোতে মালিক গ্রুপ প্রয়োগ"
+      className="min-w-40 rounded border border-green-300 bg-white px-2 py-1.5 text-xs text-gray-800 dark:border-green-700 dark:bg-gray-700 dark:text-gray-100"
+    >
+      <option value="">মালিক গ্রুপ প্রিসেট</option>
+      {presets.map((preset) => (
+        <option key={preset.id} value={preset.id}>
+          {preset.name}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+export function HeirTemplateDropdown({
+  onApply,
+}: {
+  onApply: (heirs: Array<Pick<Heir, "name" | "relation" | "mutated">>) => void;
+}) {
+  const templates = usePresetList(loadHeirTemplates);
+
+  return (
+    <div className="flex items-center gap-2">
+      <select
+        defaultValue=""
+        onChange={(event) => {
+          const template = templates.find((item) => item.id === event.target.value);
+          event.currentTarget.value = "";
+          if (template) {
+            onApply(template.heirs);
+            showToast("ওয়ারিশ টেমপ্লেট প্রয়োগ হয়েছে।", "success");
+          }
+        }}
+        aria-label="ওয়ারিশ প্রিসেট প্রয়োগ"
+        className="min-w-40 rounded border border-violet-300 bg-white px-2 py-1.5 text-xs text-gray-800 dark:border-violet-700 dark:bg-gray-700 dark:text-gray-100"
+      >
+        <option value="">ওয়ারিশ প্রিসেট</option>
+        {templates.map((template) => (
+          <option key={template.id} value={template.id}>
+            {template.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}

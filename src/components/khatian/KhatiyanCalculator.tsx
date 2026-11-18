@@ -597,6 +597,47 @@ export default function KhatiyanCalculator() {
     );
   };
 
+  const handleApplyOwnerPreset = (ownerIndex: number, presetOwners: Owner[]) => {
+    if (presetOwners.length === 0) return;
+    commitHistory();
+    const ownersToAdd = presetOwners.map((owner) => ({
+      ...owner,
+      heirs: owner.heirs?.map((heir) => ({ ...heir, id: generateHeirId() })),
+    }));
+    setOwners((previous) => {
+      const currentOwner = previous[ownerIndex];
+      if (!currentOwner) return [...previous, ...ownersToAdd];
+
+      const isEmptyRow =
+        !currentOwner.name.trim() &&
+        currentOwner.ana === 0 &&
+        currentOwner.gonda === 0 &&
+        currentOwner.kora === 0 &&
+        currentOwner.kranti === 0 &&
+        currentOwner.til === 0 &&
+        !currentOwner.mutated &&
+        !currentOwner.deceased;
+      const next = [...previous];
+      next.splice(ownerIndex + (isEmptyRow ? 0 : 1), isEmptyRow ? 1 : 0, ...ownersToAdd);
+      return next;
+    });
+    showToast(`${presetOwners.length} জন মালিক গ্রুপে যোগ হয়েছে।`, "success");
+  };
+
+  const handleApplyHeirTemplate = (
+    ownerIndex: number,
+    heirs: Array<Pick<Heir, "name" | "relation" | "mutated">>,
+  ) => {
+    commitHistory();
+    const heirsWithFreshIds = heirs.map((heir) => ({ ...heir, id: generateHeirId() }));
+    setOwners((previous) =>
+      previous.map((owner, index) =>
+        index === ownerIndex ? { ...owner, heirs: heirsWithFreshIds } : owner,
+      ),
+    );
+    showToast("ওয়ারিশ টেমপ্লেট প্রয়োগ হয়েছে।", "success");
+  };
+
   const openDeleteModal = (type: "owner" | "dag", index: number, name: string) => {
     setDeleteModal({ show: true, type, index, name });
   };
@@ -934,6 +975,8 @@ export default function KhatiyanCalculator() {
             onAddHeir={handleAddHeir}
             onHeirChange={handleHeirChange}
             onDeleteHeir={handleDeleteHeir}
+            onApplyOwnerPreset={handleApplyOwnerPreset}
+            onApplyHeirTemplate={handleApplyHeirTemplate}
             onDeleteAll={handleDeleteAllOwners}
             onDeleteSelected={handleDeleteSelectedOwners}
           />
