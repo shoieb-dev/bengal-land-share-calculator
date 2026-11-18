@@ -621,19 +621,14 @@ export default function KhatiyanCalculator() {
       next.splice(ownerIndex + (isEmptyRow ? 0 : 1), isEmptyRow ? 1 : 0, ...ownersToAdd);
       return next;
     });
-    showToast(`${presetOwners.length} জন মালিক গ্রুপে যোগ হয়েছে।`, "success");
+    showToast(`${presetOwners.length} জন মালিক টেমপ্লেটে যোগ হয়েছে।`, "success");
   };
 
-  const handleApplyHeirTemplate = (
-    ownerIndex: number,
-    heirs: Array<Pick<Heir, "name" | "relation" | "mutated">>,
-  ) => {
+  const handleApplyHeirTemplate = (ownerIndex: number, heirs: Array<Pick<Heir, "name" | "relation" | "mutated">>) => {
     commitHistory();
     const heirsWithFreshIds = heirs.map((heir) => ({ ...heir, id: generateHeirId() }));
     setOwners((previous) =>
-      previous.map((owner, index) =>
-        index === ownerIndex ? { ...owner, heirs: heirsWithFreshIds } : owner,
-      ),
+      previous.map((owner, index) => (index === ownerIndex ? { ...owner, heirs: heirsWithFreshIds } : owner)),
     );
     showToast("ওয়ারিশ টেমপ্লেট প্রয়োগ হয়েছে।", "success");
   };
