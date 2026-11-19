@@ -45,10 +45,20 @@ const gongShareFields: {
 interface DagGongFieldsProps {
   allocation: DagGongAllocation;
   owners: Owner[];
+  entryNumber: number;
   onChange: (allocation: DagGongAllocation) => void;
+  onRemove: () => void;
+  canRemove: boolean;
 }
 
-function DagGongFields({ allocation, owners, onChange }: DagGongFieldsProps) {
+function DagGongFields({
+  allocation,
+  owners,
+  entryNumber,
+  onChange,
+  onRemove,
+  canRemove,
+}: DagGongFieldsProps) {
   const toggleOwner = (ownerName: string, checked: boolean) => {
     const ownerNames = checked
       ? [...new Set([...allocation.ownerNames, ownerName])]
@@ -65,6 +75,21 @@ function DagGongFields({ allocation, owners, onChange }: DagGongFieldsProps) {
 
   return (
     <div className="mt-3 space-y-3 rounded-md border border-indigo-200 bg-indigo-50 p-3 dark:border-indigo-800 dark:bg-indigo-950/30">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-bold text-indigo-900 dark:text-indigo-100">গং/হিস্যা এন্ট্রি #{entryNumber}</p>
+        {canRemove && (
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onRemove();
+            }}
+            className="flex items-center gap-1 rounded border border-red-300 bg-red-50 px-2 py-1 text-xs text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300"
+          >
+            <Trash2 size={13} /> রিমুভ
+          </button>
+        )}
+      </div>
       <fieldset>
         <legend className="mb-2 text-sm font-semibold text-indigo-900 dark:text-indigo-100">
           গং-এর মালিক নির্বাচন করুন
@@ -127,7 +152,7 @@ interface DagFormProps {
   dags: Dag[];
   owners: Owner[];
   onDagChange: (index: number, field: "name" | "land" | "landType", value: string | number) => void;
-  onGongChange: (index: number, allocation: DagGongAllocation | undefined) => void;
+  onGongChange: (index: number, allocations: DagGongAllocation[] | undefined) => void;
   onDelete: (index: number, name: string) => void;
   onAdd: () => void;
   onBulkAdd: (newDags: Dag[]) => void;
@@ -431,19 +456,60 @@ export default function DagForm({
                 <label className="flex w-fit items-center gap-2 text-sm font-medium text-indigo-900 dark:text-indigo-100">
                   <input
                     type="checkbox"
-                    checked={!!dag.gongAllocation}
-                    onChange={(event) => onGongChange(index, event.target.checked ? { ownerNames: [] } : undefined)}
+                    checked={!!dag.gongEntries || !!dag.gongAllocations || !!dag.gongAllocation}
+                    onChange={(event) =>
+                      onGongChange(
+                        index,
+                        event.target.checked
+                          ? dag.gongEntries ??
+                            dag.gongAllocations ??
+                            (dag.gongAllocation ? [dag.gongAllocation] : [{ ownerNames: [] }])
+                          : undefined,
+                      )
+                    }
                     onClick={(event) => event.stopPropagation()}
                     className="h-4 w-4 accent-indigo-600"
                   />
                   মন্তব্য / গং হিস্যা আছে
                 </label>
-                {dag.gongAllocation && (
-                  <DagGongFields
-                    allocation={dag.gongAllocation}
-                    owners={owners}
-                    onChange={(allocation) => onGongChange(index, allocation)}
-                  />
+                {(dag.gongEntries ?? dag.gongAllocations ?? (dag.gongAllocation ? [dag.gongAllocation] : null)) && (
+                  <div className="space-y-2">
+                    {(dag.gongEntries ?? dag.gongAllocations ?? (dag.gongAllocation ? [dag.gongAllocation] : [])).map(
+                      (allocation, entryIndex) => (
+                        <DagGongFields
+                          key={entryIndex}
+                          allocation={allocation}
+                          owners={owners}
+                          entryNumber={entryIndex + 1}
+                          canRemove={(dag.gongEntries ?? dag.gongAllocations ?? (dag.gongAllocation ? [dag.gongAllocation] : [])).length > 1}
+                          onChange={(nextAllocation) => {
+                            const allocations = [...(dag.gongEntries ?? dag.gongAllocations ?? (dag.gongAllocation ? [dag.gongAllocation] : []))];
+                            allocations[entryIndex] = nextAllocation;
+                            onGongChange(index, allocations);
+                          }}
+                          onRemove={() => {
+                            const allocations = (dag.gongEntries ?? dag.gongAllocations ?? (dag.gongAllocation ? [dag.gongAllocation] : []))
+                              .filter((_, i) => i !== entryIndex);
+                            onGongChange(index, allocations.length > 0 ? allocations : undefined);
+                          }}
+                        />
+                      ),
+                    )}
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        const allocations =
+                          dag.gongEntries ??
+                          dag.gongAllocations ??
+                          (dag.gongAllocation ? [dag.gongAllocation] : []);
+                        onGongChange(index, [...allocations, { ownerNames: [] }]);
+                      }}
+                      className="mt-2 flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                    >
+                      <Plus size={16} /> আরেকটি গং/হিস্যা যোগ করুন
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
