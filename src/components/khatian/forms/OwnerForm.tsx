@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { anaOptions, gondaOptions, koraOptions, krantiOptions, tilOptions } from "@/lib/constants/options";
-import { Owner } from "@/lib/types";
+import { Heir, Owner } from "@/lib/types";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
-import { Copy, GripVertical, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { Copy, GripVertical, Plus, RotateCcw, Trash2, XCircle } from "lucide-react";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import { showToast } from "@/lib/utils/toast";
 import { computeHeirShares } from "@/lib/utils/heirShare";
 import { calculateShareRatio } from "@/lib/utils/validation";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import BulkAddOwnerModal from "../modals/BulkAddOwnerModal";
+import OwnerPresetControls, { HeirTemplateDropdown, OwnerPresetDropdown } from "./OwnerPresetControls";
 
 interface OwnerFormProps {
   owners: Owner[];
@@ -19,8 +20,20 @@ interface OwnerFormProps {
   onReorder: (newOwners: Owner[]) => void;
   calculateShareRatio: (owner: Owner) => number;
   onAddHeir: (ownerIndex: number) => void;
-  onHeirChange: (ownerIndex: number, heirId: string, field: "name" | "relation" | "mutated", value: string | boolean) => void;
+  onHeirChange: (
+    ownerIndex: number,
+    heirId: string,
+    field: "name" | "relation" | "mutated",
+    value: string | boolean,
+  ) => void;
   onDeleteHeir: (ownerIndex: number, heirId: string) => void;
+  onApplyOwnerPreset: (ownerIndex: number, owners: Owner[]) => void;
+  onApplyHeirTemplate: (
+    ownerIndex: number,
+    heirs: Array<Pick<Heir, "name" | "relation" | "mutated">>,
+  ) => void;
+  onDeleteAll: () => void;
+  onDeleteSelected: (indexes: number[]) => void;
 }
 
 export const OwnerForm = ({
@@ -34,9 +47,23 @@ export const OwnerForm = ({
   onAddHeir,
   onHeirChange,
   onDeleteHeir,
+  onApplyOwnerPreset,
+  onApplyHeirTemplate,
+  onDeleteAll,
+  onDeleteSelected,
 }: OwnerFormProps) => {
   const [pendingReset, setPendingReset] = useState<number | null>(null);
   const [showBulkAdd, setShowBulkAdd] = useState(false);
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
+  const [showDeleteSelectedConfirm, setShowDeleteSelectedConfirm] = useState(false);
+  const [selectedIndexes, setSelectedIndexes] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    setSelectedIndexes((previous) => {
+      const validIndexes = new Set(Array.from(previous).filter((index) => index < owners.length));
+      return validIndexes.size === previous.size ? previous : validIndexes;
+    });
+  }, [owners.length]);
 
   const {
     draggedIndex,
@@ -47,7 +74,10 @@ export const OwnerForm = ({
     handleDragLeave,
     handleDrop,
     handleDragEnd,
-  } = useDragAndDrop(owners, onReorder);
+  } = useDragAndDrop(owners, (newOwners) => {
+    setSelectedIndexes(new Set());
+    onReorder(newOwners);
+  });
 
   const resetOwner = (index: number) => {
     setPendingReset(index);
@@ -80,6 +110,30 @@ export const OwnerForm = ({
     onOwnerChange(index, "til", previousOwner.til);
   };
 
+  const toggleOwnerSelection = (index: number) => {
+    setSelectedIndexes((previous) => {
+      const next = new Set(previous);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedIndexes((previous) =>
+      previous.size === owners.length ? new Set() : new Set(owners.map((_, index) => index)),
+    );
+  };
+
+  const confirmDeleteSelected = () => {
+    onDeleteSelected(Array.from(selectedIndexes).sort((a, b) => b - a));
+    setSelectedIndexes(new Set());
+    setShowDeleteSelectedConfirm(false);
+  };
+
   return (
     <div className="bg-linear-to-br from-green-50 to-emerald-100 dark:from-green-900 dark:to-emerald-900 p-4 md:p-5 rounded-lg shadow-lg mb-6 border border-green-200 dark:border-green-700">
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
@@ -91,6 +145,8 @@ export const OwnerForm = ({
         </h3>
 
         <div className="flex gap-2 flex-wrap">
+          <OwnerPresetControls owners={owners} />
+
           <button
             onClick={() => setShowBulkAdd(true)}
             className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition flex items-center gap-1 text-sm"
@@ -118,6 +174,28 @@ export const OwnerForm = ({
               <Copy size={14} /> সবাইকে প্রথম মালিকের অংশ দিন
             </button>
           )}
+
+          {owners.length > 0 && (
+            <button
+              onClick={() => setShowDeleteAllConfirm(true)}
+              className="bg-red-700 text-white px-3 py-1 rounded hover:bg-red-800 transition flex items-center gap-1 text-sm"
+              title="সব মালিক মুছে ফেলুন"
+            >
+              <XCircle size={16} /> সব মুছুন
+            </button>
+          )}
+
+          {owners.length > 0 && (
+            <button
+              onClick={() => setShowDeleteSelectedConfirm(true)}
+              disabled={selectedIndexes.size === 0}
+              className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition flex items-center gap-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+              title="সিলেক্ট করা মালিক মুছে ফেলুন"
+            >
+              <Trash2 size={16} /> সিলেক্ট করাগুলো মুছুন
+              {selectedIndexes.size > 0 && ` (${selectedIndexes.size})`}
+            </button>
+          )}
         </div>
       </div>
 
@@ -128,6 +206,16 @@ export const OwnerForm = ({
         </div>
       ) : (
         <div className="space-y-3">
+          <label className="flex items-center gap-2 w-fit cursor-pointer select-none text-sm font-semibold text-green-800 dark:text-green-200">
+            <input
+              type="checkbox"
+              checked={owners.length > 0 && selectedIndexes.size === owners.length}
+              onChange={toggleSelectAll}
+              className="w-4 h-4 rounded accent-red-600 cursor-pointer"
+            />
+            সব মালিক সিলেক্ট করুন
+          </label>
+
           {owners.map((owner, index) => (
             <div
               key={index}
@@ -146,9 +234,22 @@ export const OwnerForm = ({
                     : "border-gray-200 dark:border-gray-700"
               } cursor-move`}
             >
-              {/* Copy Button - Show for 2nd owner onwards */}
-              {index > 0 && (
-                <div className="mb-2">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer select-none text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    <input
+                      type="checkbox"
+                      checked={selectedIndexes.has(index)}
+                      onChange={() => toggleOwnerSelection(index)}
+                      onClick={(event) => event.stopPropagation()}
+                      className="w-4 h-4 rounded accent-red-600 cursor-pointer"
+                    />
+                    মালিক সিলেক্ট করুন
+                  </label>
+                  <OwnerPresetDropdown onApply={(presetOwners) => onApplyOwnerPreset(index, presetOwners)} />
+                </div>
+
+                {index > 0 && (
                   <button
                     onClick={() => copyFromAbove(index)}
                     className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition flex items-center gap-1 text-sm"
@@ -156,8 +257,8 @@ export const OwnerForm = ({
                   >
                     <Copy size={14} /> উপরের মালিকের অংশ কপি করুন
                   </button>
-                </div>
-              )}
+                )}
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-8 gap-2 md:gap-3 items-center">
                 {/* Drag Handle */}
@@ -314,15 +415,18 @@ export const OwnerForm = ({
                 <div className="mt-2 p-3 bg-violet-50 dark:bg-violet-900/30 rounded border border-violet-200 dark:border-violet-700 print-hide">
                   <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
                     <span className="text-sm font-semibold text-violet-800 dark:text-violet-200">ওয়ারিশ তালিকা</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onAddHeir(index);
-                      }}
-                      className="bg-violet-600 text-white px-3 py-1 rounded hover:bg-violet-700 transition flex items-center gap-1 text-xs"
-                    >
-                      <Plus size={14} /> ওয়ারিশ যোগ করুন
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <HeirTemplateDropdown onApply={(heirs) => onApplyHeirTemplate(index, heirs)} />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddHeir(index);
+                        }}
+                        className="bg-violet-600 text-white px-3 py-1 rounded hover:bg-violet-700 transition flex items-center gap-1 text-xs"
+                      >
+                        <Plus size={14} /> ওয়ারিশ যোগ করুন
+                      </button>
+                    </div>
                   </div>
 
                   {(!owner.heirs || owner.heirs.length === 0) && (
@@ -370,6 +474,27 @@ export const OwnerForm = ({
         onConfirm={confirmResetOwner}
         onCancel={() => setPendingReset(null)}
       />
+      <ConfirmDialog
+        open={showDeleteAllConfirm}
+        title="সব মালিক মুছে ফেলবেন?"
+        message={`আপনি কি নিশ্চিত যে সবগুলো (${owners.length}টি) মালিক মুছে ফেলতে চান? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।`}
+        confirmLabel="সব মুছে ফেলুন"
+        destructive
+        onConfirm={() => {
+          onDeleteAll();
+          setShowDeleteAllConfirm(false);
+        }}
+        onCancel={() => setShowDeleteAllConfirm(false)}
+      />
+      <ConfirmDialog
+        open={showDeleteSelectedConfirm}
+        title="সিলেক্ট করা মালিক মুছে ফেলবেন?"
+        message={`আপনি কি নিশ্চিত যে সিলেক্ট করা ${selectedIndexes.size}টি মালিক মুছে ফেলতে চান?`}
+        confirmLabel="সিলেক্ট করাগুলো মুছুন"
+        destructive
+        onConfirm={confirmDeleteSelected}
+        onCancel={() => setShowDeleteSelectedConfirm(false)}
+      />
     </div>
   );
 };
@@ -383,7 +508,12 @@ const HeirRows = ({
 }: {
   ownerIndex: number;
   owner: Owner;
-  onHeirChange: (ownerIndex: number, heirId: string, field: "name" | "relation" | "mutated", value: string | boolean) => void;
+  onHeirChange: (
+    ownerIndex: number,
+    heirId: string,
+    field: "name" | "relation" | "mutated",
+    value: string | boolean,
+  ) => void;
   onDeleteHeir: (ownerIndex: number, heirId: string) => void;
 }) => {
   const heirs = owner.heirs ?? [];
@@ -428,9 +558,7 @@ const HeirRows = ({
                 onClick={(e) => e.stopPropagation()}
                 className="w-3.5 h-3.5 rounded accent-orange-600 cursor-pointer"
               />
-              <span
-                className={isMutated ? "text-orange-700 dark:text-orange-400" : "text-gray-500 dark:text-gray-400"}
-              >
+              <span className={isMutated ? "text-orange-700 dark:text-orange-400" : "text-gray-500 dark:text-gray-400"}>
                 নামজারি
               </span>
             </label>

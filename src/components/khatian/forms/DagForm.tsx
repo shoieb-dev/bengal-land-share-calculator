@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Trash2, Plus, Copy, Tag, Zap, GripVertical, XCircle } from "lucide-react";
 import BulkAddDagModal from "../modals/BulkAddDagModal";
-import { Dag } from "@/lib/types";
+import { anaOptions, gondaOptions, koraOptions, krantiOptions, tilOptions } from "@/lib/constants/options";
+import { Dag, DagGongAllocation, Owner } from "@/lib/types";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import { INPUT_BASE } from "./formStyles";
@@ -27,9 +28,106 @@ const landTypes = [
   "পথ",
 ];
 
+type GongShareField = "ana" | "gonda" | "kora" | "kranti" | "til";
+
+const gongShareFields: {
+  key: GongShareField;
+  label: string;
+  options: { label: string; value: number }[];
+}[] = [
+  { key: "ana", label: "আনা", options: anaOptions },
+  { key: "gonda", label: "গন্ডা", options: gondaOptions },
+  { key: "kora", label: "কড়া", options: koraOptions },
+  { key: "kranti", label: "ক্রান্তি", options: krantiOptions },
+  { key: "til", label: "তিল", options: tilOptions },
+];
+
+interface DagGongFieldsProps {
+  allocation: DagGongAllocation;
+  owners: Owner[];
+  onChange: (allocation: DagGongAllocation) => void;
+}
+
+function DagGongFields({ allocation, owners, onChange }: DagGongFieldsProps) {
+  const toggleOwner = (ownerName: string, checked: boolean) => {
+    const ownerNames = checked
+      ? [...new Set([...allocation.ownerNames, ownerName])]
+      : allocation.ownerNames.filter((name) => name !== ownerName);
+    onChange({ ...allocation, ownerNames });
+  };
+
+  const updateShare = (field: GongShareField, value: string) => {
+    onChange({
+      ...allocation,
+      [field]: value === "" ? undefined : Number(value),
+    });
+  };
+
+  return (
+    <div className="mt-3 space-y-3 rounded-md border border-indigo-200 bg-indigo-50 p-3 dark:border-indigo-800 dark:bg-indigo-950/30">
+      <fieldset>
+        <legend className="mb-2 text-sm font-semibold text-indigo-900 dark:text-indigo-100">
+          গং-এর মালিক নির্বাচন করুন
+        </legend>
+        <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
+          {owners.map((owner, index) => (
+            <label
+              key={`${owner.name}-${index}`}
+              className="flex items-center gap-2 rounded border border-indigo-100 bg-white px-2 py-1.5 text-sm dark:border-indigo-900 dark:bg-gray-800"
+            >
+              <input
+                type="checkbox"
+                checked={allocation.ownerNames.includes(owner.name)}
+                disabled={!owner.name.trim()}
+                onChange={(event) => toggleOwner(owner.name, event.target.checked)}
+                onClick={(event) => event.stopPropagation()}
+                className="h-4 w-4 accent-indigo-600"
+              />
+              <span>{owner.name || `মালিক #${index + 1}`}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <div>
+        <p className="mb-2 text-sm font-semibold text-indigo-900 dark:text-indigo-100">
+          দাগের নির্দিষ্ট হিস্যা (ঐচ্ছিক)
+        </p>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+          {gongShareFields.map(({ key, label, options }) => (
+            <label key={key} className="text-xs text-gray-700 dark:text-gray-300">
+              <span className="mb-1 block">{label}</span>
+              <select
+                aria-label={`গং হিস্যার ${label}`}
+                value={allocation[key] ?? ""}
+                onChange={(event) => updateShare(key, event.target.value)}
+                onClick={(event) => event.stopPropagation()}
+                className={INPUT_BASE}
+              >
+                <option value="">খালি</option>
+                {options.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+          ১৬ আনা ওই দাগের পুরো জমি। পাঁচটি ঘর খালি রাখলে নির্বাচিত মালিকেরা পুরো দাগ পাবেন; হিস্যা দিলে বাকি জমি
+          সাধারণ/এজমালী বণ্টনে যাবে।
+        </p>
+      </div>
+    </div>
+  );
+}
+
 interface DagFormProps {
   dags: Dag[];
-  onDagChange: (index: number, field: keyof Dag, value: string | number) => void;
+  owners: Owner[];
+  onDagChange: (index: number, field: "name" | "land" | "landType", value: string | number) => void;
+  onGongChange: (index: number, allocation: DagGongAllocation | undefined) => void;
   onDelete: (index: number, name: string) => void;
   onAdd: () => void;
   onBulkAdd: (newDags: Dag[]) => void;
@@ -39,7 +137,9 @@ interface DagFormProps {
 
 export default function DagForm({
   dags,
+  owners,
   onDagChange,
+  onGongChange,
   onDelete,
   onAdd,
   onBulkAdd,
@@ -326,6 +426,25 @@ export default function DagForm({
                 >
                   <Trash2 size={16} /> <span className="hidden sm:inline">মুছুন</span>
                 </button>
+              </div>
+              <div className="px-3 pb-3">
+                <label className="flex w-fit items-center gap-2 text-sm font-medium text-indigo-900 dark:text-indigo-100">
+                  <input
+                    type="checkbox"
+                    checked={!!dag.gongAllocation}
+                    onChange={(event) => onGongChange(index, event.target.checked ? { ownerNames: [] } : undefined)}
+                    onClick={(event) => event.stopPropagation()}
+                    className="h-4 w-4 accent-indigo-600"
+                  />
+                  মন্তব্য / গং হিস্যা আছে
+                </label>
+                {dag.gongAllocation && (
+                  <DagGongFields
+                    allocation={dag.gongAllocation}
+                    owners={owners}
+                    onChange={(allocation) => onGongChange(index, allocation)}
+                  />
+                )}
               </div>
             </div>
           ))}
