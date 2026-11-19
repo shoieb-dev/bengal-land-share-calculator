@@ -341,18 +341,10 @@ function OwnerPresetManager({
             />
             {members.length > 0 && (
               <div className="space-y-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                    টেমপ্লেটের সদস্য ({members.length})
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setMembers((previous) => [...previous, createBlankOwner()])}
-                    className="flex items-center gap-1 rounded bg-green-700 px-2.5 py-1.5 text-xs text-white hover:bg-green-800"
-                  >
-                    <Plus size={13} /> সদস্য যোগ
-                  </button>
-                </div>
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                  টেমপ্লেটের সদস্য ({members.length})
+                </p>
+
                 {members.map((member, index) => (
                   <div key={index} className="rounded-md border border-gray-200 p-3 dark:border-gray-700">
                     <div className="mb-2 flex items-center justify-between gap-2">
@@ -445,6 +437,13 @@ function OwnerPresetManager({
                     </div>
                   </div>
                 ))}
+                <button
+                  type="button"
+                  onClick={() => setMembers((previous) => [...previous, createBlankOwner()])}
+                  className="flex items-center gap-1 rounded bg-green-700 px-2.5 py-1.5 text-xs text-white hover:bg-green-800"
+                >
+                  <Plus size={13} /> সদস্য যোগ
+                </button>
               </div>
             )}
           </>
