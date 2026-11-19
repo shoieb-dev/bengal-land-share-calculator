@@ -21,6 +21,7 @@ import {
 } from "@/lib/utils/storage";
 import { normalizeShares } from "@/lib/utils/validation";
 import { computeHeirShares } from "@/lib/utils/heirShare";
+import { allocateDagLand, getGongShareRatio } from "@/lib/utils/plotAllocation";
 import { showToast } from "@/lib/utils/toast";
 import { useWorkspaceHistory } from "@/hooks/useWorkspaceHistory";
 import { useTheme } from "@/hooks/useTheme";
@@ -497,6 +498,30 @@ export default function KhatiyanCalculator() {
       if (dag.land <= 0) {
         newErrors.push({ type: "dag", message: `দাগ #${i + 1} এর জমির পরিমাণ ০ এর বেশি হতে হবে` });
       }
+      if (dag.gongAllocation) {
+        const selectedNames = new Set(dag.gongAllocation.ownerNames);
+        const selectedOwnerCount = owners.filter((owner) => selectedNames.has(owner.name)).length;
+        if (selectedOwnerCount !== selectedNames.size || selectedOwnerCount === 0) {
+          newErrors.push({
+            type: "dag",
+            message: `দাগ #${i + 1} এর গং-এর জন্য তালিকা থেকে অন্তত একজন বৈধ মালিক নির্বাচন করুন`,
+          });
+        }
+        const hasShareUnits = [
+          dag.gongAllocation.ana,
+          dag.gongAllocation.gonda,
+          dag.gongAllocation.kora,
+          dag.gongAllocation.kranti,
+          dag.gongAllocation.til,
+        ].some((unit) => unit !== undefined);
+        const gongShareRatio = getGongShareRatio(dag.gongAllocation);
+        if (hasShareUnits && (gongShareRatio <= 0 || gongShareRatio > 1)) {
+          newErrors.push({
+            type: "dag",
+            message: `দাগ #${i + 1} এর গং হিস্যা ০-এর বেশি এবং ১৬ আনার সমান বা কম হতে হবে`,
+          });
+        }
+      }
     });
 
     const totalRatio = owners.reduce((sum, owner) => sum + calculateShareRatio(owner), 0);
@@ -525,7 +550,7 @@ export default function KhatiyanCalculator() {
 
   // (keyboard-shortcut handlers removed — wired via khatiyan-shortcut events below)
 
-  const handleDagChange = (index: number, field: keyof Dag, value: string | number) => {
+  const handleDagChange = (index: number, field: "name" | "land" | "landType", value: string | number) => {
     const newDags = [...dags];
     if (field === "land") {
       const parsedValue = typeof value === "string" ? parseNumber(value) : value;
@@ -534,6 +559,12 @@ export default function KhatiyanCalculator() {
       newDags[index][field] = value as string;
     }
     setDags(newDags);
+  };
+
+  const handleDagGongChange = (index: number, gongAllocation: Dag["gongAllocation"]) => {
+    setDags((prev) =>
+      prev.map((dag, dagIndex) => (dagIndex === index ? { ...dag, gongAllocation } : dag)),
+    );
   };
 
   const handleBulkAddDags = (newDags: Dag[]) => {
@@ -669,10 +700,15 @@ export default function KhatiyanCalculator() {
 
     // ─── Mutation: দ্বৈত মডেল ───
     const normalized = normalizeShares(owners);
+    const dagAllocations = allocateDagLand(
+      owners,
+      dags,
+      normalized.map(({ originalShare }) => originalShare),
+    );
 
     const ownersWithTotalLand = normalized.map(
-      ({ owner, originalShare, effectiveShare }: { owner: Owner; originalShare: number; effectiveShare: number }) => {
-        const total = dags.reduce((acc, dag) => acc + dag.land * originalShare, 0);
+      ({ owner, originalShare, effectiveShare }, ownerIndex) => {
+        const total = dagAllocations.reduce((sum, dagAllocation) => sum + dagAllocation[ownerIndex], 0);
         return {
           ...owner,
           totalLand: parseFloat(total.toFixed(4)),
@@ -683,9 +719,9 @@ export default function KhatiyanCalculator() {
       },
     );
 
-    dags.forEach((dag) => {
-      ownersWithTotalLand.forEach((owner) => {
-        const land = parseFloat((dag.land * (owner.originalShare || 0)).toFixed(4));
+    dags.forEach((dag, dagIndex) => {
+      ownersWithTotalLand.forEach((owner, ownerIndex) => {
+        const land = parseFloat(dagAllocations[dagIndex][ownerIndex].toFixed(4));
 
         // মালিকের মূল রো (মৃত হলে muted + [মৃত] ট্যাগ দিয়ে দেখানো হবে)
         newResult.push({
@@ -979,7 +1015,9 @@ export default function KhatiyanCalculator() {
           {/* Dag Form */}
           <DagForm
             dags={dags}
+            owners={owners}
             onDagChange={handleDagChange}
+            onGongChange={handleDagGongChange}
             onDelete={(index, name) => openDeleteModal("dag", index, name)}
             onAdd={addDag}
             onBulkAdd={handleBulkAddDags}

@@ -23,6 +23,7 @@ It helps convert **Ana, Gonda, Kora, Kranti, and Til** units into **decimal (শ
 - 🧮 Precise land-share mathematics using `heirShare.ts` and family-tree rules
 - ❌ Form-level validation (`validation.ts`) — catches invalid dags, missing ratios, broken heir chains before computation
 - ⚡ Lazy evaluation to avoid recalculating the whole result when only one field changes
+- 🏷️ Optional dag-level `গং` allocation lets users select multiple owners and reserve a full plot or an Ana–Gonda–Kora–Kranti–Til share; remaining entitlement is allocated from general/`এজমালী` land
 
 ### 📊 Result Views
 - 📈 **ResultCharts** — visual charts of shares per owner and per plot

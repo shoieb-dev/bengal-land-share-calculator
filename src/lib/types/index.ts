@@ -33,6 +33,17 @@ export type Dag = {
   name: string;
   land: number;
   landType?: string;
+  remarks?: string;
+  gongAllocation?: DagGongAllocation;
+};
+
+export type DagGongAllocation = {
+  ownerNames: string[];
+  ana?: number;
+  gonda?: number;
+  kora?: number;
+  kranti?: number;
+  til?: number;
 };
 
 export type KhatiyanHeader = {
