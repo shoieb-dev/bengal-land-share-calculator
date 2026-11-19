@@ -482,6 +482,7 @@ export const ResultTable = ({
               <th className="border border-[#4b5563] p-2 text-center">ক্রম</th>
               <th className="border border-[#4b5563] p-2 text-left">দাগ নং</th>
               <th className="border border-[#4b5563] p-2 text-left">জমির রকম</th>
+              <th className="border border-[#4b5563] p-2 text-left">মন্তব্য</th>
               <th className="border border-[#4b5563] p-2 text-right">জমি (শতক)</th>
               <th className="border border-[#4b5563] p-2 text-right">জমি (গন্ডা-কড়া)</th>
               <th className="border border-[#4b5563] p-2 text-right">জমি (কাঠা)</th>
@@ -495,6 +496,9 @@ export const ResultTable = ({
                   <td className="border border-[#4b5563] p-2 text-center">{toBengaliNumber(i + 1)}</td>
                   <td className="border border-[#4b5563] p-2">{toBengaliNumber(row.name)}</td>
                   <td className="border border-[#4b5563] p-2">{row.landType || "নাল"}</td>
+                  <td className="border border-[#4b5563] p-2">
+                    {row.remarks || row.gongAllocation?.ownerNames.join(", ") || "—"}
+                  </td>
                   <LandMeasurementCells land={row.land} />
                 </tr>
               );
