@@ -22,24 +22,34 @@ export const getGongShareRatio = (gongAllocation: DagGongAllocation): number => 
 /** Allocates configured dag shares first, then distributes remaining land by each owner's entitlement. */
 export const allocateDagLand = (owners: Owner[], dags: Dag[], ownerShares: number[]): number[][] => {
   const allocation = dags.map(() => owners.map(() => 0));
-  const specificDagLand = dags.map((dag) =>
-    dag.gongAllocation ? dag.land * getGongShareRatio(dag.gongAllocation) : 0,
-  );
+  const specificDagLand = dags.map((dag) => {
+    const entries = dag.gongEntries ??
+      dag.gongAllocations ??
+      (dag.gongAllocation ? [dag.gongAllocation] : []);
+    return entries.reduce(
+      (sum, entry) => sum + dag.land * getGongShareRatio(entry),
+      0,
+    );
+  });
   const generalDagLand = dags.map((dag, dagIndex) => dag.land - specificDagLand[dagIndex]);
 
   dags.forEach((dag, dagIndex) => {
-    if (!dag.gongAllocation) return;
-
-    const selectedOwnerNames = new Set(dag.gongAllocation.ownerNames);
-    const ownerIndexes = owners.flatMap((owner, ownerIndex) =>
-      selectedOwnerNames.has(owner.name) ? [ownerIndex] : [],
-    );
-    const selectedShareTotal = ownerIndexes.reduce((sum, ownerIndex) => sum + ownerShares[ownerIndex], 0);
-    ownerIndexes.forEach((ownerIndex) => {
-      allocation[dagIndex][ownerIndex] =
-        selectedShareTotal > 0
-          ? (specificDagLand[dagIndex] * ownerShares[ownerIndex]) / selectedShareTotal
-          : 0;
+    const entries = dag.gongEntries ??
+      dag.gongAllocations ??
+      (dag.gongAllocation ? [dag.gongAllocation] : []);
+    entries.forEach((entry) => {
+      const selectedOwnerNames = new Set(entry.ownerNames);
+      const ownerIndexes = owners.flatMap((owner, ownerIndex) =>
+        selectedOwnerNames.has(owner.name) ? [ownerIndex] : [],
+      );
+      const selectedShareTotal = ownerIndexes.reduce((sum, ownerIndex) => sum + ownerShares[ownerIndex], 0);
+      const entryLand = dag.land * getGongShareRatio(entry);
+      ownerIndexes.forEach((ownerIndex) => {
+        allocation[dagIndex][ownerIndex] +=
+          selectedShareTotal > 0
+            ? (entryLand * ownerShares[ownerIndex]) / selectedShareTotal
+            : 0;
+      });
     });
   });
 

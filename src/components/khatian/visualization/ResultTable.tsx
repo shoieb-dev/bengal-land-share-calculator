@@ -7,6 +7,7 @@ import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 import { showToast } from "@/lib/utils/toast";
 import { normalizeShares, ratioToAnaGonda } from "@/lib/utils/validation";
 import { computeHeirShares, HEIR_RELATION_LABELS } from "@/lib/utils/heirShare";
+import { formatGongShare } from "@/lib/utils/gongDisplay";
 // import { generatePDFSimple } from "@/lib/utils/pdfExportSimple";
 import { downloadPDF } from "@/lib/exports/pdfExport";
 import { BarChart3, Copy, Download, FileDown, Image, Printer } from "lucide-react";
@@ -497,7 +498,34 @@ export const ResultTable = ({
                   <td className="border border-[#4b5563] p-2">{toBengaliNumber(row.name)}</td>
                   <td className="border border-[#4b5563] p-2">{row.landType || "নাল"}</td>
                   <td className="border border-[#4b5563] p-2">
-                    {row.remarks || row.gongAllocation?.ownerNames.join(", ") || "—"}
+                    {(() => {
+                      const gongEntries =
+                        row.gongEntries ??
+                        row.gongAllocations ??
+                        (row.gongAllocation ? [row.gongAllocation] : undefined);
+                      const displayEntries =
+                        gongEntries?.filter((entry) => entry.ownerNames.some((name) => name.trim())) ?? [];
+
+                      if (displayEntries.length === 0) return row.remarks || "—";
+
+                      return (
+                        <div className="gong-remarks-cell">
+                          {displayEntries.map((entry, entryIndex) => {
+                            const ownerNames = entry.ownerNames.filter((name) => name.trim()).join(", ");
+                            const share = formatGongShare(entry);
+                            return (
+                              <div
+                                key={`${ownerNames}-${entryIndex}`}
+                                className="gong-remarks-entry border-b border-gray-300 py-1 last:border-b-0 first:pt-0 last:pb-0"
+                              >
+                                {ownerNames}
+                                {share ? ` (${share})` : " (সম্পূর্ণ দাগ)"}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <LandMeasurementCells land={row.land} />
                 </tr>

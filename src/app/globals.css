@@ -225,6 +225,14 @@ option {
     white-space: normal !important;
     word-break: break-word;
   }
+  #printable-area .gong-remarks-entry {
+    display: block;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    line-height: 1.2em;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
   #printable-area .overflow-x-auto {
     overflow: visible !important;
   }

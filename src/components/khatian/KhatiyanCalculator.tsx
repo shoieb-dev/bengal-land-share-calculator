@@ -498,27 +498,34 @@ export default function KhatiyanCalculator() {
       if (dag.land <= 0) {
         newErrors.push({ type: "dag", message: `দাগ #${i + 1} এর জমির পরিমাণ ০ এর বেশি হতে হবে` });
       }
-      if (dag.gongAllocation) {
-        const selectedNames = new Set(dag.gongAllocation.ownerNames);
-        const selectedOwnerCount = owners.filter((owner) => selectedNames.has(owner.name)).length;
-        if (selectedOwnerCount !== selectedNames.size || selectedOwnerCount === 0) {
+      const gongEntries =
+        dag.gongEntries ??
+        dag.gongAllocations ??
+        (dag.gongAllocation ? [dag.gongAllocation] : []);
+      if (gongEntries.length > 0) {
+        let totalEntryRatio = 0;
+        gongEntries.forEach((entry, entryIndex) => {
+          const selectedNames = new Set(entry.ownerNames);
+          const selectedOwnerCount = owners.filter((owner) => selectedNames.has(owner.name)).length;
+          if (selectedOwnerCount !== selectedNames.size || selectedOwnerCount === 0) {
+            newErrors.push({
+              type: "dag",
+              message: `দাগ #${i + 1} এর গং/হিস্যা এন্ট্রি #${entryIndex + 1}-এ তালিকা থেকে মালিক নির্বাচন করুন`,
+            });
+          }
+          const entryRatio = getGongShareRatio(entry);
+          totalEntryRatio += entryRatio;
+          if (entryRatio <= 0 || entryRatio > 1) {
+            newErrors.push({
+              type: "dag",
+              message: `দাগ #${i + 1} এর এন্ট্রি #${entryIndex + 1}-এর হিস্যা ০-এর বেশি ও ১৬ আনার সমান বা কম হতে হবে`,
+            });
+          }
+        });
+        if (totalEntryRatio > 1.000001) {
           newErrors.push({
             type: "dag",
-            message: `দাগ #${i + 1} এর গং-এর জন্য তালিকা থেকে অন্তত একজন বৈধ মালিক নির্বাচন করুন`,
-          });
-        }
-        const hasShareUnits = [
-          dag.gongAllocation.ana,
-          dag.gongAllocation.gonda,
-          dag.gongAllocation.kora,
-          dag.gongAllocation.kranti,
-          dag.gongAllocation.til,
-        ].some((unit) => unit !== undefined);
-        const gongShareRatio = getGongShareRatio(dag.gongAllocation);
-        if (hasShareUnits && (gongShareRatio <= 0 || gongShareRatio > 1)) {
-          newErrors.push({
-            type: "dag",
-            message: `দাগ #${i + 1} এর গং হিস্যা ০-এর বেশি এবং ১৬ আনার সমান বা কম হতে হবে`,
+            message: `দাগ #${i + 1}-এর গং হিস্যাগুলোর মোট অংশ ১৬ আনা (১০০%) ছাড়াবে না`,
           });
         }
       }
@@ -561,9 +568,18 @@ export default function KhatiyanCalculator() {
     setDags(newDags);
   };
 
-  const handleDagGongChange = (index: number, gongAllocation: Dag["gongAllocation"]) => {
+  const handleDagGongChange = (index: number, gongAllocations: Dag["gongAllocations"]) => {
     setDags((prev) =>
-      prev.map((dag, dagIndex) => (dagIndex === index ? { ...dag, gongAllocation } : dag)),
+      prev.map((dag, dagIndex) =>
+        dagIndex === index
+          ? {
+              ...dag,
+              gongEntries: gongAllocations,
+              gongAllocations,
+              gongAllocation: undefined,
+            }
+          : dag,
+      ),
     );
   };
 

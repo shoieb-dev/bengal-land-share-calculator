@@ -34,7 +34,11 @@ export type Dag = {
   land: number;
   landType?: string;
   remarks?: string;
+  gongEntries?: DagGongAllocation[];
+  /** @deprecated Use gongAllocations for new data */
   gongAllocation?: DagGongAllocation;
+  /** @deprecated Use gongEntries for new data */
+  gongAllocations?: DagGongAllocation[];
 };
 
 export type DagGongAllocation = {
