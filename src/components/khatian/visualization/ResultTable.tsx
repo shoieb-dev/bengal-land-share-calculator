@@ -477,17 +477,33 @@ export const ResultTable = ({
       {/* -------------------- SECONDARY TABLE: DAG WISE LAND AMOUNT -------------------- */}
       <h3 className="font-bold text-lg mb-2">২. দাগভিত্তিক জমির পরিমাণ</h3>
       <div className="overflow-x-auto mb-6">
-        <table className="w-full border-collapse border border-[#4b5563]">
+        <table className="dag-amount-table w-full border-collapse border border-[#4b5563]">
           <thead>
             <tr className="bg-[#e5e7eb]">
-              <th className="border border-[#4b5563] p-2 text-center">ক্রম</th>
-              <th className="border border-[#4b5563] p-2 text-left">দাগ নং</th>
-              <th className="border border-[#4b5563] p-2 text-left">জমির রকম</th>
-              <th className="border border-[#4b5563] p-2 text-left">মন্তব্য</th>
-              <th className="border border-[#4b5563] p-2 text-right">জমি (শতক)</th>
-              <th className="border border-[#4b5563] p-2 text-right">জমি (গন্ডা-কড়া)</th>
-              <th className="border border-[#4b5563] p-2 text-right">জমি (কাঠা)</th>
-              <th className="border border-[#4b5563] p-2 text-right">জমি (বর্গফুট)</th>
+              <th className="border border-[#4b5563] p-2 text-center" style={{ width: "5%", whiteSpace: "nowrap" }}>
+                ক্রম
+              </th>
+              <th className="border border-[#4b5563] p-2 text-left" style={{ width: "8%", whiteSpace: "nowrap" }}>
+                দাগ নং
+              </th>
+              <th className="border border-[#4b5563] p-2 text-left" style={{ width: "9%", whiteSpace: "nowrap" }}>
+                জমির রকম
+              </th>
+              <th className="border border-[#4b5563] p-2 text-left" style={{ width: "38%", whiteSpace: "nowrap" }}>
+                মন্তব্য
+              </th>
+              <th className="border border-[#4b5563] p-2 text-right" style={{ width: "10%", whiteSpace: "nowrap" }}>
+                জমি (শতক)
+              </th>
+              <th className="border border-[#4b5563] p-2 text-right" style={{ width: "12%", whiteSpace: "nowrap" }}>
+                জমি (গন্ডা-কড়া)
+              </th>
+              <th className="border border-[#4b5563] p-2 text-right" style={{ width: "9%", whiteSpace: "nowrap" }}>
+                জমি (কাঠা)
+              </th>
+              <th className="border border-[#4b5563] p-2 text-right" style={{ width: "9%", whiteSpace: "nowrap" }}>
+                জমি (বর্গফুট)
+              </th>
             </tr>
           </thead>
           <tbody>
