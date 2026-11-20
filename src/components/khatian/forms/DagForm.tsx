@@ -102,7 +102,9 @@ function DagGongFields({
   return (
     <div className="mt-3 space-y-3 rounded-md border border-indigo-200 bg-indigo-50 p-3 dark:border-indigo-800 dark:bg-indigo-950/30">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-bold text-indigo-900 dark:text-indigo-100">গং/হিস্যা এন্ট্রি #{entryNumber}</p>
+        <p className="text-sm font-bold text-indigo-900 dark:text-indigo-100">
+          গং/হিস্যা এন্ট্রি {toBengaliNumber(entryNumber)}
+        </p>
         <div className="flex flex-wrap items-center justify-end gap-2">
           {previousAllocation && (
             <button
@@ -111,7 +113,7 @@ function DagGongFields({
                 event.stopPropagation();
                 copyPreviousShare();
               }}
-              className="flex items-center gap-1 rounded bg-purple-600 px-3 py-1 text-sm text-white transition hover:bg-purple-700"
+              className="flex items-center gap-1 rounded bg-purple-600 px-2 py-1 text-xs text-white transition hover:bg-purple-700"
               title="উপরের এন্ট্রির অংশ কপি করুন"
             >
               <Copy size={13} /> উপরের এন্ট্রির অংশ কপি করুন
@@ -123,7 +125,7 @@ function DagGongFields({
               event.stopPropagation();
               resetShare();
             }}
-            className="flex items-center justify-center gap-1 rounded bg-yellow-600 p-2 text-sm text-white transition hover:bg-yellow-700"
+            className="flex items-center justify-center gap-1 rounded bg-yellow-600 px-2 py-1 text-xs text-white transition hover:bg-yellow-700"
             title="এই এন্ট্রির হিস্যা খালি করুন"
           >
             <RotateCcw size={13} /> রিসেট
@@ -135,7 +137,7 @@ function DagGongFields({
                 event.stopPropagation();
                 onRemove();
               }}
-              className="flex items-center gap-1 rounded border border-red-300 bg-red-50 px-2 py-1 text-xs text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300"
+              className="flex items-center gap-1 rounded bg-red-600 px-2 py-1 text-xs text-white transition hover:bg-red-700"
             >
               <Trash2 size={13} /> রিমুভ
             </button>
@@ -420,118 +422,118 @@ export default function DagForm({
             const hasGongEntries = !!dag.gongEntries || !!dag.gongAllocations || !!dag.gongAllocation;
 
             return (
-            <div
-              key={index}
-              draggable
-              onDragStart={() => handleDragStart(index)}
-              onDragEnter={() => handleDragEnter(index)}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, index)}
-              onDragEnd={handleDragEnd}
-              className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border transition-all ${
-                draggedIndex === index
-                  ? "border-blue-500 opacity-50 scale-95"
-                  : dragOverIndex === index
-                    ? "border-blue-400 border-dashed scale-105"
-                    : "border-gray-200 dark:border-gray-700"
-              } cursor-move`}
-            >
-              <div className="flex flex-col items-stretch sm:flex-row sm:items-end gap-2 p-3">
-                {/* Drag Handle */}
-                <div className="flex items-center justify-center cursor-grab active:cursor-grabbing sm:w-auto sm:h-[38px]">
-                  <GripVertical size={20} className="text-gray-500" />
-                </div>
+              <div
+                key={index}
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragEnter={() => handleDragEnter(index)}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, index)}
+                onDragEnd={handleDragEnd}
+                className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border transition-all ${
+                  draggedIndex === index
+                    ? "border-blue-500 opacity-50 scale-95"
+                    : dragOverIndex === index
+                      ? "border-blue-400 border-dashed scale-105"
+                      : "border-gray-200 dark:border-gray-700"
+                } cursor-move`}
+              >
+                <div className="flex flex-col items-stretch sm:flex-row sm:items-end gap-2 p-3">
+                  {/* Drag Handle */}
+                  <div className="flex items-center justify-center cursor-grab active:cursor-grabbing sm:w-auto sm:h-[38px]">
+                    <GripVertical size={20} className="text-gray-500" />
+                  </div>
 
-                <div className="flex-1 min-w-0">
-                  <input
-                    type="text"
-                    placeholder="দাগ নং"
-                    value={dag.name}
-                    onChange={(e) => onDagChange(index, "name", e.target.value)}
-                    className={INPUT_BASE}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
-                <div className="flex flex-1 min-w-0 items-center gap-1">
-                  {index > 0 && (
-                    <button
-                      onClick={() => copyLandTypeFromAbove(index)}
-                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-emerald-300 bg-emerald-50 text-emerald-700 transition-all duration-200 hover:-translate-y-0.5 hover:bg-emerald-100 hover:shadow-sm active:translate-y-0 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-900"
-                      title={`উপরের দাগের জমির রকম কপি করুন (${dags[index - 1].landType || "—"})`}
-                      aria-label={`উপরের দাগের জমির রকম কপি করুন (${dags[index - 1].landType || "খালি"})`}
+                  <div className="flex-1 min-w-0">
+                    <input
+                      type="text"
+                      placeholder="দাগ নং"
+                      value={dag.name}
+                      onChange={(e) => onDagChange(index, "name", e.target.value)}
+                      className={INPUT_BASE}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                  <div className="flex flex-1 min-w-0 items-center gap-1">
+                    {index > 0 && (
+                      <button
+                        onClick={() => copyLandTypeFromAbove(index)}
+                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-emerald-300 bg-emerald-50 text-emerald-700 transition-all duration-200 hover:-translate-y-0.5 hover:bg-emerald-100 hover:shadow-sm active:translate-y-0 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-900"
+                        title={`উপরের দাগের জমির রকম কপি করুন (${dags[index - 1].landType || "—"})`}
+                        aria-label={`উপরের দাগের জমির রকম কপি করুন (${dags[index - 1].landType || "খালি"})`}
+                      >
+                        <Tag size={14} />
+                      </button>
+                    )}
+                    <select
+                      aria-label="জমির রকম"
+                      value={dag.landType || ""}
+                      onChange={(e) => onDagChange(index, "landType", e.target.value)}
+                      className={`${INPUT_BASE} min-w-0`}
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <Tag size={14} />
-                    </button>
-                  )}
-                  <select
-                    aria-label="জমির রকম"
-                    value={dag.landType || ""}
-                    onChange={(e) => onDagChange(index, "landType", e.target.value)}
-                    className={`${INPUT_BASE} min-w-0`}
-                    onClick={(e) => e.stopPropagation()}
+                      <option value="">জমির রকম</option>
+                      {landTypes.map((landType) => (
+                        <option key={landType} value={landType}>
+                          {landType}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex flex-1 min-w-0 items-center gap-1">
+                    {index > 0 && (
+                      <button
+                        onClick={() => copyLandFromAbove(index)}
+                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-purple-300 bg-purple-50 text-purple-700 transition-all duration-200 hover:-translate-y-0.5 hover:bg-purple-100 hover:shadow-sm active:translate-y-0 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-200 dark:hover:bg-purple-900"
+                        title={`উপরের দাগের পরিমাণ কপি করুন (${dags[index - 1].land || 0})`}
+                        aria-label={`উপরের দাগের পরিমাণ কপি করুন (${dags[index - 1].land || 0})`}
+                      >
+                        <Copy size={14} />
+                      </button>
+                    )}
+                    <input
+                      type="text"
+                      placeholder="জমি (শতক)"
+                      value={dag.land || ""}
+                      onChange={(e) => onDagChange(index, "land", e.target.value)}
+                      className={`${INPUT_BASE} min-w-0`}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(index, dag.name || `দাগ #${index + 1}`);
+                    }}
+                    className="bg-red-600 text-white px-3 py-2 h-[38px] rounded hover:bg-red-700 transition flex items-center justify-center gap-1"
                   >
-                    <option value="">জমির রকম</option>
-                    {landTypes.map((landType) => (
-                      <option key={landType} value={landType}>
-                        {landType}
-                      </option>
-                    ))}
-                  </select>
+                    <Trash2 size={16} /> <span className="hidden sm:inline">মুছুন</span>
+                  </button>
                 </div>
-                <div className="flex flex-1 min-w-0 items-center gap-1">
-                  {index > 0 && (
-                    <button
-                      onClick={() => copyLandFromAbove(index)}
-                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-purple-300 bg-purple-50 text-purple-700 transition-all duration-200 hover:-translate-y-0.5 hover:bg-purple-100 hover:shadow-sm active:translate-y-0 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-200 dark:hover:bg-purple-900"
-                      title={`উপরের দাগের পরিমাণ কপি করুন (${dags[index - 1].land || 0})`}
-                      aria-label={`উপরের দাগের পরিমাণ কপি করুন (${dags[index - 1].land || 0})`}
-                    >
-                      <Copy size={14} />
-                    </button>
-                  )}
-                  <input
-                    type="text"
-                    placeholder="জমি (শতক)"
-                    value={dag.land || ""}
-                    onChange={(e) => onDagChange(index, "land", e.target.value)}
-                    className={`${INPUT_BASE} min-w-0`}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(index, dag.name || `দাগ #${index + 1}`);
-                  }}
-                  className="bg-red-600 text-white px-3 py-2 h-[38px] rounded hover:bg-red-700 transition flex items-center justify-center gap-1"
-                >
-                  <Trash2 size={16} /> <span className="hidden sm:inline">মুছুন</span>
-                </button>
-              </div>
-              <div className="px-3 pb-3">
-                <label className="flex w-fit items-center gap-2 text-sm font-medium text-indigo-900 dark:text-indigo-100">
-                  <input
-                    type="checkbox"
-                    checked={hasGongEntries}
-                    onChange={(event) =>
-                      onGongChange(
-                        index,
-                        event.target.checked
-                          ? hasGongEntries
-                            ? allocationsForDag
-                            : [{ ownerNames: [] }]
-                          : undefined,
-                      )
-                    }
-                    onClick={(event) => event.stopPropagation()}
-                    className="h-4 w-4 accent-indigo-600"
-                  />
-                  মন্তব্য / গং হিস্যা আছে
-                </label>
-                {hasGongEntries && (
-                  <div className="space-y-2">
-                    {allocationsForDag.map((allocation, entryIndex) => (
+                <div className="px-3 pb-3">
+                  <label className="flex w-fit items-center gap-2 text-sm font-medium text-indigo-900 dark:text-indigo-100">
+                    <input
+                      type="checkbox"
+                      checked={hasGongEntries}
+                      onChange={(event) =>
+                        onGongChange(
+                          index,
+                          event.target.checked
+                            ? hasGongEntries
+                              ? allocationsForDag
+                              : [{ ownerNames: [] }]
+                            : undefined,
+                        )
+                      }
+                      onClick={(event) => event.stopPropagation()}
+                      className="h-4 w-4 accent-indigo-600"
+                    />
+                    মন্তব্য / গং হিস্যা আছে
+                  </label>
+                  {hasGongEntries && (
+                    <div className="space-y-2">
+                      {allocationsForDag.map((allocation, entryIndex) => (
                         <DagGongFields
                           key={entryIndex}
                           allocation={allocation}
@@ -549,21 +551,21 @@ export default function DagForm({
                             onGongChange(index, allocations.length > 0 ? allocations : undefined);
                           }}
                         />
-                    ))}
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onGongChange(index, [...allocationsForDag, { ownerNames: [] }]);
-                      }}
-                      className="mt-2 flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-                    >
-                      <Plus size={16} /> আরেকটি গং/হিস্যা যোগ করুন
-                    </button>
-                  </div>
-                )}
+                      ))}
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onGongChange(index, [...allocationsForDag, { ownerNames: [] }]);
+                        }}
+                        className="mt-2 flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                      >
+                        <Plus size={16} /> আরেকটি গং/হিস্যা যোগ করুন
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
             );
           })}
         </div>
@@ -595,7 +597,9 @@ export default function DagForm({
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-bold text-gray-100 mb-2">সব দাগ মুছে ফেলবেন?</h3>
-                <p className="text-gray-300">আপনি কি নিশ্চিত যে সবগুলো ({dags.length}টি) দাগ মুছে ফেলতে চান?</p>
+                <p className="text-gray-300">
+                  আপনি কি নিশ্চিত যে সবগুলো ({toBengaliNumber(dags.length)}টি) দাগ মুছে ফেলতে চান?
+                </p>
                 <p className="text-sm text-gray-400 mt-2">এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।</p>
               </div>
             </div>
