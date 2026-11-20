@@ -14,6 +14,7 @@ const landTypes = [
   "ভিটি",
   "পুকুর",
   "পুকুরপাড়",
+  "বাঁশঝাড়",
   "খাই",
   "ডোবা",
   "লায়েক পতিত",
@@ -51,14 +52,7 @@ interface DagGongFieldsProps {
   canRemove: boolean;
 }
 
-function DagGongFields({
-  allocation,
-  owners,
-  entryNumber,
-  onChange,
-  onRemove,
-  canRemove,
-}: DagGongFieldsProps) {
+function DagGongFields({ allocation, owners, entryNumber, onChange, onRemove, canRemove }: DagGongFieldsProps) {
   const toggleOwner = (ownerName: string, checked: boolean) => {
     const ownerNames = checked
       ? [...new Set([...allocation.ownerNames, ownerName])]
@@ -461,9 +455,9 @@ export default function DagForm({
                       onGongChange(
                         index,
                         event.target.checked
-                          ? dag.gongEntries ??
-                            dag.gongAllocations ??
-                            (dag.gongAllocation ? [dag.gongAllocation] : [{ ownerNames: [] }])
+                          ? (dag.gongEntries ??
+                              dag.gongAllocations ??
+                              (dag.gongAllocation ? [dag.gongAllocation] : [{ ownerNames: [] }]))
                           : undefined,
                       )
                     }
@@ -481,15 +475,25 @@ export default function DagForm({
                           allocation={allocation}
                           owners={owners}
                           entryNumber={entryIndex + 1}
-                          canRemove={(dag.gongEntries ?? dag.gongAllocations ?? (dag.gongAllocation ? [dag.gongAllocation] : [])).length > 1}
+                          canRemove={
+                            (dag.gongEntries ?? dag.gongAllocations ?? (dag.gongAllocation ? [dag.gongAllocation] : []))
+                              .length > 1
+                          }
                           onChange={(nextAllocation) => {
-                            const allocations = [...(dag.gongEntries ?? dag.gongAllocations ?? (dag.gongAllocation ? [dag.gongAllocation] : []))];
+                            const allocations = [
+                              ...(dag.gongEntries ??
+                                dag.gongAllocations ??
+                                (dag.gongAllocation ? [dag.gongAllocation] : [])),
+                            ];
                             allocations[entryIndex] = nextAllocation;
                             onGongChange(index, allocations);
                           }}
                           onRemove={() => {
-                            const allocations = (dag.gongEntries ?? dag.gongAllocations ?? (dag.gongAllocation ? [dag.gongAllocation] : []))
-                              .filter((_, i) => i !== entryIndex);
+                            const allocations = (
+                              dag.gongEntries ??
+                              dag.gongAllocations ??
+                              (dag.gongAllocation ? [dag.gongAllocation] : [])
+                            ).filter((_, i) => i !== entryIndex);
                             onGongChange(index, allocations.length > 0 ? allocations : undefined);
                           }}
                         />
@@ -500,9 +504,7 @@ export default function DagForm({
                       onClick={(event) => {
                         event.stopPropagation();
                         const allocations =
-                          dag.gongEntries ??
-                          dag.gongAllocations ??
-                          (dag.gongAllocation ? [dag.gongAllocation] : []);
+                          dag.gongEntries ?? dag.gongAllocations ?? (dag.gongAllocation ? [dag.gongAllocation] : []);
                         onGongChange(index, [...allocations, { ownerNames: [] }]);
                       }}
                       className="mt-2 flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
