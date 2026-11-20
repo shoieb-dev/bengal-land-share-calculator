@@ -39,6 +39,17 @@ export const ResultTable = ({
     thousandth: false,
     point: false,
   });
+  const hasAnyRemarks = useMemo(
+    () =>
+      dags.some(
+        (dag) =>
+          Boolean(dag.remarks?.trim()) ||
+          Boolean(dag.gongEntries) ||
+          Boolean(dag.gongAllocations) ||
+          Boolean(dag.gongAllocation),
+      ),
+    [dags],
+  );
 
   // ─── Mutation: দ্বৈত মডেল ───
   // • কার্যকর হিস্যা (শতকরা/সহস্রাংশ): originalShare / totalActiveShare → যোগফল ১০০%
@@ -478,31 +489,56 @@ export const ResultTable = ({
       {/* -------------------- SECONDARY TABLE: DAG WISE LAND AMOUNT -------------------- */}
       <h3 className="font-bold text-lg mb-2">২. দাগভিত্তিক জমির পরিমাণ</h3>
       <div className="overflow-x-auto mb-6">
-        <table className="dag-amount-table w-full border-collapse border border-[#4b5563]">
+        <table
+          className={`dag-amount-table ${hasAnyRemarks ? "dag-amount-table--with-remarks" : "dag-amount-table--without-remarks"} w-full border-collapse border border-[#4b5563]`}
+        >
           <thead>
             <tr className="bg-[#e5e7eb]">
-              <th className="border border-[#4b5563] p-2 text-center" style={{ width: "5%", whiteSpace: "nowrap" }}>
+              <th
+                className="border border-[#4b5563] p-2 text-center"
+                style={{ width: hasAnyRemarks ? "5%" : "6%", whiteSpace: "nowrap" }}
+              >
                 ক্রম
               </th>
-              <th className="border border-[#4b5563] p-2 text-left" style={{ width: "8%", whiteSpace: "nowrap" }}>
+              <th
+                className="border border-[#4b5563] p-2 text-left"
+                style={{ width: hasAnyRemarks ? "8%" : "10%", whiteSpace: "nowrap" }}
+              >
                 দাগ নং
               </th>
-              <th className="border border-[#4b5563] p-2 text-left" style={{ width: "9%", whiteSpace: "nowrap" }}>
+              <th
+                className="border border-[#4b5563] p-2 text-left"
+                style={{ width: hasAnyRemarks ? "9%" : "12%", whiteSpace: "nowrap" }}
+              >
                 জমির রকম
               </th>
-              <th className="border border-[#4b5563] p-2 text-left" style={{ width: "38%", whiteSpace: "nowrap" }}>
-                মন্তব্য
-              </th>
-              <th className="border border-[#4b5563] p-2 text-right" style={{ width: "10%", whiteSpace: "nowrap" }}>
+              {hasAnyRemarks && (
+                <th className="border border-[#4b5563] p-2 text-left" style={{ width: "38%", whiteSpace: "nowrap" }}>
+                  মন্তব্য
+                </th>
+              )}
+              <th
+                className="border border-[#4b5563] p-2 text-right"
+                style={{ width: hasAnyRemarks ? "10%" : "12%", whiteSpace: "nowrap" }}
+              >
                 জমি (শতক)
               </th>
-              <th className="border border-[#4b5563] p-2 text-right" style={{ width: "12%", whiteSpace: "nowrap" }}>
+              <th
+                className="border border-[#4b5563] p-2 text-right"
+                style={{ width: hasAnyRemarks ? "12%" : "22%", whiteSpace: "nowrap" }}
+              >
                 জমি (গন্ডা-কড়া)
               </th>
-              <th className="border border-[#4b5563] p-2 text-right" style={{ width: "9%", whiteSpace: "nowrap" }}>
+              <th
+                className="border border-[#4b5563] p-2 text-right"
+                style={{ width: hasAnyRemarks ? "9%" : "18%", whiteSpace: "nowrap" }}
+              >
                 জমি (কাঠা)
               </th>
-              <th className="border border-[#4b5563] p-2 text-right" style={{ width: "9%", whiteSpace: "nowrap" }}>
+              <th
+                className="border border-[#4b5563] p-2 text-right"
+                style={{ width: hasAnyRemarks ? "9%" : "20%", whiteSpace: "nowrap" }}
+              >
                 জমি (বর্গফুট)
               </th>
             </tr>
@@ -514,36 +550,38 @@ export const ResultTable = ({
                   <td className="border border-[#4b5563] p-2 text-center">{toBengaliNumber(i + 1)}</td>
                   <td className="border border-[#4b5563] p-2">{toBengaliNumber(row.name)}</td>
                   <td className="border border-[#4b5563] p-2">{row.landType || "নাল"}</td>
-                  <td className="border border-[#4b5563] p-2">
-                    {(() => {
-                      const gongEntries =
-                        row.gongEntries ??
-                        row.gongAllocations ??
-                        (row.gongAllocation ? [row.gongAllocation] : undefined);
-                      const displayEntries =
-                        gongEntries?.filter((entry) => entry.ownerNames.some((name) => name.trim())) ?? [];
+                  {hasAnyRemarks && (
+                    <td className="border border-[#4b5563] p-2">
+                      {(() => {
+                        const gongEntries =
+                          row.gongEntries ??
+                          row.gongAllocations ??
+                          (row.gongAllocation ? [row.gongAllocation] : undefined);
+                        const displayEntries =
+                          gongEntries?.filter((entry) => entry.ownerNames.some((name) => name.trim())) ?? [];
 
-                      if (displayEntries.length === 0) return row.remarks || "—";
+                        if (displayEntries.length === 0) return row.remarks || "—";
 
-                      return (
-                        <div className="gong-remarks-cell">
-                          {displayEntries.map((entry, entryIndex) => {
-                            const ownerNames = entry.ownerNames.filter((name) => name.trim()).join(", ");
-                            const share = formatGongShare(entry);
-                            return (
-                              <div
-                                key={`${ownerNames}-${entryIndex}`}
-                                className="gong-remarks-entry border-b border-gray-300 py-1 last:border-b-0 first:pt-0 last:pb-0"
-                              >
-                                {ownerNames}
-                                {share ? ` (${share})` : " (সম্পূর্ণ দাগ)"}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      );
-                    })()}
-                  </td>
+                        return (
+                          <div className="gong-remarks-cell">
+                            {displayEntries.map((entry, entryIndex) => {
+                              const ownerNames = entry.ownerNames.filter((name) => name.trim()).join(", ");
+                              const share = formatGongShare(entry);
+                              return (
+                                <div
+                                  key={`${ownerNames}-${entryIndex}`}
+                                  className="gong-remarks-entry border-b border-gray-300 py-1 last:border-b-0 first:pt-0 last:pb-0"
+                                >
+                                  {ownerNames}
+                                  {share ? ` (${share})` : " (সম্পূর্ণ দাগ)"}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+                    </td>
+                  )}
                   <LandMeasurementCells land={row.land} />
                 </tr>
               );
