@@ -561,7 +561,7 @@ export const ResultTable = ({
             checked={showZeroLandRows}
             onChange={(event) => setShowZeroLandRows(event.target.checked)}
           />
-          শূন্য (০.০০) হিস্যার এন্ট্রি দেখান
+          ০.০০ অংশপ্রাপ্তদের হিসাব দেখান
         </label>
       </div>
       <div className="overflow-x-auto mb-6">
