@@ -28,10 +28,7 @@ interface OwnerFormProps {
   ) => void;
   onDeleteHeir: (ownerIndex: number, heirId: string) => void;
   onApplyOwnerPreset: (ownerIndex: number, owners: Owner[]) => void;
-  onApplyHeirTemplate: (
-    ownerIndex: number,
-    heirs: Array<Pick<Heir, "name" | "relation" | "mutated">>,
-  ) => void;
+  onApplyHeirTemplate: (ownerIndex: number, heirs: Array<Pick<Heir, "name" | "relation" | "mutated">>) => void;
   onDeleteAll: () => void;
   onDeleteSelected: (indexes: number[]) => void;
 }
@@ -193,7 +190,7 @@ export const OwnerForm = ({
               title="সিলেক্ট করা মালিক মুছে ফেলুন"
             >
               <Trash2 size={16} /> সিলেক্ট করাগুলো মুছুন
-              {selectedIndexes.size > 0 && ` (${selectedIndexes.size})`}
+              {selectedIndexes.size > 0 && ` (${toBengaliNumber(selectedIndexes.size)})`}
             </button>
           )}
         </div>
@@ -477,7 +474,7 @@ export const OwnerForm = ({
       <ConfirmDialog
         open={showDeleteAllConfirm}
         title="সব মালিক মুছে ফেলবেন?"
-        message={`আপনি কি নিশ্চিত যে সবগুলো (${owners.length}টি) মালিক মুছে ফেলতে চান? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।`}
+        message={`আপনি কি নিশ্চিত যে সবগুলো (${toBengaliNumber(owners.length)}টি) মালিক মুছে ফেলতে চান? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।`}
         confirmLabel="সব মুছে ফেলুন"
         destructive
         onConfirm={() => {
@@ -489,7 +486,7 @@ export const OwnerForm = ({
       <ConfirmDialog
         open={showDeleteSelectedConfirm}
         title="সিলেক্ট করা মালিক মুছে ফেলবেন?"
-        message={`আপনি কি নিশ্চিত যে সিলেক্ট করা ${selectedIndexes.size}টি মালিক মুছে ফেলতে চান?`}
+        message={`আপনি কি নিশ্চিত যে সিলেক্ট করা ${toBengaliNumber(selectedIndexes.size)}টি মালিক মুছে ফেলতে চান?`}
         confirmLabel="সিলেক্ট করাগুলো মুছুন"
         destructive
         onConfirm={confirmDeleteSelected}

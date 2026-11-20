@@ -232,6 +232,9 @@ option {
     line-height: 1.2em;
     break-inside: avoid;
     page-break-inside: avoid;
+    font-size: 9px !important;
+    width: 100%;
+    max-width: 100%;
   }
   #printable-area .overflow-x-auto {
     overflow: visible !important;
