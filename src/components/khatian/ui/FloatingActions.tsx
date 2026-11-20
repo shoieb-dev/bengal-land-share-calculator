@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowUp, Moon, Printer, Sun } from "lucide-react";
+import { ArrowDown, ArrowUp, Moon, Printer, Sun } from "lucide-react";
 import type { Theme } from "@/hooks/useTheme";
 
 interface FloatingActionsProps {
@@ -32,17 +32,20 @@ export default function FloatingActions({
 
   return (
     <>
-      {showBackToTop && (
-        <button
-          type="button"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          title="উপরে যান"
-          aria-label="পৃষ্ঠার উপরে যান"
-          className="print-hide fixed z-50 right-3 md:right-5 bottom-4 flex items-center justify-center w-11 h-11 md:w-12 md:h-12 rounded-full border shadow-lg backdrop-blur transition active:scale-95 bg-white/90 border-gray-300 text-gray-700 hover:bg-gray-100 dark:bg-gray-800/90 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
-        >
-          <ArrowUp size={20} />
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={() =>
+          window.scrollTo({
+            top: showBackToTop ? 0 : document.documentElement.scrollHeight,
+            behavior: "smooth",
+          })
+        }
+        title={showBackToTop ? "উপরে যান" : "নিচে যান"}
+        aria-label={showBackToTop ? "পৃষ্ঠার উপরে যান" : "পৃষ্ঠার নিচে যান"}
+        className="print-hide fixed z-50 right-3 md:right-5 bottom-4 flex items-center justify-center w-11 h-11 md:w-12 md:h-12 rounded-full border shadow-lg backdrop-blur transition active:scale-95 bg-white/90 border-gray-300 text-gray-700 hover:bg-gray-100 dark:bg-gray-800/90 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+      >
+        {showBackToTop ? <ArrowUp size={20} /> : <ArrowDown size={20} />}
+      </button>
       <button
         type="button"
         onClick={onToggleTheme}
