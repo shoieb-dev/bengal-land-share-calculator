@@ -33,6 +33,7 @@ export const ResultTable = ({
 }: ResultTableProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
+  const [showZeroLandRows, setShowZeroLandRows] = useState(false);
   const [visibleOwnerColumns, setVisibleOwnerColumns] = useState({
     percentage: false,
     thousandth: false,
@@ -552,7 +553,17 @@ export const ResultTable = ({
       </div>
 
       {/* -------------------- THIRD TABLE: DAG WISE DISTRIBUTION (Existing Result Table) -------------------- */}
-      <h3 className="font-bold text-lg mb-2">৩. দাগভিত্তিক জমির বন্টন</h3>
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="font-bold text-lg">৩. দাগভিত্তিক জমির বন্টন</h3>
+        <label className="print-hide inline-flex cursor-pointer items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={showZeroLandRows}
+            onChange={(event) => setShowZeroLandRows(event.target.checked)}
+          />
+          শূন্য (০.০০) হিস্যার এন্ট্রি দেখান
+        </label>
+      </div>
       <div className="overflow-x-auto mb-6">
         <table className="w-full border-collapse border border-[#4b5563]">
           <thead>
@@ -568,6 +579,8 @@ export const ResultTable = ({
           </thead>
           <tbody>
             {result.map((row, i) => {
+              if (!showZeroLandRows && row.land <= 0.0001) return null;
+
               const isRowMutated = owners.find((o) => o.name === row.ownerName)?.mutated;
               const isRowDeceased = !!row.isDeceased && !row.isHeir;
               const isRowHeir = !!row.isHeir;
