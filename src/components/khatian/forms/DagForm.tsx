@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Trash2, Plus, Copy, Tag, Zap, GripVertical, XCircle } from "lucide-react";
+import { Trash2, Plus, Copy, Tag, Zap, GripVertical, XCircle, RotateCcw } from "lucide-react";
 import BulkAddDagModal from "../modals/BulkAddDagModal";
 import { anaOptions, gondaOptions, koraOptions, krantiOptions, tilOptions } from "@/lib/constants/options";
 import { Dag, DagGongAllocation, Owner } from "@/lib/types";
@@ -45,6 +45,7 @@ const gongShareFields: {
 
 interface DagGongFieldsProps {
   allocation: DagGongAllocation;
+  previousAllocation?: DagGongAllocation;
   owners: Owner[];
   entryNumber: number;
   onChange: (allocation: DagGongAllocation) => void;
@@ -52,7 +53,15 @@ interface DagGongFieldsProps {
   canRemove: boolean;
 }
 
-function DagGongFields({ allocation, owners, entryNumber, onChange, onRemove, canRemove }: DagGongFieldsProps) {
+function DagGongFields({
+  allocation,
+  previousAllocation,
+  owners,
+  entryNumber,
+  onChange,
+  onRemove,
+  canRemove,
+}: DagGongFieldsProps) {
   const toggleOwner = (ownerName: string, checked: boolean) => {
     const ownerNames = checked
       ? [...new Set([...allocation.ownerNames, ownerName])]
@@ -67,22 +76,71 @@ function DagGongFields({ allocation, owners, entryNumber, onChange, onRemove, ca
     });
   };
 
+  const copyPreviousShare = () => {
+    if (!previousAllocation) return;
+    onChange({
+      ...allocation,
+      ana: previousAllocation.ana,
+      gonda: previousAllocation.gonda,
+      kora: previousAllocation.kora,
+      kranti: previousAllocation.kranti,
+      til: previousAllocation.til,
+    });
+  };
+
+  const resetShare = () => {
+    onChange({
+      ...allocation,
+      ana: undefined,
+      gonda: undefined,
+      kora: undefined,
+      kranti: undefined,
+      til: undefined,
+    });
+  };
+
   return (
     <div className="mt-3 space-y-3 rounded-md border border-indigo-200 bg-indigo-50 p-3 dark:border-indigo-800 dark:bg-indigo-950/30">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-bold text-indigo-900 dark:text-indigo-100">গং/হিস্যা এন্ট্রি #{entryNumber}</p>
-        {canRemove && (
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {previousAllocation && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                copyPreviousShare();
+              }}
+              className="flex items-center gap-1 rounded bg-purple-600 px-3 py-1 text-sm text-white transition hover:bg-purple-700"
+              title="উপরের এন্ট্রির অংশ কপি করুন"
+            >
+              <Copy size={13} /> উপরের এন্ট্রির অংশ কপি করুন
+            </button>
+          )}
           <button
             type="button"
             onClick={(event) => {
               event.stopPropagation();
-              onRemove();
+              resetShare();
             }}
-            className="flex items-center gap-1 rounded border border-red-300 bg-red-50 px-2 py-1 text-xs text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300"
+            className="flex items-center justify-center gap-1 rounded bg-yellow-600 p-2 text-sm text-white transition hover:bg-yellow-700"
+            title="এই এন্ট্রির হিস্যা খালি করুন"
           >
-            <Trash2 size={13} /> রিমুভ
+            <RotateCcw size={13} /> রিসেট
           </button>
-        )}
+          {canRemove && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onRemove();
+              }}
+              className="flex items-center gap-1 rounded border border-red-300 bg-red-50 px-2 py-1 text-xs text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300"
+            >
+              <Trash2 size={13} /> রিমুভ
+            </button>
+          )}
+        </div>
       </div>
       <fieldset>
         <legend className="mb-2 text-sm font-semibold text-indigo-900 dark:text-indigo-100">
@@ -356,7 +414,12 @@ export default function DagForm({
         </div>
       ) : (
         <div className="space-y-2">
-          {dags.map((dag, index) => (
+          {dags.map((dag, index) => {
+            const allocationsForDag =
+              dag.gongEntries ?? dag.gongAllocations ?? (dag.gongAllocation ? [dag.gongAllocation] : []);
+            const hasGongEntries = !!dag.gongEntries || !!dag.gongAllocations || !!dag.gongAllocation;
+
+            return (
             <div
               key={index}
               draggable
@@ -450,14 +513,14 @@ export default function DagForm({
                 <label className="flex w-fit items-center gap-2 text-sm font-medium text-indigo-900 dark:text-indigo-100">
                   <input
                     type="checkbox"
-                    checked={!!dag.gongEntries || !!dag.gongAllocations || !!dag.gongAllocation}
+                    checked={hasGongEntries}
                     onChange={(event) =>
                       onGongChange(
                         index,
                         event.target.checked
-                          ? (dag.gongEntries ??
-                              dag.gongAllocations ??
-                              (dag.gongAllocation ? [dag.gongAllocation] : [{ ownerNames: [] }]))
+                          ? hasGongEntries
+                            ? allocationsForDag
+                            : [{ ownerNames: [] }]
                           : undefined,
                       )
                     }
@@ -466,46 +529,32 @@ export default function DagForm({
                   />
                   মন্তব্য / গং হিস্যা আছে
                 </label>
-                {(dag.gongEntries ?? dag.gongAllocations ?? (dag.gongAllocation ? [dag.gongAllocation] : null)) && (
+                {hasGongEntries && (
                   <div className="space-y-2">
-                    {(dag.gongEntries ?? dag.gongAllocations ?? (dag.gongAllocation ? [dag.gongAllocation] : [])).map(
-                      (allocation, entryIndex) => (
+                    {allocationsForDag.map((allocation, entryIndex) => (
                         <DagGongFields
                           key={entryIndex}
                           allocation={allocation}
+                          previousAllocation={entryIndex > 0 ? allocationsForDag[entryIndex - 1] : undefined}
                           owners={owners}
                           entryNumber={entryIndex + 1}
-                          canRemove={
-                            (dag.gongEntries ?? dag.gongAllocations ?? (dag.gongAllocation ? [dag.gongAllocation] : []))
-                              .length > 1
-                          }
+                          canRemove={allocationsForDag.length > 1}
                           onChange={(nextAllocation) => {
-                            const allocations = [
-                              ...(dag.gongEntries ??
-                                dag.gongAllocations ??
-                                (dag.gongAllocation ? [dag.gongAllocation] : [])),
-                            ];
+                            const allocations = [...allocationsForDag];
                             allocations[entryIndex] = nextAllocation;
                             onGongChange(index, allocations);
                           }}
                           onRemove={() => {
-                            const allocations = (
-                              dag.gongEntries ??
-                              dag.gongAllocations ??
-                              (dag.gongAllocation ? [dag.gongAllocation] : [])
-                            ).filter((_, i) => i !== entryIndex);
+                            const allocations = allocationsForDag.filter((_, i) => i !== entryIndex);
                             onGongChange(index, allocations.length > 0 ? allocations : undefined);
                           }}
                         />
-                      ),
-                    )}
+                    ))}
                     <button
                       type="button"
                       onClick={(event) => {
                         event.stopPropagation();
-                        const allocations =
-                          dag.gongEntries ?? dag.gongAllocations ?? (dag.gongAllocation ? [dag.gongAllocation] : []);
-                        onGongChange(index, [...allocations, { ownerNames: [] }]);
+                        onGongChange(index, [...allocationsForDag, { ownerNames: [] }]);
                       }}
                       className="mt-2 flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
                     >
@@ -515,7 +564,8 @@ export default function DagForm({
                 )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
