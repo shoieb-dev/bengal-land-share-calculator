@@ -1,26 +1,35 @@
 import { anaOptions, gondaOptions, koraOptions, krantiOptions, tilOptions } from "../constants/options";
 import { DagGongAllocation } from "../types";
 
+const cleanSymbolLabel = (rawLabel: string): string => {
+  return rawLabel.replace(/\s*\([^)]*\)/g, " ").trim();
+};
+
 export const formatGongShare = (entry: DagGongAllocation): string => {
   const parts: string[] = [];
 
   if ((entry.ana ?? 0) > 0) {
-    parts.push(anaOptions.find((option) => option.value === entry.ana)?.label ?? "");
+    const raw = anaOptions.find((option) => option.value === entry.ana)?.label ?? "";
+    parts.push(cleanSymbolLabel(raw));
   }
   if ((entry.gonda ?? 0) > 0) {
-    parts.push(gondaOptions.find((option) => option.value === entry.gonda)?.label ?? "");
+    const raw = gondaOptions.find((option) => option.value === entry.gonda)?.label ?? "";
+    parts.push(cleanSymbolLabel(raw));
   }
   if ((entry.kora ?? 0) > 0) {
-    parts.push(koraOptions.find((option) => option.value === entry.kora)?.label ?? "");
+    const raw = koraOptions.find((option) => option.value === entry.kora)?.label ?? "";
+    parts.push(cleanSymbolLabel(raw));
   }
   if ((entry.kranti ?? 0) > 0) {
-    parts.push(krantiOptions.find((option) => option.value === entry.kranti)?.label ?? "");
+    const raw = krantiOptions.find((option) => option.value === entry.kranti)?.label ?? "";
+    parts.push(cleanSymbolLabel(raw));
   }
   if ((entry.til ?? 0) > 0) {
-    parts.push(tilOptions.find((option) => option.value === entry.til)?.label ?? "");
+    const raw = tilOptions.find((option) => option.value === entry.til)?.label ?? "";
+    parts.push(cleanSymbolLabel(raw));
   }
 
-  return parts.filter(Boolean).join(" ");
+  return parts.filter(Boolean).join("\u2009");
 };
 
 export const formatGongRemarks = (entries: DagGongAllocation[] | undefined): string => {
