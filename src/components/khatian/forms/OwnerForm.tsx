@@ -231,20 +231,8 @@ export const OwnerForm = ({
                     : "border-gray-200 dark:border-gray-700"
               } cursor-move`}
             >
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <label className="flex items-center gap-2 cursor-pointer select-none text-sm font-semibold text-gray-700 dark:text-gray-200">
-                    <input
-                      type="checkbox"
-                      checked={selectedIndexes.has(index)}
-                      onChange={() => toggleOwnerSelection(index)}
-                      onClick={(event) => event.stopPropagation()}
-                      className="w-4 h-4 rounded accent-red-600 cursor-pointer"
-                    />
-                    মালিক সিলেক্ট করুন
-                  </label>
-                  <OwnerPresetDropdown onApply={(presetOwners) => onApplyOwnerPreset(index, presetOwners)} />
-                </div>
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <OwnerPresetDropdown onApply={(presetOwners) => onApplyOwnerPreset(index, presetOwners)} />
 
                 {index > 0 && (
                   <button
@@ -364,6 +352,16 @@ export const OwnerForm = ({
 
               <div className="mt-2 text-sm text-gray-600 dark:text-gray-300 flex items-center justify-between flex-wrap gap-2">
                 <span className="flex items-center gap-2 flex-wrap">
+                  <label className="flex items-center gap-2 cursor-pointer select-none text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    <input
+                      type="checkbox"
+                      checked={selectedIndexes.has(index)}
+                      onChange={() => toggleOwnerSelection(index)}
+                      onClick={(event) => event.stopPropagation()}
+                      className="w-4 h-4 rounded accent-red-600 cursor-pointer"
+                    />
+                    মালিক সিলেক্ট করুন
+                  </label>
                   <label
                     className="flex items-center gap-2 text-xs font-semibold cursor-pointer select-none px-2 py-1 rounded-full border border-gray-300 dark:border-gray-600 transition print-hide"
                     onClick={(e) => e.stopPropagation()}
