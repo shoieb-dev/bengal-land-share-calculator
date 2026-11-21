@@ -512,25 +512,31 @@ export default function DagForm({
                   </button>
                 </div>
                 <div className="px-3 pb-3">
-                  <label className="flex w-fit items-center gap-2 text-sm font-medium text-indigo-900 dark:text-indigo-100">
-                    <input
-                      type="checkbox"
-                      checked={hasGongEntries}
-                      onChange={(event) =>
-                        onGongChange(
-                          index,
-                          event.target.checked
-                            ? hasGongEntries
-                              ? allocationsForDag
-                              : [{ ownerNames: [] }]
-                            : undefined,
-                        )
-                      }
-                      onClick={(event) => event.stopPropagation()}
-                      className="h-4 w-4 accent-indigo-600"
-                    />
-                    মন্তব্য / গং হিস্যা আছে
-                  </label>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <label className="flex w-fit items-center gap-2 text-sm font-medium text-indigo-900 dark:text-indigo-100">
+                      <input
+                        type="checkbox"
+                        checked={hasGongEntries}
+                        onChange={(event) =>
+                          onGongChange(
+                            index,
+                            event.target.checked
+                              ? hasGongEntries
+                                ? allocationsForDag
+                                : [{ ownerNames: [] }]
+                              : undefined,
+                          )
+                        }
+                        onClick={(event) => event.stopPropagation()}
+                        className="h-4 w-4 accent-indigo-600"
+                      />
+                      মন্তব্য / গং হিস্যা আছে
+                    </label>
+                    <span className="text-xs text-gray-500 dark:text-gray-500">
+                      দাগ ক্রম: {toBengaliNumber(index + 1)}
+                    </span>
+                  </div>
+
                   {hasGongEntries && (
                     <div className="space-y-2">
                       {allocationsForDag.map((allocation, entryIndex) => (
