@@ -403,7 +403,7 @@ export const OwnerForm = ({
                   </label>
                 </span>
                 <span>মালিকানা: {toBengaliNumber((calculateShareRatio(owner) * 100).toFixed(2))}%</span>
-                <span className="text-xs text-gray-500 dark:text-gray-500">ক্রম: {index + 1}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-500">ক্রম: {toBengaliNumber(index + 1)}</span>
               </div>
               {/* ─── ওয়ারিশ এডিটর (মৃত মালিকের জন্য) ─── */}
               {owner.deceased && (
