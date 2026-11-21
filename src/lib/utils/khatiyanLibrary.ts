@@ -11,7 +11,7 @@ export interface SavedKhatiyanEntry {
 }
 
 const LIBRARY_KEY = "khatiyan_library_v1";
-const MAX_ENTRIES = 20;
+const MAX_ENTRIES = 50;
 
 const generateId = (): string => {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -35,8 +35,7 @@ export const buildEntryName = (header: KhatiyanHeader, existingNames: string[] =
   return `${base} (${i})`;
 };
 
-export const isWorkspaceEmpty = (owners: Owner[], dags: Dag[]): boolean =>
-  owners.length === 0 && dags.length === 0;
+export const isWorkspaceEmpty = (owners: Owner[], dags: Dag[]): boolean => owners.length === 0 && dags.length === 0;
 
 export const listEntries = (): SavedKhatiyanEntry[] => {
   try {
@@ -82,7 +81,12 @@ export const saveEntry = (data: {
 
     const entry: SavedKhatiyanEntry = {
       id: generateId(),
-      name: data.name?.trim() || buildEntryName(data.header, entries.map((e) => e.name)),
+      name:
+        data.name?.trim() ||
+        buildEntryName(
+          data.header,
+          entries.map((e) => e.name),
+        ),
       header: data.header,
       owners: data.owners,
       dags: data.dags,
@@ -158,10 +162,7 @@ export const importLibrary = (json: string): { imported: number; skipped: number
       const e = item as SavedKhatiyanEntry;
       let name = typeof e.name === "string" && e.name.trim() ? e.name.trim() : "";
       if (!name || existingNames.has(name)) {
-        name = buildEntryName(e.header ?? ({} as KhatiyanHeader), [
-          ...existingNames,
-          ...valid.map((v) => v.name),
-        ]);
+        name = buildEntryName(e.header ?? ({} as KhatiyanHeader), [...existingNames, ...valid.map((v) => v.name)]);
       }
       existingNames.add(name);
       valid.push({

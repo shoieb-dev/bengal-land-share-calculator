@@ -498,10 +498,7 @@ export default function KhatiyanCalculator() {
       if (dag.land <= 0) {
         newErrors.push({ type: "dag", message: `দাগ #${i + 1} এর জমির পরিমাণ ০ এর বেশি হতে হবে` });
       }
-      const gongEntries =
-        dag.gongEntries ??
-        dag.gongAllocations ??
-        (dag.gongAllocation ? [dag.gongAllocation] : []);
+      const gongEntries = dag.gongEntries ?? dag.gongAllocations ?? (dag.gongAllocation ? [dag.gongAllocation] : []);
       if (gongEntries.length > 0) {
         let totalEntryRatio = 0;
         gongEntries.forEach((entry, entryIndex) => {
@@ -722,18 +719,16 @@ export default function KhatiyanCalculator() {
       normalized.map(({ originalShare }) => originalShare),
     );
 
-    const ownersWithTotalLand = normalized.map(
-      ({ owner, originalShare, effectiveShare }, ownerIndex) => {
-        const total = dagAllocations.reduce((sum, dagAllocation) => sum + dagAllocation[ownerIndex], 0);
-        return {
-          ...owner,
-          totalLand: parseFloat(total.toFixed(4)),
-          shareRatio: effectiveShare,
-          originalShare,
-          effectiveShare,
-        };
-      },
-    );
+    const ownersWithTotalLand = normalized.map(({ owner, originalShare, effectiveShare }, ownerIndex) => {
+      const total = dagAllocations.reduce((sum, dagAllocation) => sum + dagAllocation[ownerIndex], 0);
+      return {
+        ...owner,
+        totalLand: parseFloat(total.toFixed(4)),
+        shareRatio: effectiveShare,
+        originalShare,
+        effectiveShare,
+      };
+    });
 
     dags.forEach((dag, dagIndex) => {
       ownersWithTotalLand.forEach((owner, ownerIndex) => {
@@ -806,6 +801,9 @@ export default function KhatiyanCalculator() {
   const totalSharePercentage = useMemo(() => {
     return owners.reduce((sum, owner) => sum + calculateShareRatio(owner) * 100, 0);
   }, [owners]);
+  const totalShareAna = (totalSharePercentage / 100) * 16;
+  const anaDifference = totalShareAna - 16;
+  const totalShareAnaStatus = anaDifference > 1e-10 ? "over" : anaDifference < -1e-10 ? "under" : "full";
 
   // ─── Mutation-aware totals: সক্রিয়দের মূল অংশ ও খারিজ অংশ (ওয়ারিশের নামজারিসহ) ───
   const { activeSharePercentage, mutatedSharePercentage, hasMutatedOwners } = useMemo(() => {
@@ -969,22 +967,22 @@ export default function KhatiyanCalculator() {
           {/* Total Share Indicator */}
           <div
             className={`p-3 rounded-lg mb-4 ${
-              totalSharePercentage > 100
+              totalShareAnaStatus === "over"
                 ? "bg-red-100 border border-red-300 dark:bg-red-900 dark:border-red-700"
-                : totalSharePercentage === 100
+                : totalShareAnaStatus === "full"
                   ? "bg-green-100 border border-green-300 dark:bg-green-900 dark:border-green-700"
-                  : "bg-blue-100 border border-blue-300 dark:bg-blue-900 dark:border-blue-700"
+                  : "bg-amber-100 border border-amber-300 dark:bg-amber-900 dark:border-amber-700"
             }`}
           >
             <div className="flex items-center justify-between">
               <span className="font-semibold text-gray-700 dark:text-gray-200 text-sm md:text-base">মোট মালিকানা:</span>
               <span
                 className={`text-lg md:text-xl font-bold ${
-                  totalSharePercentage > 100
+                  totalShareAnaStatus === "over"
                     ? "text-red-600 dark:text-red-400"
-                    : totalSharePercentage === 100
+                    : totalShareAnaStatus === "full"
                       ? "text-green-600 dark:text-green-400"
-                      : "text-blue-600 dark:text-blue-400"
+                      : "text-amber-600 dark:text-amber-400"
                 }`}
               >
                 {toBengaliNumber(totalSharePercentage.toFixed(2))}%
@@ -993,11 +991,11 @@ export default function KhatiyanCalculator() {
             <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2 mt-2">
               <div
                 className={`h-2 rounded-full transition-all ${
-                  totalSharePercentage > 100
+                  totalShareAnaStatus === "over"
                     ? "bg-red-500"
-                    : totalSharePercentage === 100
+                    : totalShareAnaStatus === "full"
                       ? "bg-green-500"
-                      : "bg-blue-500"
+                      : "bg-amber-500"
                 }`}
                 style={{ width: `${Math.min(totalSharePercentage, 100)}%` }}
               />
@@ -1091,6 +1089,9 @@ export default function KhatiyanCalculator() {
 
       <FloatingActions
         showPrint={showResult && result.length > 0}
+        totalShareAna={totalShareAna}
+        totalSharePercentage={totalSharePercentage}
+        totalShareAnaStatus={totalShareAnaStatus}
         theme={theme}
         onToggleTheme={toggleTheme}
         mounted={mounted}

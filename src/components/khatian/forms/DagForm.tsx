@@ -105,44 +105,19 @@ function DagGongFields({
         <p className="text-sm font-bold text-indigo-900 dark:text-indigo-100">
           গং/হিস্যা এন্ট্রি {toBengaliNumber(entryNumber)}
         </p>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          {previousAllocation && (
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                copyPreviousShare();
-              }}
-              className="flex items-center gap-1 rounded bg-purple-600 px-2 py-1 text-xs text-white transition hover:bg-purple-700"
-              title="উপরের এন্ট্রির অংশ কপি করুন"
-            >
-              <Copy size={13} /> উপরের এন্ট্রির অংশ কপি করুন
-            </button>
-          )}
+
+        {canRemove && (
           <button
             type="button"
             onClick={(event) => {
               event.stopPropagation();
-              resetShare();
+              onRemove();
             }}
-            className="flex items-center justify-center gap-1 rounded bg-yellow-600 px-2 py-1 text-xs text-white transition hover:bg-yellow-700"
-            title="এই এন্ট্রির হিস্যা খালি করুন"
+            className="flex items-center gap-1 rounded bg-red-600 px-2 py-1 text-xs text-white transition hover:bg-red-700"
           >
-            <RotateCcw size={13} /> রিসেট
+            <Trash2 size={13} /> রিমুভ
           </button>
-          {canRemove && (
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onRemove();
-              }}
-              className="flex items-center gap-1 rounded bg-red-600 px-2 py-1 text-xs text-white transition hover:bg-red-700"
-            >
-              <Trash2 size={13} /> রিমুভ
-            </button>
-          )}
-        </div>
+        )}
       </div>
       <fieldset>
         <legend className="mb-2 text-sm font-semibold text-indigo-900 dark:text-indigo-100">
@@ -169,9 +144,35 @@ function DagGongFields({
       </fieldset>
 
       <div>
-        <p className="mb-2 text-sm font-semibold text-indigo-900 dark:text-indigo-100">
-          দাগের নির্দিষ্ট হিস্যা (ঐচ্ছিক)
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2 my-4">
+          <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-100">দাগের নির্দিষ্ট হিস্যা (ঐচ্ছিক)</p>
+          <div className="flex flex-wrap items-center gap-2">
+            {previousAllocation && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  copyPreviousShare();
+                }}
+                className="flex items-center gap-1 rounded bg-purple-600 px-2 py-1 text-xs text-white transition hover:bg-purple-700"
+                title="উপরের এন্ট্রির অংশ কপি করুন"
+              >
+                <Copy size={13} /> উপরের এন্ট্রির অংশ কপি করুন
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                resetShare();
+              }}
+              className="flex items-center justify-center gap-1 rounded bg-yellow-600 px-2 py-1 text-xs text-white transition hover:bg-yellow-700"
+              title="এই এন্ট্রির হিস্যা খালি করুন"
+            >
+              <RotateCcw size={13} /> রিসেট
+            </button>
+          </div>
+        </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {gongShareFields.map(({ key, label, options }) => (
             <label key={key} className="text-xs text-gray-700 dark:text-gray-300">
@@ -512,25 +513,31 @@ export default function DagForm({
                   </button>
                 </div>
                 <div className="px-3 pb-3">
-                  <label className="flex w-fit items-center gap-2 text-sm font-medium text-indigo-900 dark:text-indigo-100">
-                    <input
-                      type="checkbox"
-                      checked={hasGongEntries}
-                      onChange={(event) =>
-                        onGongChange(
-                          index,
-                          event.target.checked
-                            ? hasGongEntries
-                              ? allocationsForDag
-                              : [{ ownerNames: [] }]
-                            : undefined,
-                        )
-                      }
-                      onClick={(event) => event.stopPropagation()}
-                      className="h-4 w-4 accent-indigo-600"
-                    />
-                    মন্তব্য / গং হিস্যা আছে
-                  </label>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <label className="flex w-fit items-center gap-2 text-sm font-medium text-indigo-900 dark:text-indigo-100">
+                      <input
+                        type="checkbox"
+                        checked={hasGongEntries}
+                        onChange={(event) =>
+                          onGongChange(
+                            index,
+                            event.target.checked
+                              ? hasGongEntries
+                                ? allocationsForDag
+                                : [{ ownerNames: [] }]
+                              : undefined,
+                          )
+                        }
+                        onClick={(event) => event.stopPropagation()}
+                        className="h-4 w-4 accent-indigo-600"
+                      />
+                      মন্তব্য / গং হিস্যা আছে
+                    </label>
+                    <span className="text-xs text-gray-500 dark:text-gray-500">
+                      দাগ ক্রম: {toBengaliNumber(index + 1)}
+                    </span>
+                  </div>
+
                   {hasGongEntries && (
                     <div className="space-y-2">
                       {allocationsForDag.map((allocation, entryIndex) => (
