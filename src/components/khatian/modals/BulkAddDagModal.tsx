@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { X, Plus } from "lucide-react";
-import { parseNumber } from "@/lib/conversions/numberConversion";
+import { parseNumber, toBengaliNumber } from "@/lib/conversions/numberConversion";
 import { showToast } from "@/lib/utils/toast";
 
 interface BulkAddDagModalProps {
@@ -24,6 +24,9 @@ export default function BulkAddDagModal({ show, onClose, onAdd }: BulkAddDagModa
     .split(/[,\s]+/)
     .map((amount) => amount.trim())
     .filter((amount) => amount.length > 0);
+  const parsedAmounts = landAmounts.map((amount) => parseNumber(amount));
+  const validAmounts = parsedAmounts.filter((amount) => Number.isFinite(amount) && amount > 0);
+  const totalLand = validAmounts.reduce((total, amount) => total + amount, 0);
 
   const handleAdd = () => {
     if (numbers.length === 0 || landAmounts.length === 0) {
@@ -36,7 +39,6 @@ export default function BulkAddDagModal({ show, onClose, onAdd }: BulkAddDagModa
       return;
     }
 
-    const parsedAmounts = landAmounts.map((amount) => parseNumber(amount));
     if (parsedAmounts.some((amount) => !Number.isFinite(amount) || amount <= 0)) {
       showToast("সঠিক পরিমাণ লিখুন", "error");
       return;
@@ -85,9 +87,7 @@ export default function BulkAddDagModal({ show, onClose, onAdd }: BulkAddDagModa
 
           {/* Land Amount */}
           <div>
-            <label className="block text-gray-300 mb-2 text-sm">
-              জমির পরিমাণ (শতক; কমা বা স্পেস দিয়ে আলাদা করুন)
-            </label>
+            <label className="block text-gray-300 mb-2 text-sm">জমির পরিমাণ (শতক; কমা বা স্পেস দিয়ে আলাদা করুন)</label>
             <input
               type="text"
               value={landAmount}
@@ -109,6 +109,7 @@ export default function BulkAddDagModal({ show, onClose, onAdd }: BulkAddDagModa
                     ? `: ${numbers.map((number, index) => `${number} দাগে ${landAmounts[index]} শতক`).join(", ")}`
                     : `; ${landAmounts.length} টি জমির পরিমাণ দেওয়া হয়েছে, দাগের সংখ্যার সঙ্গে মিলতে হবে`}
               </p>
+              <p className="text-blue-100 font-semibold mt-1">মোট জমি: {toBengaliNumber(totalLand.toFixed(2))} শতক</p>
             </div>
           )}
         </div>
