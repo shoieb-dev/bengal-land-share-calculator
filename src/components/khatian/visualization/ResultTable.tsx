@@ -50,6 +50,7 @@ export const ResultTable = ({
       ),
     [dags],
   );
+  const totalDagLand = useMemo(() => dags.reduce((sum, dag) => sum + dag.land, 0), [dags]);
 
   // ─── Mutation: দ্বৈত মডেল ───
   // • কার্যকর হিস্যা (শতকরা/সহস্রাংশ): originalShare / totalActiveShare → যোগফল ১০০%
@@ -587,6 +588,15 @@ export const ResultTable = ({
               );
             })}
           </tbody>
+          <tfoot>
+            <tr className="dag-amount-total-row bg-[#e5e7eb] font-bold">
+              <td className="border border-[#4b5563] p-2 text-center"></td>
+              <td className="border border-[#4b5563] p-2 whitespace-nowrap">{toBengaliNumber(dags.length)}টি দাগ</td>
+              <td className="border border-[#4b5563] p-2">মোট</td>
+              {hasAnyRemarks && <td className="border border-[#4b5563] p-2 text-left">—</td>}
+              <LandMeasurementCells land={totalDagLand} />
+            </tr>
+          </tfoot>
         </table>
       </div>
 

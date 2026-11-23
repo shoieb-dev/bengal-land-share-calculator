@@ -148,6 +148,11 @@ option {
   background-color: #fff;
 }
 
+.dag-amount-total-row {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
 @page {
   margin: 10mm 5mm 10mm;
 
@@ -235,6 +240,12 @@ option {
     font-size: 9px !important;
     width: 100%;
     max-width: 100%;
+  }
+  #printable-area .dag-amount-total-row {
+    font-weight: 700 !important;
+    background-color: #e5e7eb !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   #printable-area .overflow-x-auto {
     overflow: visible !important;
