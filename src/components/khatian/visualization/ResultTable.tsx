@@ -587,9 +587,7 @@ export const ResultTable = ({
                 </tr>
               );
             })}
-          </tbody>
-          {dags.length > 1 && (
-            <tfoot>
+            {dags.length > 1 && (
               <tr className="dag-amount-total-row bg-[#e5e7eb] font-bold">
                 <td className="border border-[#4b5563] p-2 text-center"></td>
                 <td className="border border-[#4b5563] p-2 whitespace-nowrap">{toBengaliNumber(dags.length)}টি দাগ</td>
@@ -597,8 +595,8 @@ export const ResultTable = ({
                 {hasAnyRemarks && <td className="border border-[#4b5563] p-2 text-left">—</td>}
                 <LandMeasurementCells land={totalDagLand} />
               </tr>
-            </tfoot>
-          )}
+            )}
+          </tbody>
         </table>
       </div>
 
