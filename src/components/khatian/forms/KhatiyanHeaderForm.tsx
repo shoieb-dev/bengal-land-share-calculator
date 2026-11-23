@@ -1,5 +1,5 @@
 import { KhatiyanHeader } from "@/lib/types";
-import { FileText } from "lucide-react";
+import { Eye, FileText } from "lucide-react";
 import { bangladeshDistricts, surveyTypes } from "@/lib/constants/options";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 import { INPUT_BASE, LABEL_BASE } from "./formStyles";
@@ -17,9 +17,9 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
     header.khatiyanNo ? `খতিয়ান নং: ${toBengaliNumber(header.khatiyanNo)}` : undefined,
     header.mouja ? `মৌজা: ${header.mouja}` : undefined,
     header.jlNo ? `জে. এল নং: ${toBengaliNumber(header.jlNo)}` : undefined,
-    `রে: সা: নং: ${header.reSaNo?.trim() ? toBengaliNumber(header.reSaNo) : ""}`,
+    header.reSaNo?.trim() ? `রে: সা: নং: ${toBengaliNumber(header.reSaNo)}` : undefined,
     header.correspondingKhatiyanNo?.trim()
-      ? `সংশ্লিষ্ট খতিয়ান নং: ${header.correspondingKhatiyanNo.trim()}`
+      ? `সংশ্লিষ্ট খতিয়ান নং: ${toBengaliNumber(header.correspondingKhatiyanNo.trim())}`
       : undefined,
   ].filter((part): part is string => Boolean(part));
 
@@ -154,16 +154,39 @@ export default function KhatiyanHeaderForm({ header, onChange }: KhatiyanHeaderF
 
       {/* Summary Display */}
       {(summaryParts.length > 0 || header.remarks?.trim()) && (
-        <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded border border-indigo-200 dark:border-gray-200">
+        <div className="mt-4 overflow-hidden rounded-xl border border-indigo-200/80 bg-white/90 shadow-sm dark:border-indigo-700/70 dark:bg-gray-900/70">
+          <div className="flex items-center gap-2 border-b border-indigo-100 bg-linear-to-r from-indigo-50 to-purple-50 px-3 py-2.5 dark:border-indigo-800 dark:from-indigo-950/70 dark:to-purple-950/50">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-sm dark:bg-indigo-500">
+              <Eye size={15} />
+            </span>
+            <div>
+              <p className="text-sm font-bold text-indigo-800 dark:text-indigo-200">খতিয়ান প্রিভিউ</p>
+              <p className="text-[11px] text-indigo-500 dark:text-indigo-300">এখানে আপনার দেওয়া তথ্যের সংক্ষিপ্ত রূপ দেখুন</p>
+            </div>
+          </div>
+
+          <div className="p-3">
           {summaryParts.length > 0 && (
-            <p className="text-gray-700 dark:text-gray-300 text-sm">{summaryParts.join(" · ")}</p>
+            <div className="flex flex-wrap gap-2">
+              {summaryParts.map((part) => (
+                <span
+                  key={part}
+                  className="rounded-lg border border-indigo-100 bg-indigo-50/80 px-2.5 py-1 text-xs font-medium leading-5 text-indigo-950 shadow-sm dark:border-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-100"
+                >
+                  {part}
+                </span>
+              ))}
+            </div>
           )}
           {header.remarks?.trim() && (
-            <p className="mt-1 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
-              <span className="font-semibold">মন্তব্য: </span>
-              {header.remarks.trim()}
-            </p>
+            <div className="mt-3 rounded-lg border-l-4 border-purple-400 bg-purple-50/70 px-3 py-2.5 dark:border-purple-500 dark:bg-purple-950/30">
+              <p className="text-xs font-semibold text-purple-700 dark:text-purple-300">মন্তব্য</p>
+              <p className="mt-0.5 whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-200">
+                {header.remarks.trim()}
+              </p>
+            </div>
           )}
+          </div>
         </div>
       )}
     </div>
