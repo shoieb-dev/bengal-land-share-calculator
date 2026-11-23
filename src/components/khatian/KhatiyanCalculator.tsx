@@ -59,6 +59,7 @@ import {
   FileText,
   Layout,
   LibraryBig,
+  LoaderCircle,
   Redo2,
   RotateCcw,
   Save,
@@ -76,6 +77,9 @@ export default function KhatiyanCalculator() {
   const [result, setResult] = useState<ResultRow[]>([]);
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [showResult, setShowResult] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const isCalculatingRef = useRef(false);
+  const resultRef = useRef<HTMLDivElement>(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState<DeleteModalType>({ show: false, type: null, index: -1, name: "" });
   const [resetModal, setResetModal] = useState<ResetModalType>({ show: false });
@@ -699,74 +703,92 @@ export default function KhatiyanCalculator() {
     setResetModal({ show: true });
   };
 
-  const calculateResult = () => {
-    const validationErrors = validate();
-    setErrors(validationErrors);
+  const calculateResult = async () => {
+    if (isCalculatingRef.current) return;
 
-    if (validationErrors.length > 0) {
-      setShowResult(false);
-      setShowErrorModal(true);
-      return;
-    }
+    isCalculatingRef.current = true;
+    setIsCalculating(true);
 
-    const newResult: ResultRow[] = [];
+    await new Promise((resolve) => window.setTimeout(resolve, 250));
 
-    // ─── Mutation: দ্বৈত মডেল ───
-    const normalized = normalizeShares(owners);
-    const dagAllocations = allocateDagLand(
-      owners,
-      dags,
-      normalized.map(({ originalShare }) => originalShare),
-    );
+    try {
+      const validationErrors = validate();
+      setErrors(validationErrors);
 
-    const ownersWithTotalLand = normalized.map(({ owner, originalShare, effectiveShare }, ownerIndex) => {
-      const total = dagAllocations.reduce((sum, dagAllocation) => sum + dagAllocation[ownerIndex], 0);
-      return {
-        ...owner,
-        totalLand: parseFloat(total.toFixed(4)),
-        shareRatio: effectiveShare,
-        originalShare,
-        effectiveShare,
-      };
-    });
+      if (validationErrors.length > 0) {
+        setShowResult(false);
+        setShowErrorModal(true);
+        return;
+      }
 
-    dags.forEach((dag, dagIndex) => {
-      ownersWithTotalLand.forEach((owner, ownerIndex) => {
-        const land = parseFloat(dagAllocations[dagIndex][ownerIndex].toFixed(4));
+      const newResult: ResultRow[] = [];
 
-        // মালিকের মূল রো (মৃত হলে muted + [মৃত] ট্যাগ দিয়ে দেখানো হবে)
-        newResult.push({
-          dagName: dag.name,
-          landType: dag.landType || "নাল",
-          ownerName: owner.name,
-          land,
-          isDeceased: owner.deceased,
-        });
+      // ─── Mutation: দ্বৈত মডেল ───
+      const normalized = normalizeShares(owners);
+      const dagAllocations = allocateDagLand(
+        owners,
+        dags,
+        normalized.map(({ originalShare }) => originalShare),
+      );
 
-        // ─── ওয়ারিশ বণ্টন: মৃত মালিকের জমি তার ওয়ারিশদের মধ্যে ভাগ ───
-        if (owner.deceased && owner.heirs && owner.heirs.length > 0) {
-          const heirShares = computeHeirShares(owner.heirs);
-          owner.heirs.forEach((heir) => {
-            const share = heirShares.shares[heir.id] ?? 0;
-            newResult.push({
-              dagName: dag.name,
-              landType: dag.landType || "নাল",
-              ownerName: heir.name,
-              land: parseFloat((land * share).toFixed(4)),
-              isHeir: true,
-              isHeirMutated: heir.mutated,
-              parentOwner: owner.name,
-              relation: heir.relation,
-            });
-          });
-        }
+      const ownersWithTotalLand = normalized.map(({ owner, originalShare, effectiveShare }, ownerIndex) => {
+        const total = dagAllocations.reduce((sum, dagAllocation) => sum + dagAllocation[ownerIndex], 0);
+        return {
+          ...owner,
+          totalLand: parseFloat(total.toFixed(4)),
+          shareRatio: effectiveShare,
+          originalShare,
+          effectiveShare,
+        };
       });
-    });
 
-    setResult(newResult);
-    setOwners(ownersWithTotalLand);
-    setShowResult(true);
-    setErrors([]);
+      dags.forEach((dag, dagIndex) => {
+        ownersWithTotalLand.forEach((owner, ownerIndex) => {
+          const land = parseFloat(dagAllocations[dagIndex][ownerIndex].toFixed(4));
+
+          // মালিকের মূল রো (মৃত হলে muted + [মৃত] ট্যাগ দিয়ে দেখানো হবে)
+          newResult.push({
+            dagName: dag.name,
+            landType: dag.landType || "নাল",
+            ownerName: owner.name,
+            land,
+            isDeceased: owner.deceased,
+          });
+
+          // ─── ওয়ারিশ বণ্টন: মৃত মালিকের জমি তার ওয়ারিশদের মধ্যে ভাগ ───
+          if (owner.deceased && owner.heirs && owner.heirs.length > 0) {
+            const heirShares = computeHeirShares(owner.heirs);
+            owner.heirs.forEach((heir) => {
+              const share = heirShares.shares[heir.id] ?? 0;
+              newResult.push({
+                dagName: dag.name,
+                landType: dag.landType || "নাল",
+                ownerName: heir.name,
+                land: parseFloat((land * share).toFixed(4)),
+                isHeir: true,
+                isHeirMutated: heir.mutated,
+                parentOwner: owner.name,
+                relation: heir.relation,
+              });
+            });
+          }
+        });
+      });
+
+      setResult(newResult);
+      setOwners(ownersWithTotalLand);
+      setShowResult(true);
+      setErrors([]);
+
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        });
+      });
+    } finally {
+      isCalculatingRef.current = false;
+      setIsCalculating(false);
+    }
   };
 
   // ─── Wire keyboard-shortcut actions (Alt+N / Alt+Shift+N / Ctrl+S / Ctrl+O / Ctrl+Enter / Esc) ───
@@ -1060,9 +1082,20 @@ export default function KhatiyanCalculator() {
             {/* Calculate Button */}
             <button
               onClick={calculateResult}
-              className="flex-1 bg-linear-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition shadow-lg flex items-center justify-center gap-2 text-base md:text-lg"
+              disabled={isCalculating}
+              className="flex-1 bg-linear-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition-all duration-150 active:scale-[0.99] disabled:cursor-wait disabled:opacity-80 shadow-lg flex items-center justify-center gap-2 text-base md:text-lg"
             >
-              <Calculator size={22} /> ফলাফল হিসাব করুন
+              {isCalculating ? (
+                <>
+                  <LoaderCircle size={22} className="animate-spin" />
+                  হিসাব হচ্ছে...
+                </>
+              ) : (
+                <>
+                  <Calculator size={22} />
+                  ফলাফল হিসাব করুন
+                </>
+              )}
             </button>
 
             {/* Reset Button */}
@@ -1076,14 +1109,16 @@ export default function KhatiyanCalculator() {
         </div>
         {/* Result Section */}
         {showResult && result.length > 0 && (
-          <ResultTable
-            header={header}
-            dags={dags}
-            result={result}
-            owners={owners}
-            calculateShareRatio={calculateShareRatio}
-            totalSharePercentage={totalSharePercentage}
-          />
+          <div ref={resultRef}>
+            <ResultTable
+              header={header}
+              dags={dags}
+              result={result}
+              owners={owners}
+              calculateShareRatio={calculateShareRatio}
+              totalSharePercentage={totalSharePercentage}
+            />
+          </div>
         )}
       </div>
 
