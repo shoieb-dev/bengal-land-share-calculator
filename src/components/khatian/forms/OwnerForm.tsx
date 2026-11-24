@@ -541,6 +541,8 @@ const HeirRows = ({
               <option value="husband">স্বামী</option>
               <option value="son">ছেলে</option>
               <option value="daughter">মেয়ে</option>
+              <option value="brother">ভাই</option>
+              <option value="sister">বোন</option>
             </select>
             <label
               className="flex items-center gap-1 text-xs font-semibold cursor-pointer select-none shrink-0 print-hide"
@@ -593,8 +595,8 @@ const HeirRows = ({
       })}
       {heirShares.unallocated > 0.001 && (
         <p className="text-xs text-amber-700 dark:text-amber-400">
-          ⚠ সন্তান-সন্ততি না থাকায় বাকি {toBengaliNumber((heirShares.unallocated * 100).toFixed(2))}% অংশ
-          (বাবা/মা/ভাই-বোন) v1-এ স্বয়ংক্রিয়ভাবে হিসাব করা হয়নি।
+          ⚠ অবশিষ্ট {toBengaliNumber((heirShares.unallocated * 100).toFixed(2))}% অংশ
+          জটিল উত্তরাধিকার নীতির কারণে স্বয়ংক্রিয়ভাবে হিসাব করা হয়নি।
         </p>
       )}
     </div>

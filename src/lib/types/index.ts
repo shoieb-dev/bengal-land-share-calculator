@@ -1,4 +1,4 @@
-export type HeirRelation = "wife" | "husband" | "son" | "daughter";
+export type HeirRelation = "wife" | "husband" | "son" | "daughter" | "brother" | "sister";
 
 export type Heir = {
   id: string;
