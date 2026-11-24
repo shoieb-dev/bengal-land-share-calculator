@@ -689,6 +689,8 @@ function HeirTemplateManager({ templates, searchTerm }: { templates: HeirTemplat
                       <option value="husband">স্বামী</option>
                       <option value="son">ছেলে</option>
                       <option value="daughter">মেয়ে</option>
+                      <option value="brother">ভাই</option>
+                      <option value="sister">বোন</option>
                     </select>
                     <button
                       type="button"

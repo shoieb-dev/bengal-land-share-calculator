@@ -3,13 +3,13 @@ import { Heir } from "../types";
 /**
  * ওয়ারিশদের অংশ হিসাব (ইসলামি ফারায়েয — সাধারণ ক্ষেত্র)।
  *
- * ✅ কভার করে: স্ত্রী / স্বামী / ছেলে / মেয়ে
+ * ✅ কভার করে: স্ত্রী / স্বামী / ছেলে / মেয়ে / ভাই / বোন
  *   - স্ত্রী: সন্তান থাকলে ১/৮, না থাকলে ১/৪
  *   - স্বামী: সন্তান থাকলে ১/৪, না থাকলে ১/২
  *   - অবশিষ্টাংশ: ছেলে ২ ভাগ, মেয়ে ১ ভাগ অনুপাতে
+ *   - সন্তান না থাকলে অবশিষ্টাংশ: ভাই ২ ভাগ, বোন ১ ভাগ অনুপাতে
  *
- * ⚠️ জটিল ক্ষেত্র (বাবা/মা/দাদা/নানি/ভাই-বোন) v1-এ হিসাব করা হয়নি —
- *    সন্তান না থাকলে বাকি অংশ unallocated হিসেবে ফেরত আসে।
+ * ⚠️ জটিল ক্ষেত্র (বাবা/মা/দাদা/নানি) v1-এ আলাদাভাবে হিসাব করা হয়নি।
  */
 export interface HeirShareResult {
   /** heirId → মূল ফারায়েয অংশ */
@@ -29,6 +29,8 @@ export const HEIR_RELATION_LABELS: Record<Heir["relation"], string> = {
   husband: "স্বামী",
   son: "ছেলে",
   daughter: "মেয়ে",
+  brother: "ভাই",
+  sister: "বোন",
 };
 
 export const computeHeirShares = (heirs: Heir[]): HeirShareResult => {
@@ -36,6 +38,8 @@ export const computeHeirShares = (heirs: Heir[]): HeirShareResult => {
   const husband = heirs.filter((h) => h.relation === "husband");
   const sons = heirs.filter((h) => h.relation === "son");
   const daughters = heirs.filter((h) => h.relation === "daughter");
+  const brothers = heirs.filter((h) => h.relation === "brother");
+  const sisters = heirs.filter((h) => h.relation === "sister");
   const hasChildren = sons.length + daughters.length > 0;
 
   const shares: Record<string, number> = {};
@@ -61,9 +65,17 @@ export const computeHeirShares = (heirs: Heir[]): HeirShareResult => {
     daughters.forEach((h) => {
       shares[h.id] = residue / units;
     });
+  } else if (brothers.length + sisters.length > 0) {
+    // সন্তান না থাকলে অবশিষ্টাংশে ভাই-বোন আসাবা হিসাবে ২:১ অনুপাতে পায়
+    const units = brothers.length * 2 + sisters.length;
+    brothers.forEach((h) => {
+      shares[h.id] = (residue * 2) / units;
+    });
+    sisters.forEach((h) => {
+      shares[h.id] = residue / units;
+    });
   } else {
-    // সন্তান নেই — বাকি অংশ (বাবা/মা/ভাই-বোন) v1-এ হিসাব করা হয়নি
-    unallocated = Math.max(0, 1 - fixedTotal);
+    unallocated = residue;
   }
 
   // ─── নামজারি (mutation): সক্রিয় ওয়ারিশদের মধ্যে পুনর্বণ্টন ───
