@@ -132,7 +132,7 @@ export const OwnerForm = ({
   };
 
   return (
-    <div className="bg-linear-to-br from-green-50 to-emerald-100 dark:from-green-900 dark:to-emerald-900 p-4 md:p-5 rounded-lg shadow-lg mb-6 border border-green-200 dark:border-green-700">
+    <div className="bg-linear-to-br from-green-50 to-emerald-100 dark:from-green-900 dark:to-emerald-900 p-4 md:p-5 rounded-lg shadow-lg mb-6 border border-green-200 dark:border-green-700 overflow-x-clip">
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <h3 className="font-bold text-lg text-green-800 dark:text-green-200 flex items-center">
           <span className="bg-green-600 dark:bg-green-700 text-white rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">
@@ -407,17 +407,17 @@ export const OwnerForm = ({
               </div>
               {/* ─── ওয়ারিশ এডিটর (মৃত মালিকের জন্য) ─── */}
               {owner.deceased && (
-                <div className="mt-2 p-3 bg-violet-50 dark:bg-violet-900/30 rounded border border-violet-200 dark:border-violet-700 print-hide">
-                  <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                <div className="mt-2 min-w-0 overflow-x-clip p-3 bg-violet-50 dark:bg-violet-900/30 rounded border border-violet-200 dark:border-violet-700 print-hide">
+                  <div className="mb-2 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-sm font-semibold text-violet-800 dark:text-violet-200">ওয়ারিশ তালিকা</span>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
                       <HeirTemplateDropdown onApply={(heirs) => onApplyHeirTemplate(index, heirs)} />
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onAddHeir(index);
                         }}
-                        className="bg-violet-600 text-white px-3 py-1 rounded hover:bg-violet-700 transition flex items-center gap-1 text-xs"
+                        className="flex w-full items-center justify-center gap-1 rounded bg-violet-600 px-3 py-1 text-xs text-white transition hover:bg-violet-700 sm:w-auto sm:shrink-0"
                       >
                         <Plus size={14} /> ওয়ারিশ যোগ করুন
                       </button>
@@ -516,80 +516,84 @@ const HeirRows = ({
   const ownerRatio = calculateShareRatio(owner);
 
   return (
-    <div className="space-y-2">
+    <div className="min-w-0 space-y-2">
       {heirs.map((heir) => {
         const share = heirShares.shares[heir.id] ?? 0;
         const effShare = heirShares.effectiveShares[heir.id] ?? 0;
         const isMutated = !!heir.mutated;
         return (
-          <div key={heir.id} className={`flex items-center gap-2 ${isMutated ? "opacity-70" : ""}`}>
-            <input
-              type="text"
-              placeholder="ওয়ারিশের নাম"
-              value={heir.name}
-              onChange={(e) => onHeirChange(ownerIndex, heir.id, "name", e.target.value)}
-              onClick={(e) => e.stopPropagation()}
-              className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded text-sm placeholder:text-gray-400 dark:placeholder:text-gray-400"
-            />
-            <select
-              value={heir.relation}
-              onChange={(e) => onHeirChange(ownerIndex, heir.id, "relation", e.target.value)}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 rounded text-sm"
-            >
-              <option value="wife">স্ত্রী</option>
-              <option value="husband">স্বামী</option>
-              <option value="son">ছেলে</option>
-              <option value="daughter">মেয়ে</option>
-              <option value="brother">ভাই</option>
-              <option value="sister">বোন</option>
-            </select>
-            <label
-              className="flex items-center gap-1 text-xs font-semibold cursor-pointer select-none shrink-0 print-hide"
-              onClick={(e) => e.stopPropagation()}
-            >
+          <div key={heir.id} className={`flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center ${isMutated ? "opacity-70" : ""}`}>
+            <div className="flex min-w-0 gap-2 sm:flex-1">
               <input
-                type="checkbox"
-                checked={isMutated}
-                onChange={(e) => onHeirChange(ownerIndex, heir.id, "mutated", e.target.checked)}
+                type="text"
+                placeholder="ওয়ারিশের নাম"
+                value={heir.name}
+                onChange={(e) => onHeirChange(ownerIndex, heir.id, "name", e.target.value)}
                 onClick={(e) => e.stopPropagation()}
-                className="w-3.5 h-3.5 rounded accent-orange-600 cursor-pointer"
+                className="min-w-0 flex-1 rounded border border-gray-300 bg-white p-2 text-sm text-gray-900 placeholder:text-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder:text-gray-400"
               />
-              <span className={isMutated ? "text-orange-700 dark:text-orange-400" : "text-gray-500 dark:text-gray-400"}>
-                নামজারি
+              <select
+                value={heir.relation}
+                onChange={(e) => onHeirChange(ownerIndex, heir.id, "relation", e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                className="w-24 min-w-0 shrink-0 rounded border border-gray-300 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+              >
+                <option value="wife">স্ত্রী</option>
+                <option value="husband">স্বামী</option>
+                <option value="son">ছেলে</option>
+                <option value="daughter">মেয়ে</option>
+                <option value="brother">ভাই</option>
+                <option value="sister">বোন</option>
+              </select>
+            </div>
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 sm:flex-nowrap sm:justify-end">
+              <label
+                className="flex shrink-0 cursor-pointer select-none items-center gap-1 text-xs font-semibold print-hide"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <input
+                  type="checkbox"
+                  checked={isMutated}
+                  onChange={(e) => onHeirChange(ownerIndex, heir.id, "mutated", e.target.checked)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-3.5 h-3.5 rounded accent-orange-600 cursor-pointer"
+                />
+                <span className={isMutated ? "text-orange-700 dark:text-orange-400" : "text-gray-500 dark:text-gray-400"}>
+                  নামজারি
+                </span>
+              </label>
+              <span
+                className={`w-28 shrink-0 whitespace-nowrap text-right text-xs font-semibold ${
+                  isMutated ? "text-gray-400 line-through" : "text-violet-700 dark:text-violet-300"
+                }`}
+              >
+                {heirShares.hasMutated && !isMutated ? (
+                  <>
+                    {toBengaliNumber((effShare * 100).toFixed(2))}%
+                    <span className="block text-[10px] text-gray-500 dark:text-gray-400">
+                      (মূল {toBengaliNumber((share * 100).toFixed(2))}%)
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    {toBengaliNumber((share * 100).toFixed(2))}%
+                    <span className="block text-[10px] text-gray-500 dark:text-gray-400">
+                      ({toBengaliNumber((share * ownerRatio * 100).toFixed(2))}% মালিকানা)
+                    </span>
+                  </>
+                )}
               </span>
-            </label>
-            <span
-              className={`text-xs font-semibold whitespace-nowrap w-28 text-right ${
-                isMutated ? "text-gray-400 line-through" : "text-violet-700 dark:text-violet-300"
-              }`}
-            >
-              {heirShares.hasMutated && !isMutated ? (
-                <>
-                  {toBengaliNumber((effShare * 100).toFixed(2))}%
-                  <span className="block text-[10px] text-gray-500 dark:text-gray-400">
-                    (মূল {toBengaliNumber((share * 100).toFixed(2))}%)
-                  </span>
-                </>
-              ) : (
-                <>
-                  {toBengaliNumber((share * 100).toFixed(2))}%
-                  <span className="block text-[10px] text-gray-500 dark:text-gray-400">
-                    ({toBengaliNumber((share * ownerRatio * 100).toFixed(2))}% মালিকানা)
-                  </span>
-                </>
-              )}
-            </span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteHeir(ownerIndex, heir.id);
-              }}
-              className="text-red-600 hover:text-red-800 p-1 shrink-0"
-              title="ওয়ারিশ মুছুন"
-            >
-              <Trash2 size={16} />
-            </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteHeir(ownerIndex, heir.id);
+                }}
+                className="ml-auto shrink-0 p-1 text-red-600 hover:text-red-800"
+                title="ওয়ারিশ মুছুন"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
           </div>
         );
       })}
