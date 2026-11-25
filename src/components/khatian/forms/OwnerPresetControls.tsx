@@ -764,7 +764,7 @@ export function HeirTemplateDropdown({
   const templates = usePresetList(loadHeirTemplates);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex w-full items-center gap-2 sm:w-auto">
       <select
         defaultValue=""
         onChange={(event) => {
@@ -776,7 +776,7 @@ export function HeirTemplateDropdown({
           }
         }}
         aria-label="ওয়ারিশ প্রিসেট প্রয়োগ"
-        className="min-w-40 rounded border border-violet-300 bg-white px-2 py-1.5 text-xs text-gray-800 dark:border-violet-700 dark:bg-gray-700 dark:text-gray-100"
+        className="w-full min-w-40 rounded border border-violet-300 bg-white px-2 py-1.5 text-xs text-gray-800 dark:border-violet-700 dark:bg-gray-700 dark:text-gray-100 sm:w-auto"
       >
         <option value="">ওয়ারিশ প্রিসেট</option>
         {templates.map((template) => (
