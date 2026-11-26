@@ -231,18 +231,25 @@ export const OwnerForm = ({
                     : "border-gray-200 dark:border-gray-700"
               } cursor-move`}
             >
-              <div className="mb-2 flex flex-wrap items-center gap-2">
-                <OwnerPresetDropdown onApply={(presetOwners) => onApplyOwnerPreset(index, presetOwners)} />
+              <div className="mb-2 flex min-w-0 flex-wrap items-center justify-between gap-2">
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <OwnerPresetDropdown onApply={(presetOwners) => onApplyOwnerPreset(index, presetOwners)} />
 
-                {index > 0 && (
-                  <button
-                    onClick={() => copyFromAbove(index)}
-                    className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition flex items-center gap-1 text-sm"
-                    title="উপরের মালিকের অংশ কপি করুন"
-                  >
-                    <Copy size={14} /> উপরের মালিকের অংশ কপি করুন
-                  </button>
-                )}
+                  {index > 0 && (
+                    <button
+                      onClick={() => copyFromAbove(index)}
+                      className="flex min-w-0 items-center gap-1 rounded bg-purple-600 px-3 py-1 text-sm text-white transition hover:bg-purple-700"
+                      title="উপরের মালিকের অংশ কপি করুন"
+                    >
+                      <Copy size={14} className="shrink-0" /> উপরের মালিকের অংশ কপি করুন
+                    </button>
+                  )}
+                </div>
+                <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2">
+                  <span className="inline-flex max-w-full items-center rounded-md border border-green-300 bg-green-50 px-2.5 py-1 text-sm font-semibold text-green-800 dark:border-green-600 dark:bg-green-950/40 dark:text-green-200">
+                    মালিকানা: {toBengaliNumber((calculateShareRatio(owner) * 100).toFixed(2))}%
+                  </span>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-8 gap-2 md:gap-3 items-center">
@@ -350,20 +357,30 @@ export const OwnerForm = ({
                 </div>
               </div>
 
-              <div className="mt-2 text-sm text-gray-600 dark:text-gray-300 flex items-center justify-between flex-wrap gap-2">
-                <span className="flex items-center gap-2 flex-wrap">
-                  <label className="flex items-center gap-2 cursor-pointer select-none text-sm font-semibold text-gray-700 dark:text-gray-200">
+              <div className="mt-2 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-2">
+                  <label
+                    className={`inline-flex w-fit max-w-full min-w-0 cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-full border px-2 py-1 text-xs font-semibold transition ${
+                      selectedIndexes.has(index)
+                        ? "border-red-500 bg-red-50 text-red-800 dark:border-red-500/70 dark:bg-red-950/30 dark:text-red-300"
+                        : "border-gray-300 bg-white/70 text-gray-700 dark:border-gray-600 dark:bg-gray-800/40 dark:text-gray-200"
+                    }`}
+                  >
                     <input
                       type="checkbox"
                       checked={selectedIndexes.has(index)}
                       onChange={() => toggleOwnerSelection(index)}
                       onClick={(event) => event.stopPropagation()}
-                      className="w-4 h-4 rounded accent-red-600 cursor-pointer"
+                      className="h-4 w-4 shrink-0 cursor-pointer rounded accent-red-600"
                     />
-                    মালিক সিলেক্ট করুন
+                    <span className="min-w-0">মালিক সিলেক্ট করুন</span>
                   </label>
                   <label
-                    className="flex items-center gap-2 text-xs font-semibold cursor-pointer select-none px-2 py-1 rounded-full border border-gray-300 dark:border-gray-600 transition print-hide"
+                    className={`inline-flex w-fit max-w-full min-w-0 cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-full border px-2 py-1 text-xs font-semibold transition print-hide ${
+                      owner.mutated
+                        ? "border-orange-500 bg-orange-50 text-orange-800 dark:border-orange-500/70 dark:bg-orange-950/30 dark:text-orange-300"
+                        : "border-gray-300 bg-white/70 text-gray-700 dark:border-gray-600 dark:bg-gray-800/40 dark:text-gray-200"
+                    }`}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <input
@@ -371,19 +388,17 @@ export const OwnerForm = ({
                       checked={!!owner.mutated}
                       onChange={(e) => onOwnerChange(index, "mutated", e.target.checked)}
                       onClick={(e) => e.stopPropagation()}
-                      className="w-4 h-4 rounded accent-orange-600 cursor-pointer"
+                      className="h-4 w-4 shrink-0 cursor-pointer rounded accent-orange-600"
                     />
-                    <span
-                      className={
-                        owner.mutated ? "text-orange-700 dark:text-orange-400" : "text-gray-500 dark:text-gray-400"
-                      }
-                    >
-                      নামজারি হয়েছে
-                    </span>
+                    <span className="min-w-0">নামজারি হয়েছে</span>
                   </label>
 
                   <label
-                    className="flex items-center gap-2 text-xs font-semibold cursor-pointer select-none px-2 py-1 rounded-full border border-gray-300 dark:border-gray-600 transition print-hide"
+                    className={`inline-flex w-fit max-w-full min-w-0 cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-full border px-2 py-1 text-xs font-semibold transition print-hide ${
+                      owner.deceased
+                        ? "border-violet-500 bg-violet-50 text-violet-800 dark:border-violet-500/70 dark:bg-violet-950/30 dark:text-violet-300"
+                        : "border-gray-300 bg-white/70 text-gray-700 dark:border-gray-600 dark:bg-gray-800/40 dark:text-gray-200"
+                    }`}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <input
@@ -391,19 +406,14 @@ export const OwnerForm = ({
                       checked={!!owner.deceased}
                       onChange={(e) => onOwnerChange(index, "deceased", e.target.checked)}
                       onClick={(e) => e.stopPropagation()}
-                      className="w-4 h-4 rounded accent-violet-600 cursor-pointer"
+                      className="h-4 w-4 shrink-0 cursor-pointer rounded accent-violet-600"
                     />
-                    <span
-                      className={
-                        owner.deceased ? "text-violet-700 dark:text-violet-400" : "text-gray-500 dark:text-gray-400"
-                      }
-                    >
-                      মৃত মালিক (ওয়ারিশ)
-                    </span>
+                    <span className="min-w-0">মৃত মালিক (ওয়ারিশ)</span>
                   </label>
+                </div>
+                <span className="shrink-0 self-end text-xs text-gray-500 dark:text-gray-400">
+                  ক্রম: {toBengaliNumber(index + 1)}
                 </span>
-                <span>মালিকানা: {toBengaliNumber((calculateShareRatio(owner) * 100).toFixed(2))}%</span>
-                <span className="text-xs text-gray-500 dark:text-gray-500">ক্রম: {toBengaliNumber(index + 1)}</span>
               </div>
               {/* ─── ওয়ারিশ এডিটর (মৃত মালিকের জন্য) ─── */}
               {owner.deceased && (
