@@ -1,6 +1,7 @@
-// src/lib/utils/imageExport.ts
+// src/lib/exports/imageExportDom.ts
 import html2canvas from "html2canvas";
 import { showToast } from "@/lib/utils/toast";
+import { prepareExportClone } from "./exportStyles";
 
 const targetElementId = "printable-area";
 
@@ -17,7 +18,6 @@ async function generateCanvas(): Promise<HTMLCanvasElement> {
   // Detect if mobile
   const isMobile = window.innerWidth < 768;
   const exportWidth = isMobile ? 800 : 1000; // Wider on desktop
-  const scale = isMobile ? 2 : 3; // Lower scale on mobile for performance
 
   const clone = element.cloneNode(true) as HTMLElement;
   clone.style.position = "absolute";
@@ -25,37 +25,24 @@ async function generateCanvas(): Promise<HTMLCanvasElement> {
   clone.style.top = "0";
   clone.style.width = `${exportWidth}px`;
   clone.style.minWidth = `${exportWidth}px`;
+  clone.style.boxSizing = "border-box";
+  prepareExportClone(clone);
 
   document.body.appendChild(clone);
 
-  // Apply styles
-  const tables = clone.querySelectorAll("table");
-  tables.forEach((table: Element) => {
-    const htmlTable = table as HTMLElement;
-    htmlTable.style.borderCollapse = "collapse";
-    htmlTable.style.width = "100%";
-    htmlTable.style.fontSize = isMobile ? "12px" : "14px";
-  });
-
-  const cells = clone.querySelectorAll("td, th");
-  cells.forEach((cell: Element) => {
-    const htmlCell = cell as HTMLElement;
-    htmlCell.style.verticalAlign = "middle";
-    htmlCell.style.padding = isMobile ? "6px" : "8px";
-    htmlCell.style.wordWrap = "break-word";
+  clone.querySelectorAll<HTMLElement>("table").forEach((table) => {
+    table.style.fontSize = isMobile ? "12px" : "14px";
   });
 
   try {
+    await document.fonts.ready;
     const canvas = await html2canvas(clone, {
-      scale: scale,
+      scale: 2,
       width: exportWidth,
       useCORS: true,
       allowTaint: true,
       backgroundColor: "#ffffff",
       logging: false,
-      ignoreElements: (node) => {
-        return node.id === "export-controls";
-      },
     });
 
     document.body.removeChild(clone);
@@ -72,7 +59,7 @@ async function generateCanvas(): Promise<HTMLCanvasElement> {
  * Downloads the content as an image (PNG or JPEG).
  * @param {string} format 'image/png' or 'image/jpeg'
  */
-export async function downloadImage(format: "png" | "jpeg"): Promise<void> {
+export async function downloadImage(format: "png" | "jpeg", fileName: string = "Khatiyan-Result"): Promise<void> {
   const mimeType = format === "png" ? "image/png" : "image/jpeg";
   const extension = format === "png" ? "png" : "jpg";
 
@@ -82,7 +69,7 @@ export async function downloadImage(format: "png" | "jpeg"): Promise<void> {
 
     const a = document.createElement("a");
     a.href = imageURL;
-    a.download = `khatiyan-result-${Date.now()}.${extension}`;
+    a.download = `${fileName}.${extension}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
