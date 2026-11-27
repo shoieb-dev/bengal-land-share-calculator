@@ -8,10 +8,9 @@ import { showToast } from "@/lib/utils/toast";
 import { normalizeShares, ratioToAnaGonda } from "@/lib/utils/validation";
 import { computeHeirShares, HEIR_RELATION_LABELS } from "@/lib/utils/heirShare";
 import { formatGongShare } from "@/lib/utils/gongDisplay";
-// import { generatePDFSimple } from "@/lib/utils/pdfExportSimple";
 import { downloadPDF } from "@/lib/exports/pdfExport";
-import { BarChart3, Copy, Download, FileDown, Image, Printer } from "lucide-react";
-import { Fragment, useMemo, useState } from "react";
+import { BarChart3, ChevronDown, Copy, Download, FileImage, FileText, Image, Printer } from "lucide-react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { ResultCharts } from "./ResultCharts";
 
 interface ResultTableProps {
@@ -23,6 +22,12 @@ interface ResultTableProps {
   calculateShareRatio: (owner: Owner) => number;
 }
 
+const DOWNLOAD_OPTIONS = [
+  { format: "pdf", label: "PDF", detail: ".pdf · Document", Icon: FileText, color: "text-red-600" },
+  { format: "png", label: "PNG", detail: ".png · High-res", Icon: Image, color: "text-blue-600" },
+  { format: "jpg", label: "JPG", detail: ".jpg · Compact", Icon: FileImage, color: "text-violet-600" },
+] as const;
+
 export const ResultTable = ({
   header,
   dags,
@@ -32,8 +37,11 @@ export const ResultTable = ({
   calculateShareRatio,
 }: ResultTableProps) => {
   const [isExporting, setIsExporting] = useState(false);
+  const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
   const [showZeroLandRows, setShowZeroLandRows] = useState(false);
+  const downloadMenuRef = useRef<HTMLDivElement>(null);
+  const downloadTriggerRef = useRef<HTMLButtonElement>(null);
   const [visibleOwnerColumns, setVisibleOwnerColumns] = useState({
     percentage: false,
     thousandth: false,
@@ -51,6 +59,36 @@ export const ResultTable = ({
     [dags],
   );
   const totalDagLand = useMemo(() => dags.reduce((sum, dag) => sum + dag.land, 0), [dags]);
+  const exportFileName = useMemo(() => {
+    const parts = [header?.khatiyanNo, header?.mouja]
+      .map((value) => value?.trim())
+      .filter((value): value is string => Boolean(value));
+    const name = parts.length > 0 ? `Khatiyan-${parts.join("-")}` : "Khatiyan-Result";
+    return name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-").replace(/\s+/g, "-");
+  }, [header?.khatiyanNo, header?.mouja]);
+
+  useEffect(() => {
+    if (!isDownloadMenuOpen) return;
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsDownloadMenuOpen(false);
+        downloadTriggerRef.current?.focus();
+      }
+    };
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (downloadMenuRef.current && !downloadMenuRef.current.contains(event.target as Node)) {
+        setIsDownloadMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => {
+      window.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("pointerdown", closeOnOutsideClick);
+    };
+  }, [isDownloadMenuOpen]);
 
   // ─── Mutation: দ্বৈত মডেল ───
   // • কার্যকর হিস্যা (শতকরা/সহস্রাংশ): originalShare / totalActiveShare → যোগফল ১০০%
@@ -91,6 +129,17 @@ export const ResultTable = ({
     } finally {
       setIsExporting(false);
     }
+  };
+
+  const handleDownload = (format: "pdf" | "png" | "jpg") => {
+    setIsDownloadMenuOpen(false);
+    void handleExport(
+      () =>
+        format === "pdf"
+          ? downloadPDF(exportFileName)
+          : downloadImage(format === "png" ? "png" : "jpeg", exportFileName),
+      "",
+    );
   };
 
   // --- Reusable Sub-component for Land Measurement Columns ---
@@ -197,7 +246,7 @@ export const ResultTable = ({
 
             {/* Header Section (from Section 1) */}
             <div className="text-sm md:text-base mb-6 space-y-2 border-b border-[#4b5563] pb-4">
-              <div className="grid grid-cols-3 gap-x-2">
+              <div className="grid grid-cols-3 gap-x-2" data-export-grid>
                 <div className="min-w-0 w-fit max-w-full justify-self-left space-y-2 text-left">
                   <div>
                     <span className="font-semibold">জিলাঃ</span> {header.district}
@@ -230,7 +279,10 @@ export const ResultTable = ({
                 </p>
               )}
               {header.remarks?.trim() && (
-                <p className="whitespace-pre-wrap break-words rounded border border-gray-300 px-1 py-0.5">
+                <p
+                  className="whitespace-pre-wrap break-words rounded border border-gray-300 px-1 py-0.5"
+                  data-export-comment
+                >
                   <span className="font-semibold">মন্তব্যঃ</span> {header.remarks.trim()}
                 </p>
               )}
@@ -690,44 +742,54 @@ export const ResultTable = ({
           <Printer size={20} /> প্রিন্ট করুন
         </button>
 
-        <button
-          onClick={() =>
-            handleExport(
-              () =>
-                downloadPDF(
-                  `${header?.surveyType || "বি এস"} খতিয়ান ${toBengaliNumber(header?.khatiyanNo || Date.now())} হিসাব`,
-                ),
-              "",
-            )
-          }
-          disabled={isExporting}
-          className="bg-[#dc2626] text-[#fff] px-6 py-3 rounded-lg hover:bg-[#991b1b] transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto disabled:opacity-50"
-        >
-          <FileDown size={20} /> {isExporting ? "তৈরি হচ্ছে..." : "PDF ডাউনলোড"}
-        </button>
+        <div ref={downloadMenuRef} className="relative w-full sm:w-auto">
+          <button
+            ref={downloadTriggerRef}
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={isDownloadMenuOpen}
+            aria-controls="result-download-menu"
+            disabled={isExporting}
+            onClick={() => setIsDownloadMenuOpen((open) => !open)}
+            className="bg-[#2563eb] text-white px-6 py-3 rounded-lg hover:bg-[#173eab] transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto disabled:opacity-50"
+          >
+            <Download size={20} />
+            {isExporting ? "ডাউনলোড হচ্ছে..." : "ডাউনলোড"}
+            {!isExporting && (
+              <ChevronDown
+                size={16}
+                className={`transition-transform ${isDownloadMenuOpen ? "rotate-180" : ""}`}
+              />
+            )}
+          </button>
 
-        {/*  <button
-          onClick={() => generatePDFSimple("KH-2024-001")}
-          className="bg-[#ee4a4a] text-white px-6 py-3 rounded-lg hover:bg-[#ad1f1f] transition shadow-lg flex items-center justify-center gap-2 w-full md:w-auto"
-        >
-          <FileDown size={20} /> PDF ডাউনলোড করুন
-        </button> */}
-
-        <button
-          onClick={() => downloadImage("png")}
-          disabled={isExporting}
-          className="bg-[#2563eb] text-white px-6 py-3 rounded-lg hover:bg-[#173eab] transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto disabled:opacity-50"
-        >
-          <Image size={20} /> {isExporting ? "এক্সপোর্ট হচ্ছে..." : "PNG ডাউনলোড"}
-        </button>
-
-        <button
-          onClick={() => downloadImage("jpeg")}
-          disabled={isExporting}
-          className="bg-[#8b5cf6] text-white px-6 py-3 rounded-lg hover:bg-[#6945bf] transition shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto disabled:opacity-50"
-        >
-          <Download size={20} /> {isExporting ? "এক্সপোর্ট হচ্ছে..." : "JPG ডাউনলোড"}
-        </button>
+          {isDownloadMenuOpen && !isExporting && (
+            <div
+              id="result-download-menu"
+              role="menu"
+              aria-label="ডাউনলোড ফরম্যাট"
+              className="absolute bottom-full right-0 z-50 mb-2 w-64 rounded-xl border border-slate-200 bg-white p-2 text-slate-900 shadow-xl"
+            >
+              {DOWNLOAD_OPTIONS.map(({ format, label, detail, Icon, color }) => (
+                <button
+                  key={format}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => handleDownload(format)}
+                  className="group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                >
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 ${color}`}>
+                    <Icon size={18} />
+                  </span>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="font-semibold leading-tight">{label}</span>
+                    <span className="text-xs text-slate-500">{detail}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <button
           onClick={() => copyImageToClipboard()}
