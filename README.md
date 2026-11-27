@@ -37,8 +37,8 @@ It helps convert **Ana, Gonda, Kora, Kranti, and Til** units into **decimal (শ
 - 🆕 EntryList & EntryRow — list + add/edit of saved khatiyan records
 
 ### 📤 Export & Sharing
-- 📄 Printable & exportable result table / PDF (`PDFOptionsModal`, `pdfExport.ts`, `pdfExportSimple.ts`)
-- 🖼️ PNG image export (`imageExportDom.ts`)
+- 📄 Printable & exportable result table / PDF (`pdfExport.ts`)
+- 🖼️ PNG image export (`imageExportDom.ts`, `exportStyles.ts`)
 - 🔗 Shareable khatiyan records across the application
 
 ### 📱 UI / Device
