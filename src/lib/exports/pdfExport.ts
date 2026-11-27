@@ -3,6 +3,7 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 import { showToast } from "@/lib/utils/toast";
+import { prepareExportClone } from "./exportStyles";
 
 const targetElementId = "printable-area";
 
@@ -25,25 +26,19 @@ function toRGB(color: string): string {
   }
 }
 
-/**
- * Walks every element in the subtree and bakes its resolved computed
- * color (background, text, border) into an inline style as plain rgb(),
- * overriding any oklch()/lab() values coming from Tailwind v4 classes.
- * Also strips gradients/box-shadows, which can carry the same unsupported
- * color functions.
- */
+/** Applies the clean export palette and removes unsupported background effects. */
 function flattenColors(root: HTMLElement) {
   const elements = [root, ...Array.from(root.querySelectorAll<HTMLElement>("*"))];
 
   elements.forEach((el) => {
     const computed = window.getComputedStyle(el);
 
-    el.style.backgroundColor = toRGB(computed.backgroundColor);
-    el.style.color = toRGB(computed.color);
-    el.style.borderTopColor = toRGB(computed.borderTopColor);
-    el.style.borderRightColor = toRGB(computed.borderRightColor);
-    el.style.borderBottomColor = toRGB(computed.borderBottomColor);
-    el.style.borderLeftColor = toRGB(computed.borderLeftColor);
+    el.style.backgroundColor = "#ffffff";
+    el.style.color = "#0f172a";
+    el.style.opacity = "1";
+    if (el.tagName === "TABLE" || el.tagName === "TH" || el.tagName === "TD") {
+      el.style.border = "1px solid #cbd5e1";
+    }
     el.style.outlineColor = toRGB(computed.outlineColor);
 
     // Gradients and shadows can also embed oklch()/lab() stops/colors
@@ -52,13 +47,16 @@ function flattenColors(root: HTMLElement) {
     }
     el.style.boxShadow = "none";
 
-    // html2canvas doesn't reliably replicate the browser's implicit default
-    // of vertically centering <td>/<th> content, since it re-implements
-    // table layout in JS rather than using the browser's real table engine.
-    // Baking the resolved value in explicitly avoids it falling back to top.
     if (el.tagName === "TD" || el.tagName === "TH") {
-      el.style.verticalAlign =
-        computed.verticalAlign && computed.verticalAlign !== "baseline" ? computed.verticalAlign : "middle";
+      el.style.verticalAlign = "middle";
+      el.style.paddingTop = "5px";
+      el.style.paddingBottom = "5px";
+      el.style.lineHeight = "1.4";
+    }
+
+    if (el.hasAttribute("data-export-comment")) {
+      el.style.padding = "4px 8px";
+      el.style.lineHeight = "1.4";
     }
   });
 }
@@ -286,10 +284,8 @@ export async function downloadPDF(fileName: string = `Khatian_${Date.now()}`): P
   measureRoot.style.top = "0";
   measureRoot.style.width = `${exportWidth}px`;
   measureRoot.style.minWidth = `${exportWidth}px`;
-  measureRoot.style.background = "#ffffff";
-  measureRoot.style.color = "#000000";
-
-  measureRoot.querySelectorAll("#export-controls, button").forEach((el) => el.remove());
+  measureRoot.style.boxSizing = "border-box";
+  prepareExportClone(measureRoot);
   document.body.appendChild(measureRoot);
 
   const pageRoots: HTMLElement[] = [];
