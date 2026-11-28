@@ -13,6 +13,7 @@ import {
 } from "@/lib/utils/presets";
 import { showToast } from "@/lib/utils/toast";
 import { Download, FileText, Plus, Save, Search, Settings2, Trash2, Upload, Users, X } from "lucide-react";
+import { toBengaliNumber } from "@/lib/conversions/numberConversion";
 
 const PRESETS_UPDATED_EVENT = "khatiyan-presets-updated";
 const controlClass =
@@ -106,9 +107,9 @@ export default function OwnerPresetControls({ owners }: { owners: Owner[] }) {
         const result = importPresetBackup(String(reader.result ?? ""));
         broadcastPresetsUpdated();
         const parts = [
-          result.imported > 0 ? `${result.imported}টি নতুন প্রিসেট ইমপোর্ট হয়েছে` : "",
-          result.updated > 0 ? `${result.updated}টি প্রিসেট আপডেট হয়েছে` : "",
-          result.skipped > 0 ? `${result.skipped}টি অবৈধ আইটেম বাদ পড়েছে` : "",
+          result.imported > 0 ? `${toBengaliNumber(result.imported)}টি নতুন প্রিসেট ইমপোর্ট হয়েছে` : "",
+          result.updated > 0 ? `${toBengaliNumber(result.updated)}টি প্রিসেট আপডেট হয়েছে` : "",
+          result.skipped > 0 ? `${toBengaliNumber(result.skipped)}টি অবৈধ আইটেম বাদ পড়েছে` : "",
         ].filter(Boolean);
         if (result.imported === 0 && result.updated === 0) {
           showToast(
