@@ -1,8 +1,10 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Heir, HeirRelation, Owner } from "@/lib/types";
 import { anaOptions, gondaOptions, koraOptions, krantiOptions, tilOptions } from "@/lib/constants/options";
 import {
   HeirTemplate,
+  exportPresetBackup,
+  importPresetBackup,
   loadHeirTemplates,
   loadOwnerPresets,
   OwnerPreset,
@@ -10,7 +12,7 @@ import {
   saveOwnerPresets,
 } from "@/lib/utils/presets";
 import { showToast } from "@/lib/utils/toast";
-import { FileText, Plus, Save, Search, Settings2, Trash2, Users, X } from "lucide-react";
+import { Download, FileText, Plus, Save, Search, Settings2, Trash2, Upload, Users, X } from "lucide-react";
 
 const PRESETS_UPDATED_EVENT = "khatiyan-presets-updated";
 const controlClass =
@@ -71,6 +73,61 @@ export default function OwnerPresetControls({ owners }: { owners: Owner[] }) {
   const [showModal, setShowModal] = useState(false);
   const [activeTab, setActiveTab] = useState<"owners" | "heirs">("owners");
   const [searchTerm, setSearchTerm] = useState("");
+  const presetFileRef = useRef<HTMLInputElement>(null);
+
+  const handlePresetBackup = () => {
+    try {
+      const blob = new Blob([exportPresetBackup()], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `preset-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showToast("প্রিসেট ব্যাকআপ ডাউনলোড হয়েছে।", "success");
+    } catch (error) {
+      console.error("Error exporting preset backup:", error);
+      showToast("প্রিসেট ব্যাকআপ তৈরি করা যায়নি।", "error");
+    }
+  };
+
+  const handlePresetImport = (file: File | undefined) => {
+    if (!file) return;
+    if (!file.name.toLocaleLowerCase().endsWith(".json") && file.type !== "application/json") {
+      showToast("সঠিক .json ফাইল নির্বাচন করুন।", "error");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const result = importPresetBackup(String(reader.result ?? ""));
+        broadcastPresetsUpdated();
+        const parts = [
+          result.imported > 0 ? `${result.imported}টি নতুন প্রিসেট ইমপোর্ট হয়েছে` : "",
+          result.updated > 0 ? `${result.updated}টি প্রিসেট আপডেট হয়েছে` : "",
+          result.skipped > 0 ? `${result.skipped}টি অবৈধ আইটেম বাদ পড়েছে` : "",
+        ].filter(Boolean);
+        if (result.imported === 0 && result.updated === 0) {
+          showToast(
+            result.skipped > 0
+              ? "কোনো বৈধ প্রিসেট পাওয়া যায়নি। অবৈধ আইটেম ইমপোর্ট করা হয়নি।"
+              : "ইমপোর্ট করার মতো কোনো প্রিসেট নেই।",
+            "error",
+          );
+        } else {
+          showToast(`${parts.join(", ")}।`, "success");
+        }
+      } catch (error) {
+        console.error("Error importing preset backup:", error);
+        showToast("ফাইলটি পড়া যায়নি বা সঠিক প্রিসেট ব্যাকআপ নয়।", "error");
+      }
+    };
+    reader.onerror = () => showToast("ফাইলটি পড়া যায়নি। আবার চেষ্টা করুন।", "error");
+    reader.readAsText(file);
+  };
 
   useEffect(() => {
     if (!showModal) return;
@@ -113,14 +170,40 @@ export default function OwnerPresetControls({ owners }: { owners: Owner[] }) {
                   মালিক টেমপ্লেট ও ওয়ারিশ টেমপ্লেট পরিচালনা করুন
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                aria-label="প্রিসেট সেটিংস বন্ধ করুন"
-                className="rounded p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handlePresetBackup}
+                  className="flex items-center gap-1.5 rounded bg-blue-600 px-3 py-2 text-sm text-white transition hover:bg-blue-700"
+                >
+                  <Download size={16} /> ব্যাকআপ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => presetFileRef.current?.click()}
+                  className="flex items-center gap-1.5 rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                >
+                  <Upload size={16} /> ইমপোর্ট
+                </button>
+                <input
+                  ref={presetFileRef}
+                  type="file"
+                  accept="application/json,.json"
+                  className="hidden"
+                  onChange={(event) => {
+                    handlePresetImport(event.target.files?.[0]);
+                    event.target.value = "";
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  aria-label="প্রিসেট সেটিংস বন্ধ করুন"
+                  className="rounded p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </header>
 
             <div className="space-y-4 overflow-y-auto p-4">
