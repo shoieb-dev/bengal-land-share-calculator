@@ -3,6 +3,7 @@ import { useMemo, useRef, useState } from "react";
 import { Archive, Download, Search, Upload, X } from "lucide-react";
 import { SavedKhatiyanEntry } from "@/lib/utils/khatiyanLibrary";
 import { toBengaliNumber as toBn } from "@/lib/conversions/numberConversion";
+import { showToast } from "@/lib/utils/toast";
 import EntryList from "./EntryList";
 
 export interface SavedKhatiyansModalProps {
@@ -42,14 +43,19 @@ export default function SavedKhatiyansModal(props: SavedKhatiyansModalProps) {
     reader.onload = () => {
       try {
         const { imported, skipped } = onImport(String(reader.result ?? ""));
-        alert(
+        const message =
           skipped > 0
             ? `${toBn(String(imported))}টি খতিয়ান ইমপোর্ট হয়েছে, ${toBn(String(skipped))}টি বাদ পড়েছে`
-            : `${toBn(String(imported))}টি খতিয়ান ইমপোর্ট হয়েছে`,
-        );
-      } catch {
-        alert("ফাইলটি পড়া যায়নি — সঠিক JSON ফাইল দিন");
+            : `${toBn(String(imported))}টি খতিয়ান ইমপোর্ট হয়েছে`;
+        showToast(message, skipped > 0 ? (imported > 0 ? "info" : "error") : "success");
+      } catch (error) {
+        console.error("Error importing khatiyan backup:", error);
+        showToast("ফাইলটি পড়া যায়নি — সঠিক JSON ফাইল দিন", "error");
       }
+    };
+    reader.onerror = () => {
+      console.error("Error reading khatiyan backup:", reader.error);
+      showToast("ফাইলটি পড়া যায়নি — সঠিক JSON ফাইল দিন", "error");
     };
     reader.readAsText(file);
   };
